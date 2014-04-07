@@ -1,0 +1,24 @@
+================================================================================
+A statistical approach for inferring the 3d structure of the Genome
+================================================================================
+
+"A statistical approach for inferring the three-dimensional structure of the
+genome" N. Varoquaux, F. Ay, W. S. Noble and J.-P. Vert
+
+
+COMPILATION
+===============================================================================
+
+1) First install IPOPT: https://projects.coin-or.org/Ipopt
+IPOPT can be installed anywhere, you will have to tell "3dmodel" where IPOPT is.
+2) The "3dmodel" directory can be anywhere you like. 
+3) You have to edit the file Makefile, and set the following 3 variables at the
+top: IPOPTPATH, IPOPTINCDIR, IPOPTLIBDIR.
+4) Type make. 
+
+
+RUNNING
+===============================================================================
+Run:
+./genome_ipopt_main
+without any arguments to get a help message. 

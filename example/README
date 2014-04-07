@@ -1,0 +1,9 @@
+To run the example,
+
+- Edit the config.ini, and update the path to the binaries.
+- Type::
+
+  pastis-mds .
+  pastis-pm1 .
+  pastis-nmds .
+  pastis-pm2 .
