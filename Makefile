@@ -14,8 +14,9 @@ trailing-spaces:
 
 clean:
 	rm -rf build
-	rm example/*PM*
-	rm example/*MDS*
+	rm -rf sdist
+	rm -rf example/*PM*
+	rm -rf example/*MDS*
 
 in: inplace # just a shortcut
 inplace:
