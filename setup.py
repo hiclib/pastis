@@ -64,4 +64,5 @@ if __name__ == "__main__":
               'Operating System :: POSIX',
               'Operating System :: Unix',
               'Operating System :: MacOS'],
+          install_requires=["numpy", "scipy", "scikit-learn", "argparse"],
           cmdclass={'clean': CleanCommand})
