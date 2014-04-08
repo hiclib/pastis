@@ -1,11 +1,31 @@
 import os
+import shutil
 from numpy.distutils.core import setup
+from distutils.command.clean import clean as Clean
+
 
 DISTNAME = 'pastis'
-DESCRIPTION = ''
+DESCRIPTION = 'A set of algorithms for the 3D inference of the genome'
 MAINTAINER = 'Nelle Varoquaux'
 MAINTAINER_EMAIL = 'nelle.varoquaux@ensmp.fr'
 VERSION = '0.0'
+LICENSE = "New BSD"
+
+
+class CleanCommand(Clean):
+    description = ("Remove build directories, and compiled file in the "
+                   "source tree")
+
+    def run(self):
+        Clean.run(self)
+        if os.path.exists('build'):
+            shutil.rmtree('build')
+        for dirpath, dirnames, filenames in os.walk('pastis'):
+            for filename in filenames:
+                if (filename.endswith('.so') or filename.endswith('.pyd')
+                   or filename.endswith('.dll')
+                   or filename.endswith('.pyc')):
+                    os.unlink(os.path.join(dirpath, filename))
 
 
 def configuration(parent_package='', top_path=None):
@@ -43,6 +63,5 @@ if __name__ == "__main__":
               'Topic :: Scientific/Engineering',
               'Operating System :: POSIX',
               'Operating System :: Unix',
-              'Operating System :: MacOS'
-             ]
-    )
+              'Operating System :: MacOS'],
+          cmdclass={'clean': CleanCommand})
