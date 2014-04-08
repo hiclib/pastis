@@ -1,4 +1,12 @@
 *.pyc
 *.swp
+*.pyd
+*~
+.#*
+*.lprof
+*.swo
 build
 sdist
+dist
+MANIFEST
+.coverage
