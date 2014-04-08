@@ -30,6 +30,10 @@ To install in your home directory, use::
 
     python setup.py install --user
 
+or using pip::
+
+    pip install --user pastis
+
 To install for all users on Unix/Linux::
 
     python setup.py build

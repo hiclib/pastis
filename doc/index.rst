@@ -19,7 +19,7 @@ a genome: MDS, NMDS, PM1, PM2.
 Download
 ========
 
-Download Pastis 1.0 `here <.>`_
+Download Pastis 1.0 `here <https://github.com/hiclib/pastis/releases>`_
 
 References
 ==========
@@ -33,4 +33,5 @@ Contacts
 ========
 
 If you have any questions or suggestions, please email nelle dot varoquaux at
-ensmp dot fr.
+ensmp dot fr, or open a ticket on `Github
+<https://github.com/hiclib/pastis/issues>`_
