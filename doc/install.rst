@@ -5,6 +5,8 @@ Installation
 This software is composed of two parts: a python package ``pastis``, and two
 C++ programs, ``MDS_all``, ``PM_all``, based on the work of `Duan and others
 <http://noble.gs.washington.edu/proj/yeast-architecture/>`_.
+The installation is in two steps: first the python module ``pastis``, then the
+two programs ``MDS_all`` and ``PM_all``.
 
 pastis
 =====
@@ -34,10 +36,20 @@ or using pip::
 
     pip install --user pastis
 
+.. note::
+
+   You may have to create the folder .local/bin manually in your home
+   directory, in order for the four programs ``pastis-mds``, ``pastis-nmds``,
+   ``pastis-pm1``, ``pastis-pm2`` to be installed properly.
+
 To install for all users on Unix/Linux::
 
     python setup.py build
     sudo python setup.py install
+
+or using pip::
+
+  pip install pastis
 
 This will install a python package ``pastis``, and four programs ``pastis-mds``,
 ``pastis-nmds``, ``pastis-pm1`` and ``pastis-pm2``. Calling any of those four

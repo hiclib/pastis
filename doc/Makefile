@@ -180,4 +180,4 @@ pseudoxml:
 
 
 deploy:
-	rsync -avz _build/html/ nvaroquaux@cbio.ensmp.fr:public_html/paris/
+	rsync -avz _build/html/ nvaroquaux@cbio.ensmp.fr:public_html/pastis/

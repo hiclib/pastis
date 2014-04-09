@@ -5,6 +5,7 @@ Documentation
 .. toctree::
    :maxdepth: 2
 
+   auto_examples/index
    modules/classes.rst
 
 
@@ -65,3 +66,4 @@ specified in a text file, one chromosomes length per base pair. See
 Then, create the configuration file, specifying the resolution on which to run
 the algorithm: the resolution of the interaction counts matrix, the
 chromosomes lengths and the **resolution** should be coherent.
+

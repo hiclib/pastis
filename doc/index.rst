@@ -10,24 +10,45 @@ PASTIS: Poisson-based Algorithm for STable Inference of DNA Structure
 .. figure:: images/yeast_chr2.png
    :scale: 50%
 
-Pastis contains several algorithms to infer a consensus three-dimensional
-structure of a genome from Hi-C data.
+Recent technological advances allow the measurement, in a single Hi-C
+experiment, of the frequencies of physical contacts among pairs of genomic
+loci at a genome-wide scale. The next challenge is to infer, from the
+resulting DNA-DNA contact maps, accurate three dimensional models of how
+chromosomes fold and fit into the nucleus. Many existing inference methods
+rely upon multidimensional scaling (MDS), in which the pairwise distances of
+the inferred model are optimized to resemble pairwise distances derived
+directly from the contact counts. These approaches, however, often optimize a
+heuristic objective function and require strong assumptions about the
+biophysics of DNA to transform interaction frequencies to spatial distance,
+and thereby may lead to incorrect structure reconstruction.
 
-The package contains four methods to infer the three dimensional methods of
-a genome: MDS, NMDS, PM1, PM2.
+In pastis, we propose a novel approach to infer a consensus three-
+dimensional structure of a genome from Hi-C data. The method incorporates a
+statistical model of the contact counts, assuming that the counts between two
+loci follow a Poisson distribution whose intensity decreases with the physical
+distances between the loci. The method can automatically adjust the transfer
+function relating the spatial distance to the Poisson intensity and infer a
+genome structure that best explains the observed data.
+
+The package pastis contains four methods to infer the three dimensional
+methods of a genome from Hi-C data: MDS, NMDS, PM1, PM2. MDS and NMDS are
+algorithms from the multidimensional scaling family, while PM1 and PM2 are
+novel approaches, derived from a statistical modeling of the interaction
+counts and the physical distances.
 
 Download
 ========
 
-Download Pastis 1.0 `here <https://github.com/hiclib/pastis/releases>`_
+Download Pastis 0.0 `here
+<https://github.com/hiclib/pastis/archive/v0.0.0.tar.gz>`_
+or `fork the code on github <https://github.com/hiclib/pastis/>`_.
 
 References
 ==========
 
-**"A statistical approach for inferring the three-dimensional structure of the
-genome"** N. Varoquaux, F. Ay, W. S. Noble and J.-P. Vert, Technical report
-HAL-00937182, January 2014 `[link]
-<http://hal-ensmp.archives-ouvertes.fr/hal-00937182>`_
+`A statistical approach for inferring the three-dimensional structure of the
+genome <http://hal-ensmp.archives-ouvertes.fr/hal-00937182>`_ N. Varoquaux, F.
+Ay, W. S. Noble and J.-P. Vert, Technical report HAL-00937182, January 2014.
 
 Contacts
 ========
