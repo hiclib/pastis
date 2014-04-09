@@ -8,8 +8,10 @@ DISTNAME = 'pastis'
 DESCRIPTION = 'A set of algorithms for the 3D inference of the genome'
 MAINTAINER = 'Nelle Varoquaux'
 MAINTAINER_EMAIL = 'nelle.varoquaux@ensmp.fr'
-VERSION = '0.0'
+VERSION = '0.1-git'
 LICENSE = "New BSD"
+URL = 'http://cbio.ensmp.fr/pastis'
+DOWNLOAD_URL = 'https://github.com/hiclib/pastis/releases'
 
 
 class CleanCommand(Clean):
@@ -48,6 +50,8 @@ if __name__ == "__main__":
           maintainer_email=MAINTAINER_EMAIL,
           description=DESCRIPTION,
           version=VERSION,
+          url=URL,
+          download_url=DOWNLOAD_URL,
           zip_safe=False,  # the package can run out of an .egg file
           scripts=["pastis/script/pastis-mds",
                    'pastis/script/pastis-nmds', "pastis/script/pastis-pm1",

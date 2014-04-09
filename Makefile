@@ -15,6 +15,7 @@ trailing-spaces:
 clean:
 	rm -rf build
 	rm -rf sdist
+	rm -rf dist
 	rm -rf example/*PM*
 	rm -rf example/*MDS*
 
