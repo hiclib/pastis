@@ -36,12 +36,6 @@ or using pip::
 
     pip install --user pastis
 
-.. note::
-
-   You may have to create the folder .local/bin manually in your home
-   directory, in order for the four programs ``pastis-mds``, ``pastis-nmds``,
-   ``pastis-pm1``, ``pastis-pm2`` to be installed properly.
-
 To install for all users on Unix/Linux::
 
     python setup.py build

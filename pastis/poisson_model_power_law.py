@@ -346,7 +346,12 @@ def estimate_alpha_beta(counts, X, ini=None, verbose=0,
             print "Initial values not provided"
         ini = np.random.randint(1, 100, size=(1, )) + \
               np.random.random(size=(1, ))
-    x, _, _, _, _ = nlp.solve(ini, (m, n, counts, X, use_empty_entries))
+    results = nlp.solve(ini, (m, n, counts, X, use_empty_entries))
+    try:
+        x, _, _, _, _ = results
+    except ValueError:
+        x, _, _, _, _, _ = results
+
 
     # Evaluate counts with new estimated model.
     d = euclidean_distances(X)
