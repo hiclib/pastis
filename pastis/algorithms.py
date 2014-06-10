@@ -267,7 +267,7 @@ def run_pm1(directory):
                     os.path.join(directory,
                                  'counts.txt'),
                     options["chromosomes"],
-                    -1 * options["alpha"],
+                    options["alpha"],
                     options["beta"],
                     os.path.join(directory,
                                  'PM1.log'))
