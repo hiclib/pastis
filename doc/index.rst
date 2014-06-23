@@ -40,7 +40,7 @@ Download
 ========
 
 Download Pastis 0.0 `here
-<https://github.com/hiclib/pastis/archive/v0.0.0.tar.gz>`_
+<https://github.com/hiclib/pastis/archive/v0.0.1.tar.gz>`_
 or `fork the code on github <https://github.com/hiclib/pastis/>`_.
 
 References

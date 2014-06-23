@@ -47,3 +47,6 @@ is.
 the
 top: IPOPTPATH, IPOPTINCDIR, IPOPTLIBDIR.
 4) Type make. 
+
+More information can be found on the project website:
+http://cbio.ensmp.fr/pastis
