@@ -1,0 +1,16 @@
+To reference Pastis in publication, please cite the following:
+
+
+@article{Varoquaux15062014,
+  author = {Varoquaux, Nelle and Ay, Ferhat and Noble, William Stafford and
+	    Vert, Jean-Philippe}, 
+  title = {A statistical approach for inferring the 3D structure of the genome},
+  volume = {30}, 
+  number = {12}, 
+  pages = {i26-i33}, 
+  year = {2014}, 
+  doi = {10.1093/bioinformatics/btu268}, 
+  URL = {http://bioinformatics.oxfordjournals.org/content/30/12/i26.abstract}, 
+  journal = {Bioinformatics} 
+}
+

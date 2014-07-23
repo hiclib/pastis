@@ -46,9 +46,9 @@ or `fork the code on github <https://github.com/hiclib/pastis/>`_.
 References
 ==========
 
-`A statistical approach for inferring the three-dimensional structure of the
-genome <http://hal-ensmp.archives-ouvertes.fr/hal-00937182>`_ N. Varoquaux, F.
-Ay, W. S. Noble and J.-P. Vert, Technical report HAL-00937182, January 2014.
+`A statistical approach for inferring the 3D structure of the
+genome <http://bioinformatics.oxfordjournals.org/content/30/12/i26.short>`_ N. Varoquaux, F.
+Ay, W. S. Noble and J.-P. Vert, Bioinformatics 30 (12), i26-i33
 
 Contacts
 ========
