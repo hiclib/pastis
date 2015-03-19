@@ -3,7 +3,7 @@
 
 # CHANGEME: 
 # The following is the directory where IPOPT is installed
-IPOPTPATH = /home/nelle/.local
+IPOPTPATH = ${HOME}/.local
 # At UW, ARCH is a variable set in ~/.bashrc
 
 # IPOPT directory with header files
