@@ -19,7 +19,7 @@ def _check_squared_array(X):
 
     if X.shape[0] != X.shape[1]:
         raise ValueError(
-            "The ndarray is of shape (%d, %d). Squasev array is expected." %
+            "The ndarray is of shape (%d, %d). Squared array is expected." %
             (X.shape[0], X.shape[1]))
 
     return X
