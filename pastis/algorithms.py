@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import stat
 import subprocess
@@ -238,12 +239,16 @@ def run_pm1(directory):
 
     options = parse(config_file)
     run_mds(directory)
-    shutil.copy(
-        os.path.join(directory,
-                     "MDS." + options["output_name"] + ".txt"),
-        os.path.join(directory,
-                     'PM1.' + options["output_name"] +
-                     ".temp.txt"))
+    try:
+        shutil.copy(
+            os.path.join(directory,
+                         "MDS." + options["output_name"] + ".txt"),
+            os.path.join(directory,
+                         'PM1.' + options["output_name"] +
+                         ".temp.txt"))
+    except IOError:
+        print "MDS failed"
+        sys.exit(1)
 
     counts = np.load(os.path.join(directory, options["counts"]))
     lengths = np.loadtxt(
