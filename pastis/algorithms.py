@@ -137,8 +137,7 @@ def compute_wish_distances(counts, alpha=-3, beta=1):
         raise ValueError("beta cannot be equal to 0.")
     wish_distances = counts.copy() / beta
     wish_distances[wish_distances != 0] **= 1. / alpha
-    # FIXME this doesn't use beta
-    return beta * wish_distances
+    return wish_distances
 
 
 def run_nmds(directory):
