@@ -18,6 +18,7 @@ CMD_PM = ('%s -o %s -w 8 '
           '-r %d '
           '-k %s '
           '-i %s '
+          '-d %f '
           '-c %s -y 1 -a %f -b %f > %s')
 
 
@@ -25,6 +26,7 @@ CMD_MDS = ('%s -o %s -w 8 '
            '-r %d '
            '-k %s '
            '-i %s '
+           '-d %s '
            '-c %s -y 1 > %s')
 
 
@@ -76,6 +78,7 @@ def run_mds(directory):
                                   options["organism_structure"]),
                      os.path.join(directory,
                                   "wish_distances.txt"),
+                     options["adjacent_beads"],
                      options["chromosomes"],
                      os.path.join(directory,
                                   'MDS.log'))
@@ -217,6 +220,7 @@ def run_nmds(directory):
                                       options["organism_structure"]),
                          os.path.join(directory,
                                       "%d.NMDS.wish_distances.txt" % (i)),
+                         options["adjacent_beads"],
                          options["chromosomes"],
                          os.path.join(directory,
                                       str(i + 1) + '.NMDS.log'))
@@ -273,6 +277,7 @@ def run_pm1(directory):
                     os.path.join(directory, options["organism_structure"]),
                     os.path.join(directory,
                                  'counts.txt'),
+                    options["adjacent_beads"],
                     options["chromosomes"],
                     options["alpha"],
                     options["beta"],
@@ -362,6 +367,7 @@ def run_pm2(directory):
                                      options["organism_structure"]),
                         os.path.join(directory,
                                      'counts.txt'),
+                        options["adjacent_beads"],
                         options["chromosomes"],
                         alpha,
                         beta,

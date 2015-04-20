@@ -104,4 +104,12 @@ def parse(filename=None):
                 config.get("all", key))
         except ConfigParser.NoOptionError:
             pass
+
+    # Now process the options so that distances that are set to None are
+    # negative
+    if options["adjacent_beads"] is None:
+        options["adjacent_beads"] = -1
+    if options["nucleus_size"] is None:
+        options["nucleus_size"] = -1
+
     return options
