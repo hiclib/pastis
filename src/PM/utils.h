@@ -11,9 +11,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#ifndef linux
-#include <ieeefp.h>
-#endif
 
 #define SIZE_RDNA 9100
 #define NUM_RDNA_TO_ADD 148
