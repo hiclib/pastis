@@ -9,7 +9,7 @@ The installation is in two steps: first the python module ``pastis``, then the
 two programs ``MDS_all`` and ``PM_all``.
 
 pastis
-=====
+=======
 
 This package uses distutils, which is the default way of installing
 python modules.
