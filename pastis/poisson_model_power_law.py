@@ -95,7 +95,6 @@ def gradient_poisson_exp(X, counts, alpha, beta, use_empty_entries=True):
         mask = np.tri(m, dtype=np.bool) == False
     else:
         mask = (np.tri(m, dtype=np.bool) == False) & (counts != 0)
-
     beta = counts[mask].sum() / (d[mask] ** alpha).sum()
 
     grad_alpha = - beta * (d[mask] ** alpha * np.log(d[mask])).sum() \

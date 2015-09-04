@@ -40,12 +40,15 @@ installed ``MDS_all`` (respectively ``PM_all``).
 To run the code, simply call the program of your choice, and the repository
 containing the configuration file as argument. From the root of the
 repository, to run the MDS::
-  
+
   pastis-mds example
 
 A bunch of files, necessary for the optimization are written in the same
 folder as the optimization, including the results of the optimization:
-``mds.structure.pdb``.
+``mds.structure.pdb.txt`` and ``mds.structure.pdb``. The ``txt`` file
+contains a the flatten array of coordinates :math:`(x_1, y_1, z_1, x_2, y_2, \dots)`
+while the ``pdb`` contains a smoothed interpolation of the structure for
+visualization purposes.
 
 Running the algorithms on your own structure
 ============================================
