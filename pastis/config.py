@@ -2,11 +2,6 @@ import ConfigParser
 import os
 
 
-local = False
-binary_pm = "/cbio/donnees/nvaroquaux/nonmetric/bin/PM_budding_yeast"
-binary_mds = "/cbio/donnees/nvaroquaux/nonmetric/bin/MDS_budding_yeast"
-
-
 def get_default_options():
     """
     Returns default options
@@ -48,6 +43,15 @@ def get_default_options():
     beta : 1., float
         Scaling factor of the structure.
 
+    nucleus_size : float, optional, default: None
+        The size of the nucleus. If None, no constraints will be applied.
+        New in 0.1
+
+    adjacent_beads : float, optional, default: None
+        The distances between adjacent beads. If None, no constraints will be
+        applied.
+        New in 0.1
+
     seed : 0, integer
         Random seed used when generating the starting point in the
         optimization.
@@ -63,6 +67,8 @@ def get_default_options():
                "logging_file": "MDS.log",
                "binary_mds": "MDS_all",
                "binary_pm": "PM_all",
+               "nucleus_size": None,
+               "adjacent_beads": None,
                "seed": 0,
                }
 
@@ -98,4 +104,12 @@ def parse(filename=None):
                 config.get("all", key))
         except ConfigParser.NoOptionError:
             pass
+
+    # Now process the options so that distances that are set to None are
+    # negative
+    if options["adjacent_beads"] is None:
+        options["adjacent_beads"] = -1
+    if options["nucleus_size"] is None:
+        options["nucleus_size"] = -1
+
     return options
