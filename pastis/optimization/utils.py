@@ -43,7 +43,8 @@ def compute_wish_distances(counts, alpha=-3., beta=1., bias=None):
         if not sparse.isspmatrix_coo(counts):
             counts = counts.tocoo()
         if bias is not None:
-            counts /= bias[counts.row] * bias[counts.col]
+            bias = bias.flatten()
+            counts.data /= bias[counts.row] * bias[counts.col]
         wish_distances = counts / beta
         wish_distances.data[wish_distances.data != 0] **= 1. / alpha
         return wish_distances
