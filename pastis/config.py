@@ -43,15 +43,6 @@ def get_default_options():
     beta : 1., float
         Scaling factor of the structure.
 
-    nucleus_size : float, optional, default: None
-        The size of the nucleus. If None, no constraints will be applied.
-        New in 0.1
-
-    adjacent_beads : float, optional, default: None
-        The distances between adjacent beads. If None, no constraints will be
-        applied.
-        New in 0.1
-
     seed : 0, integer
         Random seed used when generating the starting point in the
         optimization.
@@ -69,6 +60,8 @@ def get_default_options():
                "binary_pm": "PM_all",
                "nucleus_size": None,
                "adjacent_beads": None,
+               "verbose": 1,
+               "max_iter": 10000,
                "seed": 0,
                }
 
