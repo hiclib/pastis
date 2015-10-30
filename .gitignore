@@ -2,6 +2,8 @@
 *.o
 *.swp
 *.pyd
+*.c
+*.so
 *~
 .#*
 *.lprof
