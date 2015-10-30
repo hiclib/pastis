@@ -17,7 +17,7 @@ class ConstantDispersion(object):
         return np.zeros(X.shape)
 
 
-def compute_wish_distances(counts, alpha=-3., beta=1.):
+def compute_wish_distances(counts, alpha=-3., beta=1., bias=None):
     """
     Computes wish distances from a counts matrix
 
@@ -36,11 +36,15 @@ def compute_wish_distances(counts, alpha=-3., beta=1.):
     -------
     wish_distances
     """
-
     if beta == 0:
         raise ValueError("beta cannot be equal to 0.")
+    counts = counts.copy()
     if sparse.issparse(counts):
-        wish_distances = counts.copy() / beta
+        if not sparse.isspmatrix_coo(counts):
+            counts = counts.tocoo()
+        if bias is not None:
+            counts /= bias[counts.row] * bias[counts.col]
+        wish_distances = counts / beta
         wish_distances.data[wish_distances.data != 0] **= 1. / alpha
         return wish_distances
     else:

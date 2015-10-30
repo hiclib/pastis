@@ -18,14 +18,15 @@ def load_counts(filename, lengths=None):
     X : the interaction counts file
     """
     n = None
-    if lengths is not None:
-        n = lengths.sum()
-        shape = (n, n)
-    else:
-        shape = None
     # This is the interaction count files
     dataframe = pd.read_csv(filename, sep="\t", header=None)
     row, col, data = dataframe.as_matrix().T
+    if lengths is not None:
+        n = lengths.sum()
+    else:
+        n = max(row.max(), col.max()) + 1
+    shape = (n, n)
+
     # XXX We need to deal with the fact that we should not duplicate entries
     # for the diagonal.
     # XXX what if n doesn't exist?
