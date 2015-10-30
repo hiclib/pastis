@@ -9,28 +9,12 @@ from sklearn.isotonic import IsotonicRegression
 
 from .config import parse
 from .optimization import MDS, PM1, PM2
-
+from . import fastio
 
 max_iter = 5
 
-CMD_PM = ('%s -o %s -w 8 '
-          '-r %d '
-          '-k %s '
-          '-i %s '
-          '-d %f '
-          '-c %s -y 1 -a %f -b %f > %s')
-
-
-CMD_MDS = ('%s -o %s -w 8 '
-           '-r %d '
-           '-k %s '
-           '-i %s '
-           '-d %s '
-           '-c %s -y 1 > %s')
-
 
 def run_mds(directory):
-
     if os.path.exists(os.path.join(directory,
                                    "config.ini")):
         config_file = os.path.join(directory, "config.ini")
@@ -42,8 +26,14 @@ def run_mds(directory):
     random_state = np.random.RandomState(seed=options["seed"])
 
     # First, compute MDS
-    counts = np.load(os.path.join(directory,
-                                  options["counts"]))
+    if options["counts"].endswith("npy"):
+        counts = np.load(os.path.join(directory, options["counts"]))
+    else:
+        options["counts"].endswith(".matrix")
+        counts = fastio.load_counts(os.path.join(directory, options["counts"]))
+        n = max(counts.shape[0], counts.shape[1])
+        counts = counts.reshape(n, n)
+
     mds = MDS(alpha=options["alpha"],
               beta=options["beta"],
               random_state=random_state,
@@ -60,7 +50,7 @@ def run_mds(directory):
 
 
 def run_nmds(directory):
-
+    raise NotImplementedError
     if os.path.exists(os.path.join(directory,
                                    "config.ini")):
         config_file = os.path.join(directory, "config.ini")
@@ -163,7 +153,14 @@ def run_pm1(directory):
     random_state = np.random.RandomState(seed=options["seed"])
 
     options = parse(config_file)
-    counts = np.load(os.path.join(directory, options["counts"]))
+    if options["counts"].endswith("npy"):
+        counts = np.load(os.path.join(directory, options["counts"]))
+    else:
+        options["counts"].endswith(".matrix")
+        counts = fastio.load_counts(os.path.join(directory, options["counts"]))
+        n = max(counts.shape[0], counts.shape[1])
+        counts = counts.reshape(n, n)
+
     pm1 = PM1(alpha=options["alpha"],
               beta=options["beta"],
               random_state=random_state,
@@ -191,7 +188,15 @@ def run_pm2(directory):
     random_state = np.random.RandomState(seed=options["seed"])
 
     options = parse(config_file)
-    counts = np.load(os.path.join(directory, options["counts"]))
+
+    if options["counts"].endswith("npy"):
+        counts = np.load(os.path.join(directory, options["counts"]))
+    else:
+        options["counts"].endswith(".matrix")
+        counts = fastio.load_counts(os.path.join(directory, options["counts"]))
+        n = max(counts.shape[0], counts.shape[1])
+        counts = counts.reshape(n, n)
+
     pm2 = PM2(alpha=options["alpha"],
               beta=options["beta"],
               random_state=random_state,
