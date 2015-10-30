@@ -43,17 +43,22 @@ def run_mds(directory):
             lengths=lengths)
 
     if options["normalize"]:
-        counts = iced.filter.filter_low_counts(counts, sparsity=False)
+        counts = iced.filter.filter_low_counts(counts, sparsity=False,
+                                               percentage=0.04)
         counts = iced.normalization.ICE_normalization(
             counts,
             max_iter=300)
-
+    counts = counts.tocsr()
+    counts.eliminate_zeros()
+    counts = counts.tocoo()
     mds = MDS(alpha=options["alpha"],
               beta=options["beta"],
               random_state=random_state,
               max_iter=options["max_iter"],
               verbose=options["verbose"])
     X = mds.fit(counts)
+    torm = np.array((counts.sum(axis=0) == 0)).flatten()
+    X[torm] = np.nan
     np.savetxt(
         os.path.join(
             directory,
@@ -184,13 +189,18 @@ def run_pm1(directory):
             lengths=lengths)
 
     if options["normalize"]:
-        counts = iced.filter.filter_low_counts(counts, sparsity=False)
+        counts = iced.filter.filter_low_counts(counts, sparsity=False,
+                                               percentage=0.04)
+
         _, bias = iced.normalization.ICE_normalization(
             counts,
             max_iter=300,
             output_bias=True)
     else:
         bias = None
+    counts = counts.tocsr()
+    counts.eliminate_zeros()
+    counts = counts.tocoo()
 
     pm1 = PM1(alpha=options["alpha"],
               beta=options["beta"],
@@ -199,6 +209,10 @@ def run_pm1(directory):
               bias=bias,
               verbose=options["verbose"])
     X = pm1.fit(counts)
+    torm = np.array((counts.sum(axis=0) == 0)).flatten()
+
+    X[torm] = np.nan
+
     np.savetxt(
         os.path.join(
             directory,
@@ -236,13 +250,18 @@ def run_pm2(directory):
             lengths=lengths)
 
     if options["normalize"]:
-        counts = iced.filter.filter_low_counts(counts, sparsity=False)
+        counts = iced.filter.filter_low_counts(counts, sparsity=False,
+                                               percentage=0.04)
+
         _, bias = iced.normalization.ICE_normalization(
             counts,
             max_iter=300,
             output_bias=True)
     else:
         bias = None
+    counts = counts.tocsr()
+    counts.eliminate_zeros()
+    counts = counts.tocoo()
 
     pm2 = PM2(alpha=options["alpha"],
               beta=options["beta"],
@@ -251,6 +270,11 @@ def run_pm2(directory):
               bias=bias,
               verbose=options["verbose"])
     X = pm2.fit(counts)
+
+    torm = np.array((counts.sum(axis=0) == 0)).flatten()
+
+    X[torm] = np.nan
+
     np.savetxt(
         os.path.join(
             directory,
