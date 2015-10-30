@@ -10,6 +10,7 @@ from sklearn.isotonic import IsotonicRegression
 from .config import parse
 from .optimization import MDS, PM1, PM2
 from . import fastio
+from .externals import iced
 
 max_iter = 5
 
@@ -26,13 +27,26 @@ def run_mds(directory):
     random_state = np.random.RandomState(seed=options["seed"])
 
     # First, compute MDS
+    if options["lengths"].endswith(".bed"):
+        lengths = fastio.load_lengths(
+            os.path.join(directory,
+                         options["lengths"]))
+    else:
+        lengths = None
+
     if options["counts"].endswith("npy"):
         counts = np.load(os.path.join(directory, options["counts"]))
-    else:
-        options["counts"].endswith(".matrix")
-        counts = fastio.load_counts(os.path.join(directory, options["counts"]))
-        n = max(counts.shape[0], counts.shape[1])
-        counts = counts.reshape(n, n)
+    elif options["counts"].endswith(".matrix"):
+        counts = fastio.load_counts(
+            os.path.join(directory,
+                         options["counts"]),
+            lengths=lengths)
+
+    if options["normalize"]:
+        counts = iced.filter.filter_low_counts(counts, sparsity=False)
+        counts = iced.normalization.ICE_normalization(
+            counts,
+            max_iter=300)
 
     mds = MDS(alpha=options["alpha"],
               beta=options["beta"],
@@ -153,18 +167,36 @@ def run_pm1(directory):
     random_state = np.random.RandomState(seed=options["seed"])
 
     options = parse(config_file)
+
+    if options["lengths"].endswith(".bed"):
+        lengths = fastio.load_lengths(
+            os.path.join(directory,
+                         options["lengths"]))
+    else:
+        lengths = None
+
     if options["counts"].endswith("npy"):
         counts = np.load(os.path.join(directory, options["counts"]))
+    elif options["counts"].endswith(".matrix"):
+        counts = fastio.load_counts(
+            os.path.join(directory,
+                         options["counts"]),
+            lengths=lengths)
+
+    if options["normalize"]:
+        counts = iced.filter.filter_low_counts(counts, sparsity=False)
+        _, bias = iced.normalization.ICE_normalization(
+            counts,
+            max_iter=300,
+            output_bias=True)
     else:
-        options["counts"].endswith(".matrix")
-        counts = fastio.load_counts(os.path.join(directory, options["counts"]))
-        n = max(counts.shape[0], counts.shape[1])
-        counts = counts.reshape(n, n)
+        bias = None
 
     pm1 = PM1(alpha=options["alpha"],
               beta=options["beta"],
               random_state=random_state,
               max_iter=options["max_iter"],
+              bias=bias,
               verbose=options["verbose"])
     X = pm1.fit(counts)
     np.savetxt(
@@ -189,18 +221,34 @@ def run_pm2(directory):
 
     options = parse(config_file)
 
+    if options["lengths"].endswith(".bed"):
+        lengths = fastio.load_lengths(
+            os.path.join(directory,
+                         options["lengths"]))
+    else:
+        lengths = None
+
     if options["counts"].endswith("npy"):
         counts = np.load(os.path.join(directory, options["counts"]))
+    elif options["counts"].endswith(".matrix"):
+        counts = fastio.load_counts(
+            os.path.join(directory, options["counts"]),
+            lengths=lengths)
+
+    if options["normalize"]:
+        counts = iced.filter.filter_low_counts(counts, sparsity=False)
+        _, bias = iced.normalization.ICE_normalization(
+            counts,
+            max_iter=300,
+            output_bias=True)
     else:
-        options["counts"].endswith(".matrix")
-        counts = fastio.load_counts(os.path.join(directory, options["counts"]))
-        n = max(counts.shape[0], counts.shape[1])
-        counts = counts.reshape(n, n)
+        bias = None
 
     pm2 = PM2(alpha=options["alpha"],
               beta=options["beta"],
               random_state=random_state,
               max_iter=options["max_iter"],
+              bias=bias,
               verbose=options["verbose"])
     X = pm2.fit(counts)
     np.savetxt(

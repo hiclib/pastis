@@ -60,7 +60,9 @@ def get_default_options():
                "binary_pm": "PM_all",
                "nucleus_size": None,
                "adjacent_beads": None,
+               "lengths": "",
                "verbose": 1,
+               "normalize": False,
                "max_iter": 10000,
                "seed": 0,
                }

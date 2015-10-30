@@ -51,6 +51,7 @@ def MDS_gradient_sparse(X, distances):
 
 def estimate_X(counts, alpha=-3., beta=1., ini=None,
                verbose=0,
+               bias=None,
                use_zero_entries=False,
                random_state=None, type="MDS2",
                maxiter=10000):
@@ -60,7 +61,8 @@ def estimate_X(counts, alpha=-3., beta=1., ini=None,
     if ini is None or ini == "random":
         ini = 1 - 2 * random_state.rand(n * 3)
 
-    distances = compute_wish_distances(counts, alpha=alpha, beta=beta)
+    distances = compute_wish_distances(counts, alpha=alpha, beta=beta,
+                                       bias=bias)
     results = optimize.fmin_l_bfgs_b(
         MDS_obj_sparse, ini.flatten(),
         MDS_gradient_sparse,
@@ -75,7 +77,8 @@ class MDS(object):
     """
     def __init__(self, alpha=-3., beta=1.,
                  max_iter=5000, random_state=None, n_init=1, n_jobs=1,
-                 precompute_distance="auto", init=None, verbose=False):
+                 precompute_distance="auto", bias=None,
+                 init=None, verbose=False):
         self.max_iter = max_iter
         self.alpha = alpha
         self.beta = beta
@@ -85,6 +88,7 @@ class MDS(object):
         self.n_jobs = n_jobs
         self.init = init
         self.verbose = verbose
+        self.bias = bias
 
     def fit(self, counts, lengths=None):
         """
@@ -100,5 +104,6 @@ class MDS(object):
                         verbose=self.verbose,
                         use_zero_entries=False,
                         random_state=self.random_state,
+                        bias=self.bias,
                         maxiter=self.max_iter)
         return X_

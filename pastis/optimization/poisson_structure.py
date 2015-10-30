@@ -152,12 +152,13 @@ class PM1(object):
     """
     def __init__(self, alpha=-3., beta=1.,
                  max_iter=5000, random_state=None, n_init=1, n_jobs=1,
-                 init="MDS2", verbose=False):
+                 init="MDS2", verbose=False, bias=None):
         self.max_iter = max_iter
         self.alpha = alpha
         self.beta = beta
         self.random_state = check_random_state(random_state)
         self.n_init = n_init
+        self.bias = bias
         self.n_jobs = n_jobs
         self.init = init
         self.verbose = verbose
@@ -175,6 +176,7 @@ class PM1(object):
             X = mds.estimate_X(counts, alpha=self.alpha,
                                beta=self.beta,
                                ini="random",
+                               bias=self.bias,
                                random_state=self.random_state,
                                maxiter=self.max_iter,
                                verbose=self.verbose)
@@ -197,6 +199,7 @@ class PM2(object):
     def __init__(self, alpha=-3., beta=1.,
                  max_iter=5000, max_iter_outer_loop=5,
                  random_state=None, n_init=1, n_jobs=1,
+                 bias=None,
                  init="MDS2", verbose=False):
         self.max_iter = max_iter
         self.alpha = alpha
@@ -207,6 +210,7 @@ class PM2(object):
         self.init = init
         self.max_iter_outer_loop = max_iter_outer_loop
         self.verbose = verbose
+        self.bias = bias
 
     def fit(self, counts):
         """
@@ -221,6 +225,7 @@ class PM2(object):
                                beta=self.beta,
                                ini="random",
                                verbose=self.verbose,
+                               bias=self.bias,
                                random_state=self.random_state,
                                maxiter=self.max_iter)
         elif self.init == "random":
@@ -233,7 +238,7 @@ class PM2(object):
         for it in range(self.max_iter_outer_loop):
             self.alpha_, self.beta_ = poisson_model.estimate_alpha_beta(
                 counts,
-                X, bias=None, ini=[self.alpha_, self.beta_],
+                X, bias=self.bias, ini=[self.alpha_, self.beta_],
                 verbose=self.verbose,
                 random_state=self.random_state)
 
@@ -243,6 +248,7 @@ class PM2(object):
                             init=X,
                             verbose=self.verbose,
                             use_zero_entries=False,
+                            bias=self.bias,
                             random_state=self.random_state,
                             maxiter=10000)
         return X_
