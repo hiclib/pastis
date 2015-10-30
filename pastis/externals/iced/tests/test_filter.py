@@ -1,4 +1,4 @@
-from iced.filter import filter_low_counts, filter_high_counts
+from pastis.externals.iced.filter import filter_low_counts, filter_high_counts
 import numpy as np
 from numpy.testing import assert_array_equal
 from scipy import sparse

@@ -4,8 +4,8 @@ from numpy.testing import assert_array_almost_equal
 
 import nose
 
-from iced.normalization import ICE_normalization
-from iced.normalization import SCN_normalization
+from pastis.externals.iced.normalization import ICE_normalization
+from pastis.externals.iced.normalization import SCN_normalization
 
 
 def test_ICE_normalization():
