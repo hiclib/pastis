@@ -187,6 +187,7 @@ class PM1(object):
                        alpha=self.alpha,
                        beta=self.beta,
                        ini=X,
+                       bias=self.bias,
                        verbose=self.verbose,
                        random_state=self.random_state,
                        maxiter=self.max_iter)
@@ -241,14 +242,13 @@ class PM2(object):
                 X, bias=self.bias, ini=[self.alpha_, self.beta_],
                 verbose=self.verbose,
                 random_state=self.random_state)
-
+            print self.alpha_, self.beta_
             X_ = estimate_X(counts,
                             alpha=self.alpha_,
                             beta=self.beta_,
-                            init=X,
+                            ini=X,
                             verbose=self.verbose,
-                            use_zero_entries=False,
                             bias=self.bias,
                             random_state=self.random_state,
-                            maxiter=10000)
+                            maxiter=self.max_iter)
         return X_

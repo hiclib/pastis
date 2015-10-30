@@ -350,6 +350,7 @@ def estimate_alpha_beta(counts, X, bias=None, ini=None, verbose=0,
     if ini is None:
         ini = - random_state.randint(1, 100, size=(2, )) + \
             random_state.rand(1)
+    ini = np.array(ini)
     data = (m, n, counts, X, bias,
             use_empty_entries)
 
@@ -363,5 +364,5 @@ def estimate_alpha_beta(counts, X, bias=None, ini=None, verbose=0,
         maxiter=1000,
         )
 
-    beta = _estimate_beta(counts, X, alpha=results[0], bias=bias)
-    return results[0], beta
+    beta = _estimate_beta(counts, X, alpha=results[0][0], bias=bias)
+    return results[0][0], beta
