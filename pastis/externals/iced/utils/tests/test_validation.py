@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import sparse
 from nose.tools import assert_raises
-from iced.utils import validation
+from pastis.externals.iced.utils import validation
 
 
 def test_is_symetric_or_tri():
