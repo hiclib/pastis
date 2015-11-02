@@ -7,13 +7,22 @@ Dependencies
 
 For Pastis:
 
+- python 2.7
 - numpy
 - scipy
 - scikit-learn
-- argparse
+- pandas
 
-All of these dependencies can be installed at once using conda.
+All of these dependencies can be installed easily using conda python2.7:
+`http://conda.pydata.org/miniconda.html <http://conda.pydata.org/miniconda.html>`_
 
+Once conda is installed, just type the following::
+
+  conda install numpy scipy scikit-learn pandas
+
+and then install pastis with::
+
+  python setup.py install
 
 Install
 -------

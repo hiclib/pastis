@@ -244,6 +244,8 @@ def run_pm2(directory):
 
     if options["counts"].endswith("npy"):
         counts = np.load(os.path.join(directory, options["counts"]))
+        counts[np.arange(len(counts)), np.arange(len(counts))] = 0
+        counts = sparse.coo_matrix(np.triu(counts))
     elif options["counts"].endswith(".matrix"):
         counts = fastio.load_counts(
             os.path.join(directory, options["counts"]),
