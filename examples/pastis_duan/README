@@ -1,0 +1,14 @@
+Small example using HiC-pro matrix format.
+
+1. Download the data: simply type ``make``. The data will be downloaded in a
+folder called duan2009. It consists of two files: a bed file and a matrix
+file. The matrix file contains the raw Hi-C count data in COO-format (row,
+col, data).
+2. To launch the code, just type ``pastis-mds .``. The configuration file
+``config.ini`` contains basic configuration option: whether to normalize or
+not the data with ICE, the number of iteration to run (here, set at 100, which
+may not be enough for the code to convrge), the verbosity level, the output
+name etc.
+3. pastis writes the coordinates of the 3D structure in a text file. Each line
+contains the position of a bead. Beads with nan coordinates correspond to
+beads with no interaction associated to them.
