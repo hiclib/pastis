@@ -52,6 +52,7 @@ def MDS_gradient_sparse(X, distances):
 def estimate_X(counts, alpha=-3., beta=1., ini=None,
                verbose=0,
                bias=None,
+               factr=1e12,
                use_zero_entries=False,
                random_state=None, type="MDS2",
                maxiter=10000):
@@ -68,6 +69,7 @@ def estimate_X(counts, alpha=-3., beta=1., ini=None,
         MDS_gradient_sparse,
         (distances, ),
         iprint=verbose,
+        factr=factr,
         maxiter=maxiter)
     return results[0].reshape(-1, 3)
 
@@ -78,7 +80,7 @@ class MDS(object):
     def __init__(self, alpha=-3., beta=1.,
                  max_iter=5000, random_state=None, n_init=1, n_jobs=1,
                  precompute_distance="auto", bias=None,
-                 init=None, verbose=False):
+                 init=None, verbose=False, factr=1e12):
         self.max_iter = max_iter
         self.alpha = alpha
         self.beta = beta
@@ -89,6 +91,7 @@ class MDS(object):
         self.init = init
         self.verbose = verbose
         self.bias = bias
+        self.factr = factr
 
     def fit(self, counts, lengths=None):
         """
@@ -105,5 +108,6 @@ class MDS(object):
                         use_zero_entries=False,
                         random_state=self.random_state,
                         bias=self.bias,
+                        factr=self.factr,
                         maxiter=self.max_iter)
         return X_
