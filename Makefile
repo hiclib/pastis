@@ -28,7 +28,7 @@ test: in
 
 test-coverage:
 	rm -rf coverage .coverage
-	$(NOSETESTS) -s -v --with-coverage pastis
+	$(NOSETESTS) -s -v --with-coverage pastis --cover-package pastis
 
 doc: inplace
 	$(MAKE) -C doc html
