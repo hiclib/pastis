@@ -28,13 +28,9 @@ installed ``MDS_all`` (respectively ``PM_all``).
 .. code-block:: guess
 
    [all]
-   binary_mds: /bioinfo/users/nvaroqua/.local/bin/MDS_all
-   binary_pm: /bioinfo/users/nvaroqua/.local/bin/PM_all
    resolution: 10000
    output_name: structure.pdb
-   chromosomes: 1,2,3,4,5
-   organism_structure: files/budding_yeast_structure
-   counts: data/counts.npy
+   counts: data/counts.matrix
 
 
 To run the code, simply call the program of your choice, and the repository
