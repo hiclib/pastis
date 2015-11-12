@@ -43,9 +43,14 @@ def run_mds(directory):
         counts = iced.normalization.ICE_normalization(
             counts,
             max_iter=300)
-    counts = counts.tocsr()
-    counts.eliminate_zeros()
-    counts = counts.tocoo()
+
+    if not sparse.issparse(counts):
+        counts = sparse.coo_matrix(counts)
+    else:
+        counts = counts.tocsr()
+        counts.eliminate_zeros()
+        counts = counts.tocoo()
+
     mds = MDS(alpha=options["alpha"],
               beta=options["beta"],
               random_state=random_state,
@@ -96,9 +101,14 @@ def run_nmds(directory):
         counts = iced.normalization.ICE_normalization(
             counts,
             max_iter=300)
-    counts = counts.tocsr()
-    counts.eliminate_zeros()
-    counts = counts.tocoo()
+
+    if not sparse.issparse(counts):
+        counts = sparse.coo_matrix(counts)
+    else:
+        counts = counts.tocsr()
+        counts.eliminate_zeros()
+        counts = counts.tocoo()
+
     torm = np.array((counts.sum(axis=0) == 0)).flatten()
     nmds = NMDS(alpha=options["alpha"],
                 beta=options["beta"],
@@ -153,9 +163,13 @@ def run_pm1(directory):
             output_bias=True)
     else:
         bias = None
-    counts = counts.tocsr()
-    counts.eliminate_zeros()
-    counts = counts.tocoo()
+
+    if not sparse.issparse(counts):
+        counts = sparse.coo_matrix(counts)
+    else:
+        counts = counts.tocsr()
+        counts.eliminate_zeros()
+        counts = counts.tocoo()
 
     pm1 = PM1(alpha=options["alpha"],
               beta=options["beta"],
@@ -216,9 +230,13 @@ def run_pm2(directory):
             output_bias=True)
     else:
         bias = None
-    counts = counts.tocsr()
-    counts.eliminate_zeros()
-    counts = counts.tocoo()
+
+    if not sparse.issparse(counts):
+        counts = sparse.coo_matrix(counts)
+    else:
+        counts = counts.tocsr()
+        counts.eliminate_zeros()
+        counts = counts.tocoo()
 
     pm2 = PM2(alpha=options["alpha"],
               beta=options["beta"],
