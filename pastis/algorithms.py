@@ -225,7 +225,7 @@ def run_nmds(directory):
     # PDB file
     pdbfilename = os.path.join(
         directory,
-        "MDS." + options["output_name"] + ".pdb")
+        "NMDS." + options["output_name"] + ".pdb")
     # pdbfilename = "test.pdb"
     writePDB(X, pdbfilename)
 
@@ -300,7 +300,7 @@ def run_pm1(directory):
     # PDB file
     pdbfilename = os.path.join(
         directory,
-        "MDS." + options["output_name"] + ".pdb")
+        "PM1." + options["output_name"] + ".pdb")
     # pdbfilename = "test.pdb"
     writePDB(X, pdbfilename)
 
@@ -377,7 +377,7 @@ def run_pm2(directory):
     # PDB file
     pdbfilename = os.path.join(
         directory,
-        "MDS." + options["output_name"] + ".pdb")
+        "PM2." + options["output_name"] + ".pdb")
     # pdbfilename = "test.pdb"
     writePDB(X, pdbfilename)
 
