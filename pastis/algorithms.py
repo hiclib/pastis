@@ -1,3 +1,10 @@
+###############################################################################
+#
+# 160906 Giancarlo Bonora
+# Output 3D co-ordinates in PDB format a la coords.cpp
+#
+###############################################################################
+
 import os
 import numpy as np
 from scipy import sparse
@@ -9,6 +16,88 @@ from .externals import iced
 
 max_iter = 5
 
+###############################################################################
+# Python implementation of 'print_pdb_atom' function in coords.cpp
+
+def fprintf(fp, fmt, *args):
+    fp.write(fmt % args)
+
+def print_pdb_atom (outfile,
+                    #chrom_index,
+                    #copy_index,
+                    atom_index,
+                    is_node, # Is this a node or an edge atom
+                    atom_name, # eg "N", "O", or "C"
+                    scale_factor,
+                    my_coords):
+    # prev_chrom_index = -1
+    # atom_index
+    # if chrom_index != prev_chrom_index:
+    #     atom_index = 1
+    #     prev_chrom_index = chrom_index
+
+    # http://www.biochem.ucl.ac.uk/~roman/procheck/manual/manappb.html
+    fprintf(outfile, "ATOM  ")              #  1- 6: Record ID
+    fprintf(outfile, "%5d", atom_index)     #  7-11: Atom serial number
+    fprintf(outfile, " ")                   #    12: Blank
+    # if (is_node) {                        # 13-16: Atom name
+    #   fprintf(outfile, "N   ")
+    # } else {
+    #   fprintf(outfile, "O   ")
+    # }
+    fprintf(outfile,"%s   ",atom_name)
+    fprintf(outfile, " ")                   # 17-17: Alternative location code
+    if is_node:                             # 18-20: 3-letter amino acid code
+        fprintf(outfile, "NOD")
+    else:
+        fprintf(outfile, "EDG")
+    fprintf(outfile, " ")                   #    21: Blank
+    fprintf(outfile, "%c",                  #    22: Chain identifier code
+            # get_chrom_id(chrom_index, copy_index))
+            'A')
+    fprintf(outfile, "    ")                # 23-26: Residue sequence number
+    fprintf(outfile, " ")                   #    27: Insertion code
+    fprintf(outfile, "   ")                 # 28-30: Blank
+    fprintf(outfile, "%8.3f%8.3f%8.3f",     # 31-54: Atom coordinates
+            # (my_coords->x + 1.0) * SCALE_FACTOR,
+            # (my_coords->y + 1.0) * SCALE_FACTOR,
+            # (my_coords->z + 1.0) * SCALE_FACTOR)
+            (my_coords[0] + 1.0) * scale_factor,
+            (my_coords[1] + 1.0) * scale_factor,
+            (my_coords[2] + 1.0) * scale_factor)
+    fprintf(outfile, "%6.2f", 1.0)          # 55-60: Occupancy value
+    if is_node:
+        fprintf(outfile, "%6.2f", 50.0)     # 61-66: B-value (thermal factor)
+    else:
+        fprintf(outfile, "%6.2f", 75.0)     # 61-66: B-value (thermal factor)
+    fprintf(outfile, " ")                   #    67: Blank
+    fprintf(outfile, "   ")                 # 68-70: Blank
+    fprintf(outfile, "\n")
+
+def writePDB(Xpdb, pdbfilename):
+    print('PDB file creation!')
+    pdboutfile = open(pdbfilename,'w')
+    atom_name = 'O'
+    scale_factor = 100 # 100 for a sphere with radius 1, 1000 for a sphere with radius 10
+    for coordIdx in range(0, np.shape(Xpdb)[0]):
+        print coordIdx
+        if coordIdx == 0 or coordIdx == np.shape(Xpdb)[0]:
+            is_node = True
+        else:
+            is_node = False
+        my_coords = Xpdb[coordIdx,:]
+        print_pdb_atom(pdboutfile,
+                       #chrom_index,
+                       #copy_index,
+                       coordIdx,
+                       is_node, # Is this a node or an edge atom
+                       atom_name, # eg "N", "O", or "C",
+                       scale_factor,
+                       my_coords)
+    pdboutfile.close()
+
+
+###############################################################################
 
 def run_mds(directory):
     if os.path.exists(os.path.join(directory,
@@ -65,8 +154,17 @@ def run_mds(directory):
             "MDS." + options["output_name"]),
         X)
 
+    # PDB file
+    pdbfilename = os.path.join(
+        directory,
+        "MDS." + options["output_name"] + ".pdb")
+    # pdbfilename = "test.pdb"
+    writePDB(X, pdbfilename)
+
     return True
 
+
+###############################################################################
 
 def run_nmds(directory):
     if os.path.exists(os.path.join(directory,
@@ -124,6 +222,17 @@ def run_nmds(directory):
             "NMDS." + options["output_name"]),
         X)
 
+    # PDB file
+    pdbfilename = os.path.join(
+        directory,
+        "MDS." + options["output_name"] + ".pdb")
+    # pdbfilename = "test.pdb"
+    writePDB(X, pdbfilename)
+
+    return True
+
+
+###############################################################################
 
 def run_pm1(directory):
     if os.path.exists(os.path.join(directory,
@@ -188,8 +297,17 @@ def run_pm1(directory):
             "PM1." + options["output_name"]),
         X)
 
+    # PDB file
+    pdbfilename = os.path.join(
+        directory,
+        "MDS." + options["output_name"] + ".pdb")
+    # pdbfilename = "test.pdb"
+    writePDB(X, pdbfilename)
+
     return True
 
+
+###############################################################################
 
 def run_pm2(directory):
     if os.path.exists(os.path.join(directory,
@@ -255,4 +373,12 @@ def run_pm2(directory):
             directory,
             "PM2." + options["output_name"]),
         X)
+
+    # PDB file
+    pdbfilename = os.path.join(
+        directory,
+        "MDS." + options["output_name"] + ".pdb")
+    # pdbfilename = "test.pdb"
+    writePDB(X, pdbfilename)
+
     return True
