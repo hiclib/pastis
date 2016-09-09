@@ -1,3 +1,10 @@
+###############################################################################
+#
+# 160906 Giancarlo Bonora
+# Output 3D co-ordinates in PDB format a la coords.cpp
+#
+###############################################################################
+
 import os
 import numpy as np
 from scipy import sparse
@@ -6,9 +13,13 @@ from .config import parse
 from .optimization import MDS, PM1, PM2, NMDS
 from . import fastio
 from .externals import iced
+from .io import writePDB
+
 
 max_iter = 5
 
+
+###############################################################################
 
 def run_mds(directory):
     if os.path.exists(os.path.join(directory,
@@ -65,8 +76,17 @@ def run_mds(directory):
             "MDS." + options["output_name"]),
         X)
 
+    # PDB file
+    pdbfilename = os.path.join(
+        directory,
+        "MDS." + options["output_name"] + ".pdb")
+    # pdbfilename = "test.pdb"
+    writePDB(X, pdbfilename)
+
     return True
 
+
+###############################################################################
 
 def run_nmds(directory):
     if os.path.exists(os.path.join(directory,
@@ -124,6 +144,17 @@ def run_nmds(directory):
             "NMDS." + options["output_name"]),
         X)
 
+    # PDB file
+    pdbfilename = os.path.join(
+        directory,
+        "NMDS." + options["output_name"] + ".pdb")
+    # pdbfilename = "test.pdb"
+    writePDB(X, pdbfilename)
+
+    return True
+
+
+###############################################################################
 
 def run_pm1(directory):
     if os.path.exists(os.path.join(directory,
@@ -188,8 +219,17 @@ def run_pm1(directory):
             "PM1." + options["output_name"]),
         X)
 
+    # PDB file
+    pdbfilename = os.path.join(
+        directory,
+        "PM1." + options["output_name"] + ".pdb")
+    # pdbfilename = "test.pdb"
+    writePDB(X, pdbfilename)
+
     return True
 
+
+###############################################################################
 
 def run_pm2(directory):
     if os.path.exists(os.path.join(directory,
@@ -255,4 +295,12 @@ def run_pm2(directory):
             directory,
             "PM2." + options["output_name"]),
         X)
+
+    # PDB file
+    pdbfilename = os.path.join(
+        directory,
+        "PM2." + options["output_name"] + ".pdb")
+    # pdbfilename = "test.pdb"
+    writePDB(X, pdbfilename)
+
     return True

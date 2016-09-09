@@ -15,3 +15,5 @@ MANIFEST
 .coverage
 src/MDS/MDS_all
 src/PM/PM_all
+.dev
+.idea
