@@ -57,9 +57,9 @@ def _poisson_exp_dense(X, counts, alpha, bias,
     m, n = X.shape
     d = euclidean_distances(X)
     if use_empty_entries:
-        mask = (np.tri(m, dtype=np.bool) == False)
+        mask = (np.invert(np.tri(m, dtype=np.bool)))
     else:
-        mask = (np.tri(m, dtype=np.bool) == False) & (counts != 0) & (d != 0)
+        mask = np.invert(np.tri(m, dtype=np.bool)) & (counts != 0) & (d != 0)
 
     bias = bias.reshape(-1, 1)
     if beta is None:
@@ -75,6 +75,8 @@ def _poisson_exp_dense(X, counts, alpha, bias,
         counts[mask] * np.log(bias * bias.T)[mask]
     ll -= g
     # We are trying to maximise, so we need the opposite of the log likelihood
+    if np.isnan(ll.sum()):
+        raise ValueError("Objective function is Not a Number")
     return - ll.sum()
 
 
@@ -99,6 +101,8 @@ def _poisson_exp_sparse(X, counts, alpha, bias,
     ll = (counts.data * np.log(beta) + alpha * counts.data * np.log(d) +
           counts.data * np.log(bias[counts.row] * bias[counts.col]))
     ll -= g
+    if np.isnan(ll.sum()):
+        raise ValueError("Objective function is Not a Number")
     return -ll.sum()
 
 
@@ -155,12 +159,12 @@ def _gradient_poisson_exp_dense(X, counts, alpha, bias, beta,
     bias = bias.reshape(-1, 1)
 
     if use_empty_entries:
-        mask = np.tri(m, dtype=np.bool) == False
+        mask = np.invert(np.tri(m, dtype=np.bool))
     else:
-        mask = (np.tri(m, dtype=np.bool) == False) & (counts != 0)
+        mask = np.invert(np.tri(m, dtype=np.bool)) & (counts != 0)
 
     beta = counts[mask].sum() / (
-            (d[mask] ** alpha) * (bias * bias.T)[mask]).sum()
+        (d[mask] ** alpha) * (bias * bias.T)[mask]).sum()
 
     grad_alpha = - beta * \
         ((bias * bias.T)[mask] * d[mask] ** alpha * np.log(d[mask])).sum() \
@@ -178,7 +182,7 @@ def _gradient_poisson_exp_sparse(X, counts, alpha, bias, beta,
     d = np.sqrt(((X[counts.row] - X[counts.col])**2).sum(axis=1))
 
     beta = counts.sum() / (
-            (d ** alpha) * bias[counts.row] * bias[counts.col]).sum()
+        (d ** alpha) * bias[counts.row] * bias[counts.col]).sum()
 
     grad_alpha = - beta * (bias[counts.row] * bias[counts.col] * d ** alpha *
                            np.log(d)).sum() \
@@ -321,7 +325,7 @@ def _estimate_beta(counts, X, alpha=-3, bias=None):
 
     else:
         dis = euclidean_distances(X)
-        mask = (np.tri(m, dtype=np.bool) == False) & (counts != 0) & (dis != 0)
+        mask = np.invert(np.tri(m, dtype=np.bool)) & (counts != 0) & (dis != 0)
         beta = counts[mask].sum() / (
             (dis[mask] ** alpha) * (bias * bias.T)[mask]).sum()
 
@@ -344,13 +348,12 @@ def estimate_alpha_beta(counts, X, bias=None, ini=None, verbose=0,
 
     m, n = X.shape
     bounds = np.array(
-        [[-10000, 1e-2]])
+        [[-100, 1e-2]])
 
     random_state = check_random_state(random_state)
     if ini is None:
         ini = - random_state.randint(1, 100, size=(2, )) + \
             random_state.rand(1)
-    ini = np.array(ini)
     data = (m, n, counts, X, bias,
             use_empty_entries)
 
@@ -364,5 +367,5 @@ def estimate_alpha_beta(counts, X, bias=None, ini=None, verbose=0,
         maxiter=1000,
         )
 
-    beta = _estimate_beta(counts, X, alpha=results[0][0], bias=bias)
-    return results[0][0], beta
+    beta = _estimate_beta(counts, X, alpha=results[0], bias=bias)
+    return results[0], beta
