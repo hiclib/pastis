@@ -7,7 +7,7 @@ Dependencies
 
 For Pastis:
 
-- python 2.7
+- python 2.6, 2.7 or python 3.5
 - numpy
 - scipy
 - scikit-learn

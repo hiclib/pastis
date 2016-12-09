@@ -16,7 +16,7 @@ python modules.
 
 The dependencies are:
 
-- python (>= 2.6)
+- python (>= 2.6, including python 3)
 - setuptools
 - numpy (>= 1.3)
 - scipy (>= 0.7)
