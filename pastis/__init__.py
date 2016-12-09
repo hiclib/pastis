@@ -1,4 +1,4 @@
-import config
+from . import config
 from .io import write
 from . import externals
 

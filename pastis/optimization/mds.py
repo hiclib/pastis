@@ -1,3 +1,4 @@
+import __future__
 import numpy as np
 from scipy import optimize
 from scipy import sparse
@@ -5,7 +6,7 @@ from sklearn.utils import check_random_state
 from sklearn.metrics import euclidean_distances
 from sklearn.isotonic import IsotonicRegression
 
-from utils import compute_wish_distances
+from .utils import compute_wish_distances
 
 
 def MDS_obj(X, distances):
@@ -182,5 +183,5 @@ class NMDS(object):
                                bias=self.bias,
                                factr=self.factr,
                                maxiter=self.max_iter)
-        print "writing wish distances"
+        print("writing wish distances")
         return X

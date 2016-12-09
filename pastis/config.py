@@ -1,4 +1,7 @@
-import ConfigParser
+try:
+    import ConfigParser
+except ImportError:
+    import configparser as ConfigParser
 import os
 
 
@@ -93,7 +96,7 @@ def parse(filename=None):
 
     config = ConfigParser.ConfigParser()
     config.readfp(open(filename))
-    for key in options.iterkeys():
+    for key in options.keys():
         try:
             options[key] = type(options[key])(
                 config.get("all", key))

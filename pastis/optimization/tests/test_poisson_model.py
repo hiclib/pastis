@@ -40,7 +40,7 @@ def test_poisson_exp_sparse():
                                           use_empty_entries=False)
     exp_sparse = poisson_model.poisson_exp(X, counts_sparse, -3,
                                            use_empty_entries=False)
-    assert_almost_equal(exp_dense, exp_sparse)
+    assert_almost_equal(float(exp_dense), float(exp_sparse))
 
 
 def test_poisson_exp_sparse_biased():
@@ -60,7 +60,7 @@ def test_poisson_exp_sparse_biased():
                                           use_empty_entries=False)
     exp_sparse = poisson_model.poisson_exp(X, counts_sparse, -3, bias=bias,
                                            use_empty_entries=False)
-    assert_almost_equal(exp_dense, exp_sparse)
+    assert_almost_equal(float(exp_dense), float(exp_sparse))
 
 
 def test_gradient_poisson_exp_sparse():
@@ -77,7 +77,7 @@ def test_gradient_poisson_exp_sparse():
     grad_sparse = poisson_model.gradient_poisson_exp(X, counts_sparse, -3,
                                                      beta=1,
                                                      use_empty_entries=False)
-    assert_almost_equal(grad_dense, grad_sparse)
+    assert_almost_equal(float(grad_dense), float(grad_sparse))
 
 
 def test_gradient_poisson_exp_sparse_biased():
@@ -101,8 +101,8 @@ def test_gradient_poisson_exp_sparse_biased():
                                                      bias=bias,
                                                      beta=1,
                                                      use_empty_entries=False)
-    assert_almost_equal(np.array([0]), grad_dense)
-    assert_almost_equal(grad_dense, grad_sparse)
+    assert_almost_equal(0, float(grad_dense))
+    assert_almost_equal(float(grad_dense), float(grad_sparse))
 
 
 def test_estimate_alpha_beta():
@@ -117,8 +117,8 @@ def test_estimate_alpha_beta():
 
     alpha, beta = poisson_model.estimate_alpha_beta(
         sparse.coo_matrix(counts), X)
-    assert_almost_equal(alpha_true, alpha, 5)
-    assert_almost_equal(beta_true, beta, 5)
+    assert_almost_equal(float(alpha_true), float(alpha), 5)
+    assert_almost_equal(float(beta_true), float(beta), 5)
 
 
 def test_estimate_alpha_beta_biased():
@@ -136,5 +136,5 @@ def test_estimate_alpha_beta_biased():
 
     alpha, beta = poisson_model.estimate_alpha_beta(
         sparse.coo_matrix(counts), X, bias=bias)
-    assert_almost_equal(alpha_true, alpha, 5)
-    assert_almost_equal(beta_true, beta, 4)
+    assert_almost_equal(float(alpha_true), float(alpha), 5)
+    assert_almost_equal(float(beta_true), float(beta), 4)
