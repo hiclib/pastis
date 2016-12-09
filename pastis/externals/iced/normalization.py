@@ -5,7 +5,8 @@ from .utils import is_symetric_or_tri, is_tri
 
 
 def ICE_normalization(X, SS=None, max_iter=3000, eps=1e-4, copy=True,
-                      norm='l1', verbose=0, output_bias=False):
+                      norm='l1', verbose=0, output_bias=False,
+                      total_counts=None, counts_profile=None):
     """
     ICE normalization
 
@@ -35,6 +36,12 @@ def ICE_normalization(X, SS=None, max_iter=3000, eps=1e-4, copy=True,
     output_bias : boolean, optional, default: False
         whether to output the bias vector.
 
+    total_counts : float, optional, default: None
+        the total number of contact counts that the normalized matrix should
+        contain. If set to None, the normalized contact count matrix will be
+        such that the total number of contact counts equals the initial number
+        of interactions.
+
     Returns
     -------
     X, (bias) : ndarray (n, n)
@@ -55,21 +62,24 @@ def ICE_normalization(X, SS=None, max_iter=3000, eps=1e-4, copy=True,
         X[np.isnan(X)] = 0
     X = X.astype('float')
 
-    mean = X.mean()
     m = X.shape[0]
     is_symetric_or_tri(X)
     old_dbias = None
     bias = np.ones((m, 1))
+    _is_tri = is_tri(X)
+
+    if total_counts is None:
+        total_counts = X.sum()
     for it in np.arange(max_iter):
         if norm == 'l1':
             # Actually, this should be done if the matrix is diag sup or diag
             # inf
-            if is_tri(X):
+            if _is_tri:
                 sum_ds = X.sum(axis=0) + X.sum(axis=1).T - X.diagonal()
             else:
                 sum_ds = X.sum(axis=0)
         elif norm == 'l2':
-            if is_tri(X):
+            if _is_tri:
                 sum_ds = ((X**2).sum(axis=0) +
                           (X**2).sum(axis=1).T -
                           (X**2).diagonal())
@@ -78,8 +88,9 @@ def ICE_normalization(X, SS=None, max_iter=3000, eps=1e-4, copy=True,
 
         if SS is not None:
             raise NotImplementedError
-
         dbias = sum_ds.reshape((m, 1))
+        if counts_profile is not None:
+            dbias /= counts_profile[:, np.newaxis]
         # To avoid numerical instabilities
         dbias /= dbias[dbias != 0].mean()
 
@@ -89,9 +100,12 @@ def ICE_normalization(X, SS=None, max_iter=3000, eps=1e-4, copy=True,
         if sparse.issparse(X):
             X = _update_normalization_csr(X, np.array(dbias).flatten())
         else:
-            X /= dbias * dbias.T
+            X /= dbias
+            X /= dbias.T
 
-        X *= mean / X.mean()
+        bias *= np.sqrt(X.sum() / total_counts)
+        X *= total_counts / X.sum()
+
         if old_dbias is not None and np.abs(old_dbias - dbias).sum() < eps:
             if verbose > 1:
                 print("break at iteration %d" % (it,))
@@ -101,10 +115,16 @@ def ICE_normalization(X, SS=None, max_iter=3000, eps=1e-4, copy=True,
             print('ICE at iteration %d %s' %
                   (it, np.abs(old_dbias - dbias).sum()))
 
-        # Rescaling X so that the  mean always stays the same.
-        # XXX should probably do this properly, ie rescale the bias such that
-        # the total scaling of the contact counts don't change.
         old_dbias = dbias.copy()
+    # Now that we are finished with the bias estimation, set all biases
+    # corresponding to filtered rows to np.nan
+    if sparse.issparse(X):
+        X = X.tocoo()
+        to_rm = (np.array(X.sum(axis=0)).flatten() +
+                 np.array(X.sum(axis=1)).flatten()) == 0
+    else:
+        to_rm = (X.sum(axis=0) + X.sum(axis=1)) == 0
+    bias[to_rm] = np.nan
     if output_bias:
         return X, bias
     else:

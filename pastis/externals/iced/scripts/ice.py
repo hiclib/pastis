@@ -6,7 +6,7 @@ import numpy as np
 from scipy import sparse
 
 import iced
-from pastis.externals.iced.io import loadtxt, savetxt
+from iced.io import loadtxt, savetxt
 
 
 parser = argparse.ArgumentParser("ICE normalization")
