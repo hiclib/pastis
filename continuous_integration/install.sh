@@ -68,7 +68,7 @@ create_new_conda_env() {
     # provided versions
     REQUIREMENTS=$(print_conda_requirements)
     echo "conda requirements string: $REQUIREMENTS"
-    conda create -n testenv --yes $REQUIREMENTS
+    conda create -n testenv --yes $REQUIREMENTS libgfortran
     source activate testenv
 
     if [[ "$INSTALL_MKL" == "true" ]]; then
@@ -94,6 +94,17 @@ elif [[ "$DISTRIB" == "conda" ]]; then
     if [ -n "$NIBABEL_VERSION" ]; then
         pip install nibabel=="$NIBABEL_VERSION"
     fi
+
+elif [[ "$DISTRIB" == "ubuntu" ]]; then
+    # At the time of writing numpy 1.9.1 is included in the travis
+    # virtualenv but we want to use the numpy installed through apt-get
+    # install.
+    deactivate
+    # Create a new virtualenv using system site packages for python, numpy
+    # and scipy
+    virtualenv --system-site-packages testvenv
+    source testvenv/bin/activate
+    pip install nose nose-timer cython
 
 else
     echo "Unrecognized distribution ($DISTRIB); cannot setup travis environment."

@@ -20,10 +20,11 @@ env:
     - DISTRIB="conda" PYTHON_VERSION="2.7"
       NUMPY_VERSION="1.11.2" SCIPY_VERSION="0.18.1"
       SKLEARN_VERSION="0.14" PANDAS_VERSION="0.19.1"
- 
-    # - DISTRIB="conda" PYTHON_VERSION="3.4"
-    #   NUMPY_VERSION="1.9.2" SCIPY_VERSION="0.16.0"
-    #   SKLEARN_VERSION="0.15"  PANDAS_VERSION="0.16.0"
+    - DISTRIB="conda" PYTHON_VERSION="3.5"
+      NUMPY_VERSION="1.10.4" SCIPY_VERSION="0.17.0"
+      SKLEARN_VERSION="0.15"  PANDAS_VERSION="0.18.0"
+      INSTALL_MKL="true"
+
 
 install: 
     - source continuous_integration/install.sh
