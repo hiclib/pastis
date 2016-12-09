@@ -19,8 +19,7 @@ def is_tri(X):
         if not (sparse.tril(X).sum() - diag) or \
            not (sparse.triu(X).sum() - diag):
             return True
-    elif (not (np.triu(X).sum() - diag) or
-          not (np.tril(X).sum() - diag)):
+    elif not np.triu(X, 1).sum() or not np.tril(X, -1).sum():
         return True
     else:
         return False

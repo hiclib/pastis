@@ -1,4 +1,5 @@
-from pastis.externals.iced.filter import filter_low_counts, filter_high_counts
+from iced.filter import filter_low_counts, filter_high_counts
+from iced.datasets import load_sample_yeast
 import numpy as np
 from numpy.testing import assert_array_equal
 from scipy import sparse
@@ -38,6 +39,21 @@ def test_sparse_filter_low_counts():
                        np.array(X_filtered_sparse_csr.todense()))
     assert_array_equal(X_filtered_dense,
                        np.array(X_filtered_sparse_coo.todense()))
+
+
+def test_sparse_filter_low_counts_real_data():
+    counts, lengths = load_sample_yeast()
+    counts_sparse = sparse.csr_matrix(counts)
+    counts_dense = filter_low_counts(counts, sparsity=False, percentage=0.1)
+    counts_sparse = filter_low_counts(counts_sparse, sparsity=False,
+                                      percentage=0.1)
+    counts_dense[np.isnan(counts_dense)] = 0
+    assert_array_equal(counts_dense, counts_sparse.toarray())
+
+    triu_counts_sparse = sparse.csr_matrix(np.triu(counts))
+    triu_counts_sparse = filter_low_counts(triu_counts_sparse, sparsity=False,
+                                           percentage=0.1)
+    assert_array_equal(np.triu(counts), triu_counts_sparse.toarray())
 
 
 def test_filter_high_counts():

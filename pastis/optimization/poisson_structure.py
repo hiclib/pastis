@@ -31,6 +31,8 @@ def _poisson_obj_sparse(X, counts, alpha=-3., beta=1., bias=None,
     fdis = bias[counts.row] * bias[counts.col] * beta * dis ** alpha
 
     obj = fdis.sum() - (counts.data * np.log(fdis)).sum()
+    if np.isnan(obj):
+        raise ValueError("Objective function is nan")
     return obj
 
 
