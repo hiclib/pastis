@@ -83,8 +83,9 @@ def estimate_X(counts, alpha=-3., beta=1., ini=None,
         distances = compute_wish_distances(counts, alpha=alpha, beta=beta,
                                            bias=bias)
     else:
-        counts /= bias
-        counts /= bias.T
+        if bias is not None:
+            counts /= bias
+            counts /= bias.T
         distances = counts
     results = optimize.fmin_l_bfgs_b(
         MDS_obj, ini.flatten(),
