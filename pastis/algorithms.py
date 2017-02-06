@@ -178,6 +178,7 @@ def run_pm1(directory):
 
     if options["counts"].endswith("npy"):
         counts = np.load(os.path.join(directory, options["counts"]))
+        counts[np.isnan(counts)] = 0
     elif options["counts"].endswith(".matrix"):
         counts = fastio.load_counts(
             os.path.join(directory,
@@ -196,6 +197,7 @@ def run_pm1(directory):
         bias = None
 
     if not sparse.issparse(counts):
+        counts[np.isnan(counts)] = 0
         counts = sparse.coo_matrix(counts)
     else:
         counts = counts.tocsr()
@@ -254,7 +256,6 @@ def run_pm2(directory):
     if options["counts"].endswith("npy"):
         counts = np.load(os.path.join(directory, options["counts"]))
         counts[np.arange(len(counts)), np.arange(len(counts))] = 0
-        counts = sparse.coo_matrix(np.triu(counts))
     elif options["counts"].endswith(".matrix"):
         counts = fastio.load_counts(
             os.path.join(directory, options["counts"]),
@@ -272,6 +273,7 @@ def run_pm2(directory):
         bias = None
 
     if not sparse.issparse(counts):
+        counts[np.isnan(counts)] = 0
         counts = sparse.coo_matrix(counts)
     else:
         counts = counts.tocsr()
@@ -294,8 +296,7 @@ def run_pm2(directory):
         os.path.join(
             directory,
             "PM2." + options["output_name"]),
-        X)
-
+        X) 
     # PDB file
     pdbfilename = os.path.join(
         directory,

@@ -133,7 +133,6 @@ def estimate_X(counts, alpha=-3., beta=1.,
     random_state = check_random_state(random_state)
     if ini is None:
         ini = 1 - 2 * random_state.rand(n * 3)
-
     data = (n, counts, alpha, beta, bias,
             False)
 
@@ -171,20 +170,19 @@ class PM1(object):
         """
         if not sparse.isspmatrix_coo(counts):
             counts = sparse.coo_matrix(counts)
-
+        if not sparse.issparse(counts):
+            counts[np.isnan(counts)] = 0
         if self.init == "MDS2":
             if self.verbose:
                 print "Initialing with MDS2"
             X = mds.estimate_X(counts, alpha=self.alpha,
                                beta=self.beta,
-                               ini="random",
                                bias=self.bias,
                                random_state=self.random_state,
                                maxiter=self.max_iter,
                                verbose=self.verbose)
         else:
             X = self.init
-
         X = estimate_X(counts,
                        alpha=self.alpha,
                        beta=self.beta,

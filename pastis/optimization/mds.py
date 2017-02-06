@@ -69,20 +69,29 @@ def MDS_gradient_sparse(X, distances):
 def estimate_X(counts, alpha=-3., beta=1., ini=None,
                verbose=0,
                use_zero_entries=False,
+               precompute_distances=False,
+               bias=None,
                random_state=None, type="MDS2",
+               factr=1e12,
                maxiter=10000):
     n = counts.shape[0]
 
     random_state = check_random_state(random_state)
-    if ini is None:
+    if ini is None or ini == "random":
         ini = 1 - 2 * random_state.rand(n * 3)
-
-    distances = compute_wish_distances(counts, alpha=alpha, beta=beta)
+    if not precompute_distances or precompute_distances == "auto":
+        distances = compute_wish_distances(counts, alpha=alpha, beta=beta,
+                                           bias=bias)
+    else:
+        counts /= bias
+        counts /= bias.T
+        distances = counts
     results = optimize.fmin_l_bfgs_b(
         MDS_obj, ini.flatten(),
         MDS_gradient,
         (distances, ),
         iprint=1,
+        factr=factr,
         maxiter=maxiter)
     return results[0].reshape(-1, 3)
 
@@ -185,7 +194,6 @@ class NMDS(object):
                                use_zero_entries=False,
                                precompute_distances="precomputed",
                                random_state=self.random_state,
-                               bias=self.bias,
                                factr=self.factr,
                                maxiter=self.max_iter)
         print("writing wish distances")

@@ -359,7 +359,7 @@ def estimate_alpha_beta(counts, X, bias=None, ini=None, verbose=0,
 
     results = optimize.fmin_l_bfgs_b(
         eval_f,
-        ini[0].flatten(),
+        ini[0],
         eval_grad_f,
         (data, ),
         bounds=bounds,
