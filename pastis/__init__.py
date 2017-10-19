@@ -1,6 +1,6 @@
-import config
+from . import config
 from .io import write
 from . import externals
 
 
-__version__ = '0.1-git'
+__version__ = '0.3-git'
