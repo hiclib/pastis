@@ -1,6 +1,6 @@
-import config
+from . import config
 from .io import write
 from . import externals
 
 
-__version__ = '0.2.1'
+__version__ = '0.2.2'
