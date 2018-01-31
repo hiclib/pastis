@@ -130,6 +130,7 @@ def estimate_X(counts, alpha=-3., beta=1.,
 
     if not sparse.isspmatrix_coo(counts):
         counts = sparse.coo_matrix(counts)
+        counts.setdiag(0)
 
     random_state = check_random_state(random_state)
     if ini is None:
@@ -221,6 +222,7 @@ class PM2(object):
 
         if not sparse.isspmatrix_coo(counts):
             counts = sparse.coo_matrix(counts)
+            counts.setdiag(0)
 
         if self.init == "MDS2":
             X = mds.estimate_X(counts, alpha=self.alpha,
