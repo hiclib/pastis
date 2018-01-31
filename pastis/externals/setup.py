@@ -6,7 +6,7 @@ DISTNAME = 'iced'
 DESCRIPTION = 'ICE normalization'
 MAINTAINER = 'Nelle Varoquaux'
 MAINTAINER_EMAIL = 'nelle.varoquaux@gmail.com'
-VERSION = '0.2.1'
+VERSION = '0.4.2'
 
 
 def configuration(parent_package='', top_path=None):
@@ -15,9 +15,8 @@ def configuration(parent_package='', top_path=None):
 
     from numpy.distutils.misc_util import Configuration
     config = Configuration(None, parent_package, top_path)
-    config = Configuration('externals', parent_package, top_path)
+
     config.add_subpackage('iced')
-    config.add_subpackage('iced/io')
 
     return config
 

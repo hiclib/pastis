@@ -9,6 +9,7 @@ def test_filter_low_counts():
     X = np.ones((100, 100))
     X[0, :] = 0
     X[:, 0] = 0
+
     X_filtered_true = X.copy()
     X_filtered_true[X == 0] = np.nan
     X_filtered = filter_low_counts(X)
@@ -19,6 +20,20 @@ def test_filter_low_counts():
     assert_array_equal(X_filtered, X_filtered_true)
 
     X_filtered = filter_low_counts(X, sparsity=False)
+    assert_array_equal(X_filtered, X_filtered_true)
+
+
+def test_filter_low_counts_with_zeros():
+    X = 10 * np.ones((100, 100))
+    X[0, :] = 0
+    X[:, 0] = 0
+    X[1, :] = 1
+    X[:, 1] = 1
+
+    X_filtered_true = X.copy()
+    X_filtered_true[X != 10] = np.nan
+    X_filtered = filter_low_counts(X, remove_all_zeros_loci=True,
+                                   sparsity=False)
     assert_array_equal(X_filtered, X_filtered_true)
 
 
@@ -53,7 +68,7 @@ def test_sparse_filter_low_counts_real_data():
     triu_counts_sparse = sparse.csr_matrix(np.triu(counts))
     triu_counts_sparse = filter_low_counts(triu_counts_sparse, sparsity=False,
                                            percentage=0.1)
-    assert_array_equal(np.triu(counts), triu_counts_sparse.toarray())
+    assert_array_equal(np.triu(counts_dense), triu_counts_sparse.toarray())
 
 
 def test_filter_high_counts():
