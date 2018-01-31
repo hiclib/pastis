@@ -138,3 +138,4 @@ def test_estimate_alpha_beta_biased():
         sparse.coo_matrix(counts), X, bias=bias)
     assert_array_almost_equal(alpha_true, alpha, 5)
     assert_array_almost_equal(beta_true, beta, 4)
+
