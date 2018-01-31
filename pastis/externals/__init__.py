@@ -1,1 +1,1 @@
-import iced
+from . import iced

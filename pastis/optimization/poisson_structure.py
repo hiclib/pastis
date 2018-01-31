@@ -1,3 +1,4 @@
+from __future__ import division, print_function, absolute_import
 import numpy as np
 from scipy import sparse
 from scipy import optimize
@@ -174,7 +175,7 @@ class PM1(object):
             counts[np.isnan(counts)] = 0
         if self.init == "MDS2":
             if self.verbose:
-                print "Initialing with MDS2"
+                print("Initialing with MDS2")
             X = mds.estimate_X(counts, alpha=self.alpha,
                                beta=self.beta,
                                bias=self.bias,
@@ -242,7 +243,7 @@ class PM2(object):
                 X, bias=self.bias, ini=[self.alpha_, self.beta_],
                 verbose=self.verbose,
                 random_state=self.random_state)
-            print self.alpha_, self.beta_
+            print(self.alpha_, self.beta_)
             X_ = estimate_X(counts,
                             alpha=self.alpha_,
                             beta=self.beta_,
