@@ -137,6 +137,9 @@ def estimate_X(counts, alpha=-3., beta=1.,
     random_state = check_random_state(random_state)
     if ini is None:
         ini = 1 - 2 * random_state.rand(n * 3)
+    else:
+        ini = np.array(ini)
+
     data = (n, counts, alpha, beta, bias,
             False)
 
