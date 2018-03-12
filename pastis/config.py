@@ -3,6 +3,7 @@ try:
 except ImportError:
     import configparser as ConfigParser
 import os
+from distutils.util import strtobool
 
 
 def get_default_options():
@@ -98,8 +99,12 @@ def parse(filename=None):
     config.readfp(open(filename))
     for key in options.iterkeys():
         try:
-            options[key] = type(options[key])(
-                config.get("all", key))
+            if type(options[key]) == bool:
+                options[key] = bool(strtobool(
+                    config.get("all", key)))
+            else:
+                options[key] = type(options[key])(
+                    config.get("all", key))
         except ConfigParser.NoOptionError:
             pass
 
