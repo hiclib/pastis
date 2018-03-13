@@ -288,7 +288,7 @@ def run_pm2(directory):
               verbose=options["verbose"])
     X = pm2.fit(counts)
 
-    torm = np.array((counts.sum(axis=0) == 0)).flatten()
+    torm = np.array(((counts + counts.transpose()).sum(axis=0) == 0)).flatten()
 
     X[torm] = np.nan
 
