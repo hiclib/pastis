@@ -16,7 +16,9 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('utils')
     config.add_subpackage("optimization")
     config.add_subpackage("externals")
+    config.add_subpackage("metrics")
     return config
+
 
 if __name__ == '__main__':
     from numpy.distutils.core import setup
