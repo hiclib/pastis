@@ -20,7 +20,7 @@ import os
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('sphinxext'))
 extensions = ['gen_rst', 'sphinx.ext.autodoc', 'sphinx.ext.autosummary',
-              'sphinx.ext.pngmath', 'numpy_ext.numpydoc']
+              'sphinx.ext.pngmath', 'numpydoc']
 
 autosummary_generate = True
 
