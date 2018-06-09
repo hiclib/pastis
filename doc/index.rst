@@ -39,8 +39,8 @@ counts and the physical distances.
 Download
 ========
 
-Download Pastis 0.1 `here
-<https://github.com/hiclib/pastis/archive/v0.1.0.tar.gz>`_
+Download the latest version of pastis `here
+<https://github.com/hiclib/pastis/releases>`_
 or `fork the code on github <https://github.com/hiclib/pastis/>`_.
 
 References
