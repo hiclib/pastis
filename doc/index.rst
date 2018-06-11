@@ -3,9 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-================================================================================
+=====================================================================
 PASTIS: Poisson-based Algorithm for STable Inference of DNA Structure
-================================================================================
+=====================================================================
 
 .. figure:: images/yeast_chr2.png
    :scale: 50%
@@ -39,8 +39,8 @@ counts and the physical distances.
 Download
 ========
 
-Download Pastis 0.1 `here
-<https://github.com/hiclib/pastis/archive/v0.1.0.tar.gz>`_
+Download the latest version of pastis `here
+<https://github.com/hiclib/pastis/releases>`_
 or `fork the code on github <https://github.com/hiclib/pastis/>`_.
 
 References

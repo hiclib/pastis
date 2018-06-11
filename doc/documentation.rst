@@ -41,10 +41,9 @@ repository, to run the MDS::
 
 A bunch of files, necessary for the optimization are written in the same
 folder as the optimization, including the results of the optimization:
-``mds.structure.pdb.txt`` and ``mds.structure.pdb``. The ``txt`` file
-contains a the flatten array of coordinates :math:`(x_1, y_1, z_1, x_2, y_2, \dots)`
-while the ``pdb`` contains a smoothed interpolation of the structure for
-visualization purposes.
+``MDS.structure`` and ``MDS.structure.pdb``. The ``txt`` file contains the
+array of coordinates while the ``pdb`` contains a smoothed interpolation of
+the structure for visualization purposes.
 
 Running the algorithms on your own structure
 ============================================
