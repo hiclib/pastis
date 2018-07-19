@@ -21,7 +21,7 @@ import sphinx_gallery
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('sphinxext'))
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary',
-              'sphinx.ext.pngmath', 'numpydoc', "sphinx_gallery.gen_gallery"]
+              'sphinx.ext.imgmath', 'numpydoc', "sphinx_gallery.gen_gallery"]
 
 autosummary_generate = True
 
