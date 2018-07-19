@@ -17,3 +17,5 @@ src/MDS/MDS_all
 src/PM/PM_all
 .dev
 .idea
+doc/auto_examples/
+doc/_build
