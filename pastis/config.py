@@ -97,7 +97,7 @@ def parse(filename=None):
 
     config = ConfigParser.ConfigParser()
     config.readfp(open(filename))
-    for key in options.iterkeys():
+    for key in options.keys():
         try:
             if type(options[key]) == bool:
                 options[key] = bool(strtobool(

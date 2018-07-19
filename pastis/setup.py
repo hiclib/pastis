@@ -18,7 +18,7 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage("externals")
     return config
 
+
 if __name__ == '__main__':
     from numpy.distutils.core import setup
     setup(**configuration(top_path='').todict())
-
