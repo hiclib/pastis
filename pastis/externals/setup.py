@@ -14,7 +14,7 @@ def configuration(parent_package='', top_path=None):
         os.remove('MANIFEST')
 
     from numpy.distutils.misc_util import Configuration
-    config = Configuration(None, parent_package, top_path)
+    config = Configuration("externals", parent_package, top_path)
 
     config.add_subpackage('iced')
 
