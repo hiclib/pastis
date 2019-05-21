@@ -49,21 +49,3 @@ This will install a python package ``pastis``, and four programs ``pastis-mds``,
 ``pastis-nmds``, ``pastis-pm1`` and ``pastis-pm2``. Calling any of those four
 programs will display the help.
 
-
-MDS_all/PM_all
-==============
-
-You also need to compile the two softwares in src/MDS and src/PM, and place
-them in the directory of your choice.
-
-- First install IPOPT: https://projects.coin-or.org/Ipopt IPOPT can be
-  installed anywhere. IPOPT depends on several external packages that are not
-  included directly with IPOPT. **IPOPT requires at least one linear solver
-  for sparse symmetric indefinite matrices**. You have the choice between HSL,
-  MUMPS or Pardiso. The makefile for MDS and PM are written to use with the
-  HSL subroutines: you will need to edit the makefiles if you choose to use
-  another linear solver.
-- You have to edit the file Makefile in both the ``src/MDS`` and ``src/PM``,
-  and set the following 3 variables at the top: IPOPTPATH, IPOPTINCDIR,
-  IPOPTLIBDIR.
-- Type make.

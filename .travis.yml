@@ -8,7 +8,7 @@ notifications:
 
 env:
   global:
-    - TEST_RUN_FOLDER="/tmp" # folder where the tests are run from
+    - TEST_DIR="/tmp/pastis" # folder where the tests are run from
   matrix:
     # Ubuntu 14.04 versions
     - DISTRIB="conda" PYTHON_VERSION="2.6"
@@ -33,11 +33,11 @@ before_script:
 script:
     - python continuous_integration/show-python-packages-versions.py
     # We want to back out of the current working directory to make
-    # sure we are using nilearn installed in site-packages rather
+    # sure we are using pastis installed in site-packages rather
     # than the one from the current working directory
     # Parentheses (run in a subshell) are used to leave
     # the current directory unchanged
-    - make test
+    - bash continuous_integration/test_script.sh
 
 after_success:
     # Ignore coveralls failures as the coveralls server is not very reliable
