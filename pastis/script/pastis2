@@ -1,0 +1,72 @@
+#! /usr/bin/env python3
+
+from topsy.inference.diploid_algorithms import infer_3d
+from topsy.inference.poisson_diploid import check_constraints
+
+
+def parse_incorrect_spaces_in_args(args):
+    for k, v in vars(args).items():
+        if v is not None and isinstance(v, list) and len(v) == 1 and isinstance(v[0], str) and ' ' in v[0]:
+            vars(args)[k] = v[0].split(' ')
+    return args
+
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description='Run PASTIS2.')
+    parser.add_argument("--counts", nargs="+", type=str, help="All counts files for inference")
+    parser.add_argument("--outdir", type=str, help="Directory in which to save results")
+    parser.add_argument("--genome_lengths", nargs="+", type=str, help="Beads/bins per chromosome in the counts files")
+    parser.add_argument('--ploidy', type=int, help="1 for haploid, 2 for diploid")
+
+    parser.add_argument("--genome_chrom", nargs="+", default=None, type=str, help="Label for each chromosome in the counts files")
+    parser.add_argument("--chrom-to-infer", dest="infer_chrom", nargs="+", default=None, type=str, help="Chromosomes for which inference should be performed")
+    parser.add_argument("--alpha", "-a", type=float, default=None, help="Biophysical parameter of counts-to-distance transfer function. If alpha is not specified, it will be inferred")
+    parser.add_argument("--beta", "-b", type=float, nargs="+", default=None, help="Scaling parameters for each counts matrix, determines size of final structure. If beta is not specified, it will be inferred")
+    parser.add_argument("--init", default="MDS", type=str, help="Method used to initialize inference, default = MDS")
+    parser.add_argument("--HSC_r", "-r", default=None, help="Diploid only - hyperparameter of the homolog-separating constraint, which increases relative to the space between the two homologs of a diploid organism. If the homolog-separating constraint is applied but HSC_r is not specified, HSC_r will be inferred")
+    parser.add_argument("--HSC_lowres_beads", type=int, default=5, help="Approximate number of beads in low-res chromosome structure that is used to estimate HSC_r from the data")
+    parser.add_argument("--HSC_lambda", type=float, default=0., help="Diploid only - lambda of the homolog-separating constraint")
+    parser.add_argument("--BCC_lambda", type=float, default=0., help="Lambda of the bead chain connectivity constraint")
+    parser.add_argument("--multiscale_rounds", default=1, type=int, help="Values > 1 enable multiscale optimization with the specified number of inference rounds")
+    parser.add_argument('--normalize', default=False, action='store_true', help="Normalize contact counts matrices")
+    parser.add_argument('--filter', dest='filter_counts', default=False, action='store_true')
+    parser.add_argument('--filter_threshold', dest='filter_threshold', default=0.04, type=float, help="Proportion of low-counts-bins to filter out, default = 0.04")
+    parser.add_argument("--max_iter", default=1e40, type=float, help="Maximum number of iterations for each round of optimization")
+    parser.add_argument("--seed", "-s", default=0, type=int, help="Random Seed")
+
+    parser.add_argument('--stepwise_genome', default=False, action='store_true', help="")
+    parser.add_argument("--stepwise_genome.step", dest="stepwise_genome__step", nargs="+", default=None, type=int, help="")
+    parser.add_argument("--stepwise_genome.chrom-to-infer", dest="stepwise_genome__chrom", nargs="+", default=None, type=str, help="")
+    parser.add_argument("--stepwise_genome.lowres_min_beads", dest="stepwise_genome__lowres_min_beads", default=5, type=int, help="")
+    parser.add_argument('--stepwise_genome.dont_fix_homologs', dest='stepwise_genome__fix_homo', default=True, action='store_false', help="")
+    parser.add_argument('--stepwise_genome.dont_optimize_orientation', dest='stepwise_genome__optimize_orient', default=True, action='store_false', help="")
+
+    # top secret options
+    parser.add_argument("--num_infer", default=1, type=int, help="Number of random seeds for which to generate a structure (starting with --seed)")
+    parser.add_argument("--num_attempts", default=1, type=int, help="Upon nonconvergence, number of times to re-attempt inference")
+    parser.add_argument('--no_sep_homo_init', dest='sep_homo_init', default=True, action='store_false', help="Only applies to diploid inference with random initialization (ie without unambiguous data) - do not separate homologs in randomly initialized structure")
+    parser.add_argument("--input_weight", default=None, nargs="+", type=float)
+    parser.add_argument("--modifications", default=None, type=str, nargs="+", help="Extra modifications...")
+    parser.add_argument('--sparse', dest='as_sparse', default=False, action='store_true', help="Ignore bins of the contact counts matrix that have zero counts")
+    parser.add_argument('--null', dest='null', default=False, action='store_true', help="Infer without Poisson model")
+    parser.add_argument("--X_true", default=None, type=str, help="File containing the (x, y, z) coordinates of the true structure")
+    parser.add_argument('--in_2d', dest='in_2d', default=False, action='store_true', help="Infer a two-dimensional structure")
+    parser.add_argument("--HSC_type", type=str, default='homodis')
+    parser.add_argument('--redo_analysis', dest='redo_analysis', default=False, action='store_true', help="Redo analysis")
+
+    args = parser.parse_args()
+    args = parse_incorrect_spaces_in_args(args)
+
+    homo_init = (args.HSC_type if args.sep_homo_init else None)
+    lagrange_mult, constraints = check_constraints(lagrange_mult={'adj': args.BCC_lambda, args.HSC_type: args.HSC_lambda}, constraints={'adj': 'var', args.HSC_type: args.HSC_r}, verbose=False)
+
+    infer_3d(counts_files=args.counts, genome_lengths=args.genome_lengths, alpha=args.alpha, beta=args.beta, ploidy=args.ploidy, init=args.init,
+             outdir=args.outdir, lagrange_mult=lagrange_mult, constraints=constraints, homo_init=homo_init,
+             input_weight=args.input_weight, as_sparse=args.as_sparse, norm=args.normalize, filter_counts=args.filter_counts,
+             genome_chrom=args.genome_chrom, infer_chrom=args.infer_chrom,
+             stepwise_genome=args.stepwise_genome, stepwise_genome__step=args.stepwise_genome__step, stepwise_genome__chrom=args.stepwise_genome__chrom,
+             stepwise_genome__lowres_min_beads=args.stepwise_genome__lowres_min_beads, stepwise_genome__fix_homo=args.stepwise_genome__fix_homo, stepwise_genome__optimize_orient=args.stepwise_genome__optimize_orient,
+             initial_seed=args.seed, num_infer=args.num_infer, num_attempts=args.num_attempts, multiscale_rounds=args.multiscale_rounds,
+             modifications=args.modifications, null=args.null, HSC_lowres_beads=args.HSC_lowres_beads,
+             filter_percentage=args.filter_threshold, X_true_file=args.X_true, max_iter=int(args.max_iter), in_2d=args.in_2d, redo_analysis=args.redo_analysis)
