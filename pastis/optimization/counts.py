@@ -5,7 +5,7 @@ from iced.filter import filter_low_counts
 from iced.normalization import ICE_normalization
 
 from .utils import find_beads_to_remove
-from .multiscale_optimization import decrease_lengths_res, reduce_counts_res, count_fullres_per_lowres_bead
+from .multiscale_optimization import decrease_lengths_res, decrease_counts_res, count_fullres_per_lowres_bead
 
 
 def ambiguate_counts(counts, n, as_sparse=None):
@@ -220,7 +220,7 @@ def prep_counts(counts_list, lengths, ploidy=1, multiscale_factor=1, normalize=F
     lengths_lowres = lengths
     for counts_type, counts in counts_dict.items():
         if multiscale_factor != 1:
-            counts, lengths_lowres = reduce_counts_res(
+            counts, lengths_lowres = decrease_counts_res(
                 counts, multiscale_factor, lengths, ploidy)
             counts_dict[counts_type] = counts
 
