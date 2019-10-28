@@ -1,8 +1,8 @@
 import numpy as np
 from scipy import sparse
 
-from iced.filter import filter_low_counts
-from iced.normalization import ICE_normalization
+from ..externals.iced.filter import filter_low_counts
+from ..externals.iced.normalization import ICE_normalization
 
 from .utils import find_beads_to_remove
 from .multiscale_optimization import decrease_lengths_res, decrease_counts_res, count_fullres_per_lowres_bead
