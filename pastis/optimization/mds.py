@@ -91,7 +91,7 @@ def estimate_X(counts, alpha=-3., beta=1., ini=None,
         MDS_obj, ini.flatten(),
         MDS_gradient,
         (distances, ),
-        iprint=1,
+        iprint=verbose,
         factr=factr,
         maxiter=maxiter)
     return results[0].reshape(-1, 3)
