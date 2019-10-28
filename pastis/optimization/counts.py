@@ -446,12 +446,6 @@ class counts_matrix(object):
 
         pass
 
-    def ignore_high_genomic_dist_contacts(self, lengths, ploidy, perc_cutoff=None, dist_cutoff=None):
-        """
-        """
-
-        pass
-
 
 class sparse_counts_matrix(counts_matrix):
     """Stores data for non-zero counts bins.
@@ -527,23 +521,6 @@ class sparse_counts_matrix(counts_matrix):
         else:
             return self.highres_per_lowres_bead[self.row] * self.highres_per_lowres_bead[self.col]
 
-    def ignore_high_genomic_dist_contacts(self, lengths, ploidy, perc_cutoff=None, dist_cutoff=None):
-        if (perc_cutoff is None and dist_cutoff is None) or (perc_cutoff is not None and dist_cutoff is not None):
-            raise ValueError('Must supply either perc_cutoff or dist_cutoff.')
-        bins_for_row = np.tile(lengths, int(self.shape[0] / lengths.sum())).cumsum()
-        bins_for_col = np.tile(lengths, int(self.shape[1] / lengths.sum())).cumsum()
-        row_binned = np.digitize(self.row, bins_for_row)
-        col_binned = np.digitize(self.col, bins_for_col)
-        if dist_cutoff is None:
-            dist_cutoff = np.ceil(np.tile(lengths, ploidy)[row_binned] * perc_cutoff)
-        index_filter = np.equal(row_binned, col_binned) & np.less(np.abs(self.row - self.col), dist_cutoff)
-
-        row = self.row[index_filter]
-        col = self.col[index_filter]
-        data = self.data[index_filter]
-        self.counts = sparse.coo_matrix((data, (row, col)), shape=self.shape)
-        self.row3d, self.col3d = counts_indices_to_3d_indices(self, n=lengths.sum(), ploidy=ploidy)
-
 
 class atypical_counts_matrix(counts_matrix):
     """Stores null counts data or data for zero counts bins.
@@ -596,21 +573,6 @@ class atypical_counts_matrix(counts_matrix):
             return 1
         else:
             return self.highres_per_lowres_bead[self.row] * self.highres_per_lowres_bead[self.col]
-
-    def ignore_high_genomic_dist_contacts(self, lengths, ploidy, perc_cutoff=None, dist_cutoff=None):
-        if (perc_cutoff is None and dist_cutoff is None) or (perc_cutoff is not None and dist_cutoff is not None):
-            raise ValueError('Must supply either perc_cutoff or dist_cutoff.')
-        bins_for_row = np.tile(lengths, int(self.shape[0] / lengths.sum())).cumsum()
-        bins_for_col = np.tile(lengths, int(self.shape[1] / lengths.sum())).cumsum()
-        row_binned = np.digitize(self.row, bins_for_row)
-        col_binned = np.digitize(self.col, bins_for_col)
-        if dist_cutoff is None:
-            dist_cutoff = np.ceil(np.tile(lengths, ploidy)[row_binned] * perc_cutoff)
-        index_filter = np.equal(row_binned, col_binned) & np.less(np.abs(self.row - self.col), dist_cutoff)
-
-        self.row = self.row[index_filter]
-        self.col = self.col[index_filter]
-        self.row3d, self.col3d = counts_indices_to_3d_indices(self, n=lengths.sum(), ploidy=ploidy)
 
 
 class zero_counts_matrix(atypical_counts_matrix):
