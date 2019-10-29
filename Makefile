@@ -1,7 +1,7 @@
 
 PYTHON ?= python
 CYTHON ?= cython
-NOSETESTS ?= nosetests
+PYTEST ?= pytest
 CTAGS ?= ctags
 
 all:
@@ -24,11 +24,11 @@ inplace:
 	$(PYTHON) setup.py build_ext -i
 
 test: in
-	$(NOSETESTS) -s -v pastis
+	$(PYTEST) --showlocals -v pastis --durations=20
 
 test-coverage:
 	rm -rf coverage .coverage
-	$(NOSETESTS) -s -v --with-coverage pastis --cover-package pastis
+	$(PYTEST) pastis --showlocals -v --cov=pastis
 
 doc: inplace
 	$(MAKE) -C doc html
