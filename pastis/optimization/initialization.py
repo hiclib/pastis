@@ -3,6 +3,9 @@ import numpy as np
 
 def initialize_struct_mds(counts, lengths, ploidy, alpha, bias, random_state,
                           multiscale_factor=1, verbose=True):
+    """Initialize structure via multi-dimensional scaling of unambig counts.
+    """
+
     from .utils import find_beads_to_remove
     from .mds import estimate_X
 
@@ -43,6 +46,9 @@ def initialize_struct_mds(counts, lengths, ploidy, alpha, bias, random_state,
 
 def initialize_structure(counts, lengths, ploidy, alpha, bias, random_state,
                          init='mds', multiscale_factor=1, verbose=True):
+    """Initialize structure, randomly or via MDS of unambig counts.
+    """
+
     from .utils import struct_replace_nan
     from sklearn.utils import check_random_state
 
@@ -78,9 +84,12 @@ def initialize_structure(counts, lengths, ploidy, alpha, bias, random_state,
     return X
 
 
-def initialize_X(counts, lengths, random_state, init, ploidy, alpha=-3.,
-                 bias=None, multiscale_factor=1, reorienter=None,
-                 modifications=None, verbose=False):
+def initialize(counts, lengths, random_state, init, ploidy, alpha=-3.,
+               bias=None, multiscale_factor=1, reorienter=None,
+               modifications=None, verbose=False):
+    """Initialize optimization, for structure or for rotation and translation.
+    """
+
     from sklearn.utils import check_random_state
     from .multiscale_optimization import increase_X_res
 
@@ -89,31 +98,32 @@ def initialize_X(counts, lengths, random_state, init, ploidy, alpha=-3.,
             print(
                 'INITIALIZATION: inputted translation coordinates'
                 'and/or rotation quaternions', flush=True)
-            init_X = init
+            init_reorient = init
         else:
             print('INITIALIZATION: random', flush=True)
             random_state = check_random_state(random_state)
-            init_X = []
+            init_reorient = []
             if reorienter.translate:
-                init_X.append(1 - 2 * random_state.rand(
+                init_reorient.append(1 - 2 * random_state.rand(
                     lengths.shape[0] * 3 * (1 + np.invert(reorienter.fix_homo))))
             if reorienter.rotate:
-                init_X.append(random_state.rand(
+                init_reorient.append(random_state.rand(
                     lengths.shape[0] * 4 * (1 + np.invert(reorienter.fix_homo))))
-            init_X = np.concatenate(init_X)
+            init_reorient = np.concatenate(init_reorient)
+        return init_reorient
     else:
-        init_X = initialize_structure(counts, lengths,
-                                      ploidy, alpha, bias, random_state,
-                                      init=init,
-                                      multiscale_factor=multiscale_factor,
-                                      verbose=verbose)
+        init_struct = initialize_structure(counts, lengths,
+                                           ploidy, alpha, bias, random_state,
+                                           init=init,
+                                           multiscale_factor=multiscale_factor,
+                                           verbose=verbose)
 
-        if init_X.shape[0] < int(lengths.sum() * ploidy):
+        if init_struct.shape[0] < int(lengths.sum() * ploidy):
             if verbose:
                 print('INITIALIZATION: increasing resolution of structure by'
-                      '%g' % np.ceil(lengths.sum() * ploidy / init_X.shape[0]),
+                      '%g' % np.ceil(lengths.sum() * ploidy / init_struct.shape[0]),
                       flush=True)
-            init_X = increase_X_res(init_X, multiscale_factor=np.ceil(
-                lengths.sum() * ploidy / init_X.shape[0]), lengths=lengths)
+            init_struct = increase_X_res(init_struct, multiscale_factor=np.ceil(
+                lengths.sum() * ploidy / init_struct.shape[0]), lengths=lengths)
 
-    return init_X
+        return init_struct
