@@ -1,7 +1,6 @@
 language: python
 
-virtualenv:
-  system_site_packages: true
+dist: xenial
 
 notifications:
   email: false
@@ -9,6 +8,7 @@ notifications:
 env:
   global:
     - TEST_DIR="/tmp/pastis" # folder where the tests are run from
+
   matrix:
     # Ubuntu 14.04 versions
     - DISTRIB="conda" PYTHON_VERSION="2.7"

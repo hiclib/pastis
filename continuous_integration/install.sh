@@ -15,16 +15,6 @@ set -e
 export CC=gcc
 export CXX=g++
 
-create_new_venv() {
-    # At the time of writing numpy 1.9.1 is included in the travis
-    # virtualenv but we want to be in control of the numpy version
-    # we are using for example through apt-get install
-    deactivate
-    virtualenv --system-site-packages testvenv
-    source testvenv/bin/activate
-    pip install nose
-}
-
 print_conda_requirements() {
     # Echo a conda requirement string for example
     # "pip nose python='.7.3 scikit-learn=*". It has a hardcoded
@@ -80,12 +70,7 @@ create_new_conda_env() {
     fi
 }
 
-if [[ "$DISTRIB" == "neurodebian" ]]; then
-    create_new_venv
-    bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
-    sudo apt-get install -qq python-sc
-
-elif [[ "$DISTRIB" == "conda" ]]; then
+if [[ "$DISTRIB" == "conda" ]]; then
     create_new_conda_env
     # Note: nibabel is in setup.py install_requires so nibabel will
     # always be installed eventually. Defining NIBABEL_VERSION is only
