@@ -23,9 +23,9 @@ print_conda_requirements() {
     # if yes which version to install. For example:
     #   - for numpy, NUMPY_VERSION is used
     #   - for scikit-learn, SCIKIT_LEARN_VERSION is used
-    TO_INSTALL_ALWAYS="python numpy scipy scikit-learn pandas pip nose coverage"
+    TO_INSTALL_ALWAYS="python numpy scipy scikit-learn pandas pip nose pytest pytest-coverage"
     REQUIREMENTS="$TO_INSTALL_ALWAYS"
-    TO_INSTALL_MAYBE="python numpy scipy scikit-learn pandas pip nose coverage"
+    TO_INSTALL_MAYBE="python numpy scipy scikit-learn pandas pip nose pytest pytest-coverage"
     for PACKAGE in $TO_INSTALL_MAYBE; do
         # Capitalize package name and add _VERSION
         PACKAGE_VERSION_VARNAME="${PACKAGE^^}_VERSION"
