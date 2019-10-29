@@ -369,7 +369,7 @@ def row_and_col(data):
 
 
 def counts_indices_to_3d_indices(counts, n, ploidy):
-    """Return indices distance matrix bins associated with counts matrix bins.
+    """Return distance matrix indices associated with counts matrix data.
 
     :param counts: counts ndarray or sparse matrix, or sparse_counts_matrix, zero_counts_matrix, null_counts_matrix object
     :param n: sum of lengths
