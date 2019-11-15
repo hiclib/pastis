@@ -3,7 +3,7 @@ from timeit import default_timer as timer
 from datetime import timedelta
 import os
 from .utils import find_beads_to_remove
-from .multiscale_optimization import decrease_lengths_res
+from .multiscale_optimization import decrease_lengths_res, decrease_struct_res
 
 
 class Callback(object):
@@ -18,7 +18,7 @@ class Callback(object):
 
     def __init__(self, lengths, ploidy, counts=None, multiscale_factor=1, history=None,
                  analysis_function=None, frequency=100, on_training_begin=None, on_training_end=None, on_epoch_end=None,
-                 directory=None, structure_true=None, alpha_true=None, verbose=False):
+                 directory=None, struct_true=None, alpha_true=None, verbose=False):
         self.ploidy = ploidy
         self.multiscale_factor = multiscale_factor
         self.lengths = decrease_lengths_res(lengths, multiscale_factor)
@@ -44,7 +44,9 @@ class Callback(object):
         if directory is None:
             directory = ''
         self.directory = directory
-        self.structure_true = structure_true
+        self.struct_true = decrease_struct_res(struct_true,
+                                               multiscale_factor=multiscale_factor,
+                                               lengths=lengths)
         self.alpha_true = alpha_true
         self.verbose = verbose
 

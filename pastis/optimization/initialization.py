@@ -1,4 +1,6 @@
 import numpy as np
+from sklearn.utils import check_random_state
+from .multiscale_optimization import increase_struct_res, decrease_lengths_res, decrease_struct_res
 
 
 def initialize_struct_mds(counts, lengths, ploidy, alpha, bias, random_state,
@@ -11,6 +13,8 @@ def initialize_struct_mds(counts, lengths, ploidy, alpha, bias, random_state,
 
     if verbose:
         print('INITIALIZATION: multi-dimensional scaling', flush=True)
+
+    random_state = check_random_state(random_state)
 
     ua_index = [i for i in range(len(counts)) if counts[i].name == 'ua']
     if len(ua_index) == 1:
@@ -25,73 +29,86 @@ def initialize_struct_mds(counts, lengths, ploidy, alpha, bias, random_state,
     if ua_beta is not None:
         ua_beta *= multiscale_factor ** 2
 
-    X = estimate_X(ua_counts.counts.tocoo().astype(float),
-                   alpha=-3. if alpha is None else alpha,
-                   beta=ua_beta,
-                   verbose=False,
-                   use_zero_entries=False,
-                   precompute_distances='auto',
-                   bias=(np.tile(bias, ploidy) if bias is not None else bias),
-                   random_state=random_state, type="MDS2",
-                   factr=1e12,
-                   maxiter=10000,
-                   ini=None)
+    struct = estimate_X(
+        ua_counts.counts.tocoo().astype(float),
+        alpha=-3. if alpha is None else alpha, beta=ua_beta, verbose=False,
+        use_zero_entries=False, precompute_distances='auto',
+        bias=(np.tile(bias, ploidy) if bias is not None else bias),
+        random_state=random_state, type="MDS2", factr=1e12, maxiter=10000,
+        ini=None)
 
-    X = X.reshape(-1, 3)
-    torm = find_beads_to_remove(counts, X.shape[0])
-    X[torm] = np.nan
+    struct = struct.reshape(-1, 3)
+    torm = find_beads_to_remove(counts, struct.shape[0])
+    struct[torm] = np.nan
 
-    return X
+    return struct
 
 
-def initialize_structure(counts, lengths, ploidy, alpha, bias, random_state,
-                         init='mds', multiscale_factor=1, verbose=True):
+def initialize_struct(counts, lengths, ploidy, alpha, bias, random_state,
+                      init='mds', multiscale_factor=1, mixture_coefs=None,
+                      verbose=True):
     """Initialize structure, randomly or via MDS of unambig counts.
     """
 
-    from .utils import struct_replace_nan
-    from sklearn.utils import check_random_state
+    from .utils import struct_replace_nan, format_structures
 
     random_state = check_random_state(random_state)
+
+    if mixture_coefs is None:
+        mixture_coefs = [1.]
 
     if not isinstance(counts, list):
         counts = [counts]
     ua_index = [i for i in range(len(counts)) if counts[i].name == 'ua']
 
-    if isinstance(init, np.ndarray):
+    if isinstance(init, np.ndarray) or isinstance(init, list):
         if verbose:
             print('INITIALIZATION: 3D structure', flush=True)
-        X = init.reshape(-1, 3)
-        if X.shape[0] > lengths.sum() * ploidy:
-            raise ValueError('Structure used for initialization may not have'
-                             'more beads than inferred structure.'
-                             'Structure used for initialization is of length'
-                             '%d, final inferred structure is of length'
-                             '%d' % (X.shape[0], lengths.sum() * ploidy))
-    elif (init.lower() in ("mds", 'mds2')) and len(ua_index) != 0:
-        X = initialize_struct_mds(counts, lengths, ploidy, alpha, bias,
-                                  random_state,
-                                  multiscale_factor=multiscale_factor,
-                                  verbose=verbose)
-    else:
+        structures = format_structures(init, lengths=lengths, ploidy=ploidy,
+                                       mixture_coefs=mixture_coefs)
+    elif isinstance(init, str) and (init.lower() in ("mds", 'mds2')) and len(ua_index) != 0:
+        struct = initialize_struct_mds(
+            counts=counts, lengths=lengths, ploidy=ploidy, alpha=alpha,
+            bias=bias, random_state=random_state,
+            multiscale_factor=multiscale_factor, verbose=verbose)
+        structures = [struct] * len(mixture_coefs)
+    elif isinstance(init, str) and (init.lower() in ("random", "rand")):
         if verbose:
             print('INITIALIZATION: random points', flush=True)
-        X = (1 - 2 * random_state.rand(
-            int(lengths.sum() * ploidy * 3))).reshape(-1, 3)
+        structures = [(1 - 2 * random_state.rand(int(lengths.sum() * ploidy * 3))).reshape(-1, 3) for coef in mixture_coefs]
+    else:
+        raise ValueError("Initialization method not understood.")
 
-    X = struct_replace_nan(X, lengths, random_state=random_state)
+    structures = [struct_replace_nan(struct, lengths, random_state=random_state) for struct in structures]
 
-    return X
+    for struct in structures:
+        if struct.shape[0] < int(lengths.sum() * ploidy):
+            if verbose:
+                print('INITIALIZATION: increasing resolution of structure by'
+                      '%g' % np.ceil(lengths.sum() * ploidy / struct.shape[0]),
+                      flush=True)
+            struct = increase_struct_res(struct, multiscale_factor=np.ceil(
+                lengths.sum() * ploidy / struct.shape[0]), lengths=lengths)
+        elif struct.shape[0] > int(lengths.sum() * ploidy):
+            if verbose:
+                print('INITIALIZATION: decreasing resolution of structure by'
+                      '%g' % np.ceil(lengths.sum() * ploidy / struct.shape[0]),
+                      flush=True)
+            struct = decrease_struct_res(struct, multiscale_factor=np.ceil(
+                lengths.sum() * ploidy / struct.shape[0]), lengths=lengths)
+
+    return np.concatenate(structures)
 
 
 def initialize(counts, lengths, random_state, init, ploidy, alpha=-3.,
                bias=None, multiscale_factor=1, reorienter=None,
-               modifications=None, verbose=False):
+               mixture_coefs=None, verbose=False):
     """Initialize optimization, for structure or for rotation and translation.
     """
 
     from sklearn.utils import check_random_state
-    from .multiscale_optimization import increase_X_res
+
+    lengths_lowres = decrease_lengths_res(lengths, multiscale_factor=multiscale_factor)
 
     if reorienter.reorient:
         if isinstance(init, np.ndarray):
@@ -105,25 +122,16 @@ def initialize(counts, lengths, random_state, init, ploidy, alpha=-3.,
             init_reorient = []
             if reorienter.translate:
                 init_reorient.append(1 - 2 * random_state.rand(
-                    lengths.shape[0] * 3 * (1 + np.invert(reorienter.fix_homo))))
+                    lengths_lowres.shape[0] * 3 * (1 + np.invert(reorienter.fix_homo))))
             if reorienter.rotate:
                 init_reorient.append(random_state.rand(
-                    lengths.shape[0] * 4 * (1 + np.invert(reorienter.fix_homo))))
+                    lengths_lowres.shape[0] * 4 * (1 + np.invert(reorienter.fix_homo))))
             init_reorient = np.concatenate(init_reorient)
         return init_reorient
     else:
-        init_struct = initialize_structure(counts, lengths,
-                                           ploidy, alpha, bias, random_state,
-                                           init=init,
-                                           multiscale_factor=multiscale_factor,
-                                           verbose=verbose)
-
-        if init_struct.shape[0] < int(lengths.sum() * ploidy):
-            if verbose:
-                print('INITIALIZATION: increasing resolution of structure by'
-                      '%g' % np.ceil(lengths.sum() * ploidy / init_struct.shape[0]),
-                      flush=True)
-            init_struct = increase_X_res(init_struct, multiscale_factor=np.ceil(
-                lengths.sum() * ploidy / init_struct.shape[0]), lengths=lengths)
-
-        return init_struct
+        struct_init = initialize_struct(
+            counts=counts, lengths=lengths_lowres, ploidy=ploidy, alpha=alpha,
+            bias=bias, random_state=random_state, init=init,
+            multiscale_factor=multiscale_factor, mixture_coefs=mixture_coefs,
+            verbose=verbose)
+        return struct_init
