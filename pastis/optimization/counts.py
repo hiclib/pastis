@@ -17,7 +17,6 @@ def ambiguate_counts(counts, n, as_sparse=None):
     """
 
     from scipy import sparse
-    from .counts import check_counts_matrix, zero_counts_matrix, sparse_counts_matrix
 
     if not isinstance(counts, list):
         counts = [counts]
@@ -65,61 +64,61 @@ def create_dummy_counts(counts, lengths, ploidy, multiscale_factor=1):
     return dummy_counts
 
 
-def get_chrom_subset_index(ploidy, genome_lengths, genome_chrom, infer_chrom):
+def get_chrom_subset_index(ploidy, lengths_full, chrom_full, chrom_subset):
     """Return indices for selected chromosomes only.
     """
 
-    if not isinstance(infer_chrom, list):
-        infer_chrom = [infer_chrom]
-    if not all([chrom in genome_chrom for chrom in infer_chrom]):
+    if not isinstance(chrom_subset, list):
+        chrom_subset = [chrom_subset]
+    if not all([chrom in chrom_full for chrom in chrom_subset]):
         raise ValueError('Chromosomes to be inferred (%s) are not in genome (%s)' % (
-            ','.join(infer_chrom), ','.join(genome_chrom)))
+            ','.join(chrom_subset), ','.join(chrom_full)))
 
-    infer_lengths = genome_lengths.copy()
+    lengths_subset = lengths_full.copy()
     index = None
-    if not np.array_equal(infer_chrom, genome_chrom):
-        infer_lengths = np.array([genome_lengths[i] for i in range(
-            len(genome_chrom)) if genome_chrom[i] in infer_chrom])
+    if not np.array_equal(chrom_subset, chrom_full):
+        lengths_subset = np.array([lengths_full[i] for i in range(
+            len(chrom_full)) if chrom_full[i] in chrom_subset])
         index = []
-        for i in range(len(genome_lengths)):
+        for i in range(len(lengths_full)):
             index.append(
-                np.full((genome_lengths[i],), genome_chrom[i] in infer_chrom))
+                np.full((lengths_full[i],), chrom_full[i] in chrom_subset))
         index = np.concatenate(index)
         if ploidy == 2:
             index = np.tile(index, 2)
-    return index, infer_lengths
+    return index, lengths_subset
 
 
-def subset_chrom(ploidy, genome_lengths, genome_chrom, infer_chrom=None, counts=None, as_sparse=True, X_true=None):
+def subset_chrom(ploidy, lengths_full, chrom_full, chrom_subset=None, counts=None, as_sparse=True, struct_true=None):
     """Return data for selected chromosomes only.
     """
 
-    if infer_chrom is None or infer_chrom == genome_chrom:
-        infer_chrom = genome_chrom.copy()
-        infer_lengths = genome_lengths.copy()
+    if chrom_subset is None or chrom_subset == chrom_full:
+        chrom_subset = chrom_full.copy()
+        lengths_subset = lengths_full.copy()
         if counts is not None:
             counts = check_counts(counts, as_sparse=as_sparse)
-        return counts, X_true, infer_lengths, infer_chrom
+        return counts, struct_true, lengths_subset, chrom_subset
     else:
-        if isinstance(infer_chrom, str):
-            infer_chrom = [infer_chrom]
-        if not all([chrom in genome_chrom for chrom in infer_chrom]):
+        if isinstance(chrom_subset, str):
+            chrom_subset = [chrom_subset]
+        if not all([chrom in chrom_full for chrom in chrom_subset]):
             raise ValueError('Chromosomes to be inferred (%s) are not in genome (%s)' % (
-                ','.join(infer_chrom), ','.join(genome_chrom)))
-        # Make sure infer_chrom is sorted properly
-        infer_chrom = [chrom for chrom in genome_chrom if chrom in infer_chrom]
+                ','.join(chrom_subset), ','.join(chrom_full)))
+        # Make sure chrom_subset is sorted properly
+        chrom_subset = [chrom for chrom in chrom_full if chrom in chrom_subset]
 
-        index, infer_lengths = get_chrom_subset_index(
-            ploidy, genome_lengths, genome_chrom, infer_chrom)
+        index, lengths_subset = get_chrom_subset_index(
+            ploidy, lengths_full, chrom_full, chrom_subset)
 
-        if X_true is not None and index is not None:
-            X_true = X_true[index]
+        if struct_true is not None and index is not None:
+            struct_true = struct_true[index]
 
         if counts is not None:
             counts = [check_counts_matrix(
                 c, as_sparse=as_sparse, chrom_subset_index=index) for c in counts]
 
-        return counts, X_true, infer_lengths, infer_chrom
+        return counts, struct_true, lengths_subset, chrom_subset
 
 
 def check_counts_matrix(counts, as_sparse=True, chrom_subset_index=None):
@@ -189,6 +188,46 @@ def check_counts(counts, as_sparse=True):
     return [check_counts_matrix(c, as_sparse) for c in counts]
 
 
+def preprocess_counts(counts, lengths, ploidy, multiscale_factor, normalize,
+                      filter_threshold, exclude_zeros, beta, input_weight,
+                      verbose=True, fullres_torm=None, output_directory=None):
+    """Reduce resolution, filter, reformat, and compute bias on counts.
+    """
+
+    from ..externals.iced.io import write_counts
+    import os
+
+    counts_prepped, bias = prep_counts(counts, lengths=lengths, ploidy=ploidy,
+                                       multiscale_factor=multiscale_factor,
+                                       normalize=normalize,
+                                       filter_threshold=filter_threshold,
+                                       exclude_zeros=exclude_zeros,
+                                       verbose=verbose)
+    lengths_lowres = decrease_lengths_res(lengths, multiscale_factor)
+    counts_formatted = format_counts(counts_prepped, beta=beta,
+                                     input_weight=input_weight,
+                                     lengths=lengths_lowres, ploidy=ploidy,
+                                     exclude_zeros=exclude_zeros,
+                                     multiscale_factor=multiscale_factor,
+                                     fullres_torm=fullres_torm)
+
+    torm = find_beads_to_remove(counts_prepped,
+                                nbeads=lengths_lowres.sum() * ploidy)
+
+    if output_directory is not None:
+        try:
+            os.makedirs(output_directory)
+        except OSError:
+            pass
+
+        for c in counts_formatted:
+            if not c.null and c.sum() > 0:
+                write_counts(os.path.join(output_directory,
+                             '%s_filtered.matrix' % c.name), c.tocoo())
+
+    return counts_formatted, bias, torm
+
+
 def percent_nan_beads(counts):
     """Return percent of beads that would be NaN for current counts matrix.
     """
@@ -196,7 +235,7 @@ def percent_nan_beads(counts):
     return find_beads_to_remove(counts, max(counts.shape)).sum() / max(counts.shape)
 
 
-def prep_counts(counts_list, lengths, ploidy=1, multiscale_factor=1, normalize=False, filter_counts=False, filter_percentage=0.04, as_sparse=True, verbose=True):
+def prep_counts(counts_list, lengths, ploidy=1, multiscale_factor=1, normalize=True, filter_threshold=0.04, as_sparse=True, verbose=True):
     """Copy counts, check matrix, reduce resolution, filter, and compute bias.
     """
 
@@ -226,16 +265,16 @@ def prep_counts(counts_list, lengths, ploidy=1, multiscale_factor=1, normalize=F
 
     # Filter all counts together... and if an entire bead has 0 counts from
     # this filtering, set that bead to 0 in all counts matrices
-    if filter_counts and len(counts_list) > 1:
+    if filter_threshold is not None and filter_threshold > 0 and len(counts_list) > 1:
         if verbose:
             print('FILTERING LOW COUNTS: manually filtering all counts together by %g' %
-                  filter_percentage, flush=True)
+                  filter_threshold, flush=True)
         all_counts_ambiguated = ambiguate_counts(
             list(counts_dict.values()), lengths_lowres.sum())
         initial_zero_beads = find_beads_to_remove(
             all_counts_ambiguated, lengths_lowres.sum()).sum()
         all_counts_filtered = filter_low_counts(sparse.coo_matrix(
-            all_counts_ambiguated), sparsity=False, percentage=filter_percentage + percent_nan_beads(all_counts_ambiguated)).tocoo()
+            all_counts_ambiguated), sparsity=False, percentage=filter_threshold + percent_nan_beads(all_counts_ambiguated)).tocoo()
         torm = find_beads_to_remove(all_counts_filtered, lengths_lowres.sum())
         if verbose:
             print('                      removing %d beads' %
@@ -249,12 +288,12 @@ def prep_counts(counts_list, lengths, ploidy=1, multiscale_factor=1, normalize=F
             counts_dict[counts_type] = counts
 
     # Filter counts
-    if filter_counts:
+    if filter_threshold is not None and filter_threshold > 0:
         individual_counts_torms = np.full((lengths_lowres.sum(),), False)
         for counts_type, counts in counts_dict.items():
             if verbose:
                 print('FILTERING LOW COUNTS: manually filtering %s counts by %g' % (
-                    counts_type.upper(), filter_percentage), flush=True)
+                    counts_type.upper(), filter_threshold), flush=True)
             initial_zero_beads = find_beads_to_remove(ambiguate_counts(
                 counts, lengths_lowres.sum()), lengths_lowres.sum()).sum()
             if counts_type == 'pa':
@@ -266,17 +305,17 @@ def prep_counts(counts_list, lengths, ploidy=1, multiscale_factor=1, normalize=F
                 homo2_upper = np.triu(counts[min(counts.shape):, :], 1)
                 homo2_lower = np.triu(counts[min(counts.shape):, :].T, 1)
                 counts_filtered[:min(counts.shape), :] += filter_low_counts(sparse.coo_matrix(homo1_upper), sparsity=False,
-                                                                            percentage=filter_percentage + percent_nan_beads(homo1_upper)).toarray()
+                                                                            percentage=filter_threshold + percent_nan_beads(homo1_upper)).toarray()
                 counts_filtered[:min(counts.shape), :] += filter_low_counts(sparse.coo_matrix(homo1_lower), sparsity=False,
-                                                                            percentage=filter_percentage + percent_nan_beads(homo1_lower)).toarray().T
+                                                                            percentage=filter_threshold + percent_nan_beads(homo1_lower)).toarray().T
                 counts_filtered[min(counts.shape):, :] += filter_low_counts(sparse.coo_matrix(homo2_upper), sparsity=False,
-                                                                            percentage=filter_percentage + percent_nan_beads(homo2_upper)).toarray()
+                                                                            percentage=filter_threshold + percent_nan_beads(homo2_upper)).toarray()
                 counts_filtered[min(counts.shape):, :] += filter_low_counts(sparse.coo_matrix(homo2_lower), sparsity=False,
-                                                                            percentage=filter_percentage + percent_nan_beads(homo2_lower)).toarray().T
+                                                                            percentage=filter_threshold + percent_nan_beads(homo2_lower)).toarray().T
                 counts = counts_filtered
             else:
                 counts = filter_low_counts(sparse.coo_matrix(
-                    counts), sparsity=False, percentage=filter_percentage + percent_nan_beads(counts)).tocoo()
+                    counts), sparsity=False, percentage=filter_threshold + percent_nan_beads(counts)).tocoo()
             torm = find_beads_to_remove(ambiguate_counts(
                 counts, lengths_lowres.sum()), lengths_lowres.sum())
             if verbose:
@@ -327,7 +366,7 @@ def format_counts(counts, beta, input_weight, lengths, ploidy, as_sparse, multis
             raise ValueError("beta needs to contain as many scaling factors as there "
                              "are datasets (%d). It is of length (%d)" % (len(counts), len(beta)))
     else:
-        beta = [None] * len(counts)
+        beta = [1.] * len(counts)
     if input_weight is not None:
         if len(input_weight) != len(counts):
             raise ValueError("input_weights needs to contain as many weighting factors as there "
@@ -400,6 +439,15 @@ def counts_indices_to_3d_indices(counts, n, ploidy):
                                      y.shape[0])) * min(counts.shape) + np.tile(col, map_factor ** 2)
 
     return row, col
+
+
+def update_betas_in_counts_matrices(counts, beta):
+    """Updates betas in list of counts_matrix objects with provided values.
+    """
+
+    for counts_maps in counts:
+        counts_maps.beta = beta[counts_maps.ambiguity]
+    return counts
 
 
 class counts_matrix(object):
@@ -498,7 +546,7 @@ class sparse_counts_matrix(counts_matrix):
     """Stores data for non-zero counts bins.
     """
 
-    def __init__(self, counts, lengths, ploidy, beta=None, weight=1., multiscale_factor=1, fullres_torm=None):
+    def __init__(self, counts, lengths, ploidy, beta=1., weight=1., multiscale_factor=1, fullres_torm=None):
         counts = counts.copy()
         if sparse.issparse(counts):
             counts = counts.toarray()
@@ -630,7 +678,7 @@ class zero_counts_matrix(atypical_counts_matrix):
     """Stores data for zero counts bins.
     """
 
-    def __init__(self, counts, lengths, ploidy, beta=None, weight=1., multiscale_factor=1, fullres_torm=None):
+    def __init__(self, counts, lengths, ploidy, beta=1., weight=1., multiscale_factor=1, fullres_torm=None):
         counts = counts.copy()
         if sparse.issparse(counts):
             counts = counts.toarray()

@@ -3,6 +3,14 @@ from sklearn.metrics import euclidean_distances
 from scipy import sparse
 
 
+def save_params(outfile, **kwargs):
+    """Save all parameters to file.
+    """
+    with open(outfile, 'w') as f:
+        f.write('\n'.join(['%s\t%g' % (k, v) if isinstance(
+            v, float) else '%s\t%s' % (k, v) for k, v in kwargs.items()]))
+
+
 def print_code_header(header, sub_header=None, max_length=80, blank_lines=None,
                       verbose=True):
     """Prints a header, for demarcation of output.
@@ -18,6 +26,48 @@ def print_code_header(header, sub_header=None, max_length=80, blank_lines=None,
         print('=' * max_length, flush=True)
         if blank_lines is not None and blank_lines > 0:
             print('\n' * (blank_lines - 1), flush=True)
+
+
+def format_structures(structures, lengths, ploidy, mixture_coefs=None):
+    """Reformats and checks shape of structures.
+    """
+
+    from .poisson import format_X
+
+    if isinstance(structures, list):
+        if not all([isinstance(struct, np.ndarray) for struct in structures]):
+            raise ValueError("Individual structures must use numpy.ndarray"
+                             "format.")
+        try:
+            structures = [struct.reshape(-1, 3) for struct in structures]
+        except ValueError:
+            raise ValueError("Structures should be composed of 3D coordinates")
+    else:
+        if not isinstance(structures, np.ndarray):
+            raise ValueError("Structures must be numpy.ndarray or list of"
+                             "numpy.ndarrays.")
+        try:
+            structures = structures.reshape(-1, 3)
+        except ValueError:
+            raise ValueError("Structure should be composed of 3D coordinates")
+        structures, _ = format_X(structures, mixture_coefs=mixture_coefs)
+
+    if mixture_coefs is not None and len(structures) != len(mixture_coefs):
+        raise ValueError("The number of structures (%d) and of mixture "
+                         "coefficents (%d) should be identical." %
+                         (len(structures), len(mixture_coefs)))
+
+    if len(set([struct.shape[0] for struct in structures])) > 1:
+        raise ValueError("Structures are of different shapes.")
+
+    nbeads = lengths.sum() * ploidy
+    for struct in structures:
+        if struct.shape[0] != nbeads:
+            raise ValueError("Structure is of unexpected shape. Expected %d"
+                             "beads, structure is %d by 3."
+                             % (nbeads, struct.shape[0]))
+
+    return structures
 
 
 def find_beads_to_remove(counts, nbeads, threshold=0):
@@ -47,90 +97,35 @@ def find_beads_to_remove(counts, nbeads, threshold=0):
     return torm
 
 
-def constraint_dis_indices(counts, n, lengths, ploidy, mask=None,
-                           adjacent_beads_only=False):
-    """Return distance matrix indices associated with any counts matrix data.
-    """
-
-    n = int(n)
-
-    if isinstance(counts, list) and len(counts) == 1:
-        counts = counts[0]
-    if not isinstance(counts, list):
-        rows = counts.row3d
-        cols = counts.col3d
-    else:
-        rows = []
-        cols = []
-        for counts_maps in counts:
-            rows.append(counts_maps.row3d)
-            cols.append(counts_maps.col3d)
-        rows, cols = np.split(np.unique(np.concatenate([np.atleast_2d(
-            np.concatenate(rows)), np.atleast_2d(np.concatenate(cols))],
-            axis=0), axis=1), 2, axis=0)
-        rows = rows.flatten()
-        cols = cols.flatten()
-
-    if adjacent_beads_only:
-        if mask is None:
-            # Calculating distances for adjacent beads, which are on the off
-            # diagonal line - i & j where j = i + 1
-            rows = np.unique(rows)
-            rows = rows[np.isin(rows + 1, cols)]
-            # Remove if "adjacent" beads are actually on different chromosomes
-            # or homologs
-            rows = rows[np.digitize(rows, np.tile(lengths, ploidy).cumsum()) == np.digitize(
-                rows + 1, np.tile(lengths, ploidy).cumsum())]
-            cols = rows + 1
-        else:
-            # Calculating distances for adjacent beads, which are on the off
-            # diagonal line - i & j where j = i + 1
-            rows_adj = np.unique(rows)
-            rows_adj = rows_adj[np.isin(rows_adj + 1, cols)]
-            # Remove if "adjacent" beads are actually on different chromosomes
-            # or homologs
-            rows_adj = rows_adj[np.digitize(rows_adj, np.tile(lengths, ploidy).cumsum(
-            )) == np.digitize(rows_adj + 1, np.tile(lengths, ploidy).cumsum())]
-            cols_adj = rows_adj + 1
-
-    if mask is not None:
-        rows[~mask] = 0
-        cols[~mask] = 0
-        if adjacent_beads_only:
-            include = (np.isin(rows, rows_adj) & np.isin(cols, cols_adj))
-            rows = rows[include]
-            cols = cols[include]
-
-    return rows, cols
-
-
-def struct_replace_nan(X, lengths, kind='linear', random_state=None):
+def struct_replace_nan(struct, lengths, kind='linear', random_state=None):
     """Replace NaNs in structure via linear interpolation.
     """
 
     from scipy.interpolate import interp1d
     from warnings import warn
+    from sklearn.utils import check_random_state
 
     if random_state is None:
         random_state = np.random.RandomState(seed=0)
+    random_state = check_random_state(random_state)
 
-    if isinstance(X, str):
-        X = np.loadtxt(X)
+    if isinstance(struct, str):
+        struct = np.loadtxt(struct)
     else:
-        X = X.copy()
-    X = X.reshape(-1, 3)
+        struct = struct.copy()
+    struct = struct.reshape(-1, 3)
     lengths = np.array(lengths).astype(int)
 
     ploidy = 1
-    if len(X) > lengths.sum():
+    if len(struct) > lengths.sum():
         ploidy = 2
 
-    if not np.isnan(X).any():
-        return(X)
+    if not np.isnan(struct).any():
+        return(struct)
     else:
         nan_chroms = []
-        mask = np.invert(np.isnan(X[:, 0]))
-        interpolated_X = np.zeros(X.shape)
+        mask = np.invert(np.isnan(struct[:, 0]))
+        interpolated_struct = np.zeros(struct.shape)
         begin, end = 0, 0
         for j, length in enumerate(np.tile(lengths, ploidy)):
             end += length
@@ -147,13 +142,13 @@ def struct_replace_nan(X, lengths, kind='linear', random_state=None):
                 m = np.arange(length)[to_rm]
                 beads2interpolate = np.arange(m.min(), m.max() + 1, 1)
 
-                interpolated_chr = np.full_like(X[begin:end, :], np.nan)
+                interpolated_chr = np.full_like(struct[begin:end, :], np.nan)
                 interpolated_chr[beads2interpolate, 0] = interp1d(
-                    m, X[begin:end, 0][to_rm], kind=kind)(beads2interpolate)
+                    m, struct[begin:end, 0][to_rm], kind=kind)(beads2interpolate)
                 interpolated_chr[beads2interpolate, 1] = interp1d(
-                    m, X[begin:end, 1][to_rm], kind=kind)(beads2interpolate)
+                    m, struct[begin:end, 1][to_rm], kind=kind)(beads2interpolate)
                 interpolated_chr[beads2interpolate, 2] = interp1d(
-                    m, X[begin:end, 2][to_rm], kind=kind)(beads2interpolate)
+                    m, struct[begin:end, 2][to_rm], kind=kind)(beads2interpolate)
 
                 # Fill in beads at start
                 diff_beads_at_chr_start = interpolated_chr[beads2interpolate[
@@ -172,13 +167,13 @@ def struct_replace_nan(X, lengths, kind='linear', random_state=None):
                         beads2interpolate[-1], :] - diff_beads_at_chr_end * how_far
                     how_far += 1
 
-            interpolated_X[begin:end, :] = interpolated_chr
+            interpolated_struct[begin:end, :] = interpolated_chr
             begin = end
 
         if len(nan_chroms) != 0:
             warn('The following chromosomes were all NaN: ' + ' '.join(nan_chroms))
 
-        return(interpolated_X)
+        return(interpolated_struct)
 
 
 class ConstantDispersion(object):
