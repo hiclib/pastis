@@ -1,6 +1,7 @@
 import numpy as np
 from scipy import sparse
 from .fastio_ import loadtxt
+from . import get_counts_shape
 
 
 def load_counts(filename, lengths=None):
@@ -23,14 +24,12 @@ def load_counts(filename, lengths=None):
     n = None
     if lengths is not None:
         n = lengths.sum()
-        shape = (n, n)
-    else:
-        shape = None
     X = loadtxt(filename.encode())
     X = X[X[:, 2] != 0]
-    if shape is not None:
-        if X[:, :2].max() == shape[0]:
+    if n is not None:
+        if X[:, :2].max() == n:
             X[:, :2] -= 1
+    shape = get_counts_shape(row_max=X[:, 0], col_max=X[:, 1], lengths=lengths)
     counts = sparse.coo_matrix((X[:, 2], (X[:, 0], X[:, 1])),
                                shape=shape, dtype=np.float64)
     return counts

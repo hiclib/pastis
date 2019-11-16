@@ -2,6 +2,7 @@ import warnings
 import numpy as np
 from scipy import sparse
 import pandas as pd
+from . import get_counts_shape
 
 
 def load_counts(filename, lengths=None):
@@ -24,12 +25,10 @@ def load_counts(filename, lengths=None):
     n = None
     if lengths is not None:
         n = lengths.sum()
-        shape = (n, n)
-    else:
-        shape = None
+
     # This is the interaction count files
     dataframe = pd.read_csv(filename, sep="\t", comment="#", header=None)
-    row, col, data = dataframe.as_matrix().T
+    row, col, data = dataframe.values.T
 
     # If there are NAs remove them
     mask = np.isnan(data)
@@ -45,15 +44,14 @@ def load_counts(filename, lengths=None):
     # for the diagonal.
     # XXX what if n doesn't exist?
     if (col.min() >= 1 and row.min() >= 1) and \
-       ((n is None) or (col.max() == n)):
+       ((n is None) or (max(col.max(), row.max()) == n)):
         # This is a hack to deal with the fact that sometimes, the files are
         # indexed at 1 and not 0
         col -= 1
         row -= 1
 
-    if shape is None:
-        n = max(col.max(), row.max()) + 1
-        shape = (n, n)
+    shape = get_counts_shape(
+        row_max=row.max(), col_max=col.max(), lengths=lengths)
 
     data = data.astype(float)
     counts = sparse.coo_matrix((data, (row, col)), shape=shape)
@@ -74,7 +72,7 @@ def load_lengths(filename):
     lengths : the lengths of each chromosomes
     """
     data = pd.read_csv(filename, sep="\t", comment="#", header=None)
-    data = data.as_matrix()
+    data = data.values
     _, idx, lengths = np.unique(data[:, 0], return_counts=True,
                                 return_index=True)
     return lengths[idx.argsort()]
