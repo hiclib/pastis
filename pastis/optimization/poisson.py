@@ -389,7 +389,7 @@ class PastisPM(object):
             mixture_coefs=self.mixture_coefs,
             verbose=self.verbose)
 
-        history_.extend(history_)
+        self.history_.extend(history_)
 
     def _fit_alpha(self, alpha_loop=None):
         """Fit alpha to counts data, given current structure.
@@ -417,7 +417,7 @@ class PastisPM(object):
             mixture_coefs=self.mixture_coefs,
             verbose=self.verbose)
 
-        history_.extend(history_)
+        self.history_.extend(history_)
 
     def fit(self):
         """ Fit structure to counts data, optionally estimate alpha
