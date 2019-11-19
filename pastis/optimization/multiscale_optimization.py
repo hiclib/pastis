@@ -35,8 +35,8 @@ def increase_struct_res(struct, multiscale_factor, lengths, mask=None):
                          (struct.reshape(-1, 3).shape[0], lengths_lowres.sum()))
     ploidy = int(ploidy)
 
-    indices = get_struct_indices(ploidy, multiscale_factor,
-                                 lengths).reshape(multiscale_factor, -1)
+    indices = _get_struct_indices(ploidy, multiscale_factor,
+                                  lengths).reshape(multiscale_factor, -1)
     if mask is not None:
         indices[~mask.reshape(multiscale_factor, -1)] = np.nan
 
@@ -109,9 +109,9 @@ def increase_struct_res(struct, multiscale_factor, lengths, mask=None):
     return struct_highres
 
 
-def convert_indices_to_full_res(rows, cols, rows_max, cols_max,
-                                multiscale_factor, lengths, n, counts_shape,
-                                ploidy):
+def _convert_indices_to_full_res(rows, cols, rows_max, cols_max,
+                                 multiscale_factor, lengths, n, counts_shape,
+                                 ploidy):
     """Return full-res counts indices grouped by the corresponding low-res bin.
     """
 
@@ -185,7 +185,7 @@ def decrease_counts_res(counts, multiscale_factor, lengths, ploidy):
     """Decrease resolution of counts matrix by summing adjacent bins.
     """
 
-    from .counts import row_and_col
+    from .counts import _row_and_col
     from scipy import sparse
 
     input_is_sparse = False
@@ -199,15 +199,11 @@ def decrease_counts_res(counts, multiscale_factor, lengths, ploidy):
         np.array(counts.shape / lengths.sum() * lengths_lowres.sum(), dtype=int))
     np.fill_diagonal(counts_lowres, 0)
     counts_lowres = sparse.coo_matrix(counts_lowres)
-    rows_raw, cols_raw = row_and_col(counts_lowres)
-    rows, cols = convert_indices_to_full_res(rows_raw, cols_raw,
-                                             rows_max=counts.shape[0],
-                                             cols_max=counts.shape[1],
-                                             multiscale_factor=multiscale_factor,
-                                             lengths=lengths,
-                                             n=lengths_lowres.sum(),
-                                             counts_shape=counts_lowres.shape,
-                                             ploidy=ploidy)
+    rows_raw, cols_raw = _row_and_col(counts_lowres)
+    rows, cols = _convert_indices_to_full_res(
+        rows_raw, cols_raw, rows_max=counts.shape[0], cols_max=counts.shape[1],
+        multiscale_factor=multiscale_factor, lengths=lengths,
+        n=lengths_lowres.sum(), counts_shape=counts_lowres.shape, ploidy=ploidy)
     data = counts[rows, cols].reshape(multiscale_factor ** 2, -1).sum(axis=0)
     counts_lowres = sparse.coo_matrix((data[data != 0], (rows_raw[data != 0],
                                                          cols_raw[data != 0])),
@@ -219,7 +215,7 @@ def decrease_counts_res(counts, multiscale_factor, lengths, ploidy):
     return counts_lowres, lengths_lowres
 
 
-def get_struct_indices(ploidy, multiscale_factor, lengths):
+def _get_struct_indices(ploidy, multiscale_factor, lengths):
     """Return full-res struct indices grouped by the corresponding low-res bead.
     """
 
@@ -251,7 +247,7 @@ def get_struct_indices(ploidy, multiscale_factor, lengths):
     return indices
 
 
-def group_highres_struct(struct, multiscale_factor, lengths, indices=None, mask=None):
+def _group_highres_struct(struct, multiscale_factor, lengths, indices=None, mask=None):
     """Group beads of full-res struct by the low-res bead they correspond to.
 
     Axes of final array:
@@ -270,7 +266,7 @@ def group_highres_struct(struct, multiscale_factor, lengths, indices=None, mask=
     ploidy = int(ploidy)
 
     if indices is None:
-        indices = get_struct_indices(ploidy, multiscale_factor, lengths)
+        indices = _get_struct_indices(ploidy, multiscale_factor, lengths)
     else:
         indices = indices.copy()
     incorrect_indices = np.isnan(indices)
@@ -301,21 +297,21 @@ def decrease_struct_res(struct, multiscale_factor, lengths, indices=None, mask=N
     if multiscale_factor == 1:
         return struct
 
-    grouped_struct = group_highres_struct(
+    grouped_struct = _group_highres_struct(
         struct, multiscale_factor, lengths, indices=indices, mask=mask)
 
     return np.nanmean(grouped_struct, axis=0)
 
 
-def count_fullres_per_lowres_bead(multiscale_factor, lengths, ploidy,
-                                  fullres_torm=None):
+def _count_fullres_per_lowres_bead(multiscale_factor, lengths, ploidy,
+                                   fullres_torm=None):
     """Count the number of full-res beads corresponding to each low-res bead.
     """
 
     if multiscale_factor == 1:
         return None
 
-    fullres_indices = get_struct_indices(
+    fullres_indices = _get_struct_indices(
         ploidy=ploidy, multiscale_factor=multiscale_factor,
         lengths=lengths).reshape(multiscale_factor, -1)
 
@@ -330,24 +326,24 @@ def get_multiscale_variances_from_struct(structures, lengths, multiscale_factor,
     """Compute multiscale variances from full-res structure.
     """
 
-    from .utils import format_structures
+    from .utils import _format_structures
 
     if multiscale_factor == 1:
         return None
 
-    structures = format_structures(structures, lengths=lengths, ploidy=ploidy,
-                                   mixture_coefs=mixture_coefs)
+    structures = _format_structures(structures, lengths=lengths, ploidy=ploidy,
+                                    mixture_coefs=mixture_coefs)
 
     multiscale_variances = []
     for struct in structures:
-        struct_grouped = group_highres_struct(
+        struct_grouped = _group_highres_struct(
             struct, multiscale_factor, lengths)
-        multiscale_variances.append(var3d(struct_grouped))
+        multiscale_variances.append(_var3d(struct_grouped))
 
     return np.mean(multiscale_variances, axis=0)
 
 
-def var3d(struct_grouped):
+def _var3d(struct_grouped):
     """Compute variance of beads in 3D.
     """
 
@@ -362,12 +358,13 @@ def var3d(struct_grouped):
     return multiscale_variances
 
 
-def choose_max_multiscale_rounds(lengths, min_beads):
+def _choose_max_multiscale_rounds(lengths, min_beads):
     multiscale_rounds = 0
     while decrease_lengths_res(lengths, 2 ** (multiscale_rounds + 1)).min() >= min_beads:
         multiscale_rounds += 1
     return multiscale_rounds
 
 
-def choose_max_multiscale_factor(lengths, min_beads):
-    return 2 ** choose_max_multiscale_rounds(lengths=lengths, min_beads=min_beads)
+def _choose_max_multiscale_factor(lengths, min_beads):
+    return 2 ** _choose_max_multiscale_rounds(
+        lengths=lengths, min_beads=min_beads)

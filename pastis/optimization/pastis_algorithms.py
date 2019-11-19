@@ -2,12 +2,12 @@ import os
 import numpy as np
 import pandas as pd
 from sklearn.utils import check_random_state
-from .utils import print_code_header
+from .utils import _print_code_header
 
 
-def test_objective(struct, counts, lengths, ploidy, alpha, bias,
-                   multiscale_factor, multiscale_variances, constraints,
-                   reorienter=None, mixture_coefs=None, output_file=None):
+def _test_objective(struct, counts, lengths, ploidy, alpha, bias,
+                    multiscale_factor, multiscale_variances, constraints,
+                    reorienter=None, mixture_coefs=None, output_file=None):
     """Computes all components of the objective for a given structure.
     """
 
@@ -47,13 +47,13 @@ def infer(counts_raw, outdir, lengths, ploidy, alpha, seed=0, normalize=True,
     """Infer 3D structures with PASTIS.
     """
 
-    from .counts import preprocess_counts, ambiguate_counts, update_betas_in_counts_matrices
+    from .counts import preprocess_counts, ambiguate_counts, _update_betas_in_counts_matrices
     from .initialization import initialize
     from .callbacks import Callback
     from .constraints import Constraints, distance_between_homologs
     from .poisson import PastisPM
     from .estimate_alpha_beta import _estimate_beta
-    from .multiscale_optimization import get_multiscale_variances_from_struct, choose_max_multiscale_factor, decrease_lengths_res
+    from .multiscale_optimization import get_multiscale_variances_from_struct, _choose_max_multiscale_factor, decrease_lengths_res
     from .utils import find_beads_to_remove
 
     try:
@@ -161,7 +161,7 @@ def infer(counts_raw, outdir, lengths, ploidy, alpha, seed=0, normalize=True,
                 null=null, mixture_coefs=mixture_coefs, verbose=verbose)
             alpha_ = infer_var_fullres['alpha']
             beta_ = infer_var_fullres['beta']
-            counts = update_betas_in_counts_matrices(
+            counts = _update_betas_in_counts_matrices(
                 counts=counts,
                 beta={counts[i].ambiguity: np.repeat(
                     beta_, 2)[i] for i in range(len(counts))})
@@ -191,7 +191,7 @@ def infer(counts_raw, outdir, lengths, ploidy, alpha, seed=0, normalize=True,
                                      " estimate hsc_r from ambiguous data.")
                 counts_for_lowres = counts_raw
                 simple_diploid_for_lowres = True
-            multiscale_factor_for_lowres = choose_max_multiscale_factor(
+            multiscale_factor_for_lowres = _choose_max_multiscale_factor(
                 lengths=lengths, min_beads=hsc_min_beads)
             struct_draft_lowres, _ = infer(
                 counts_raw=counts_for_lowres,
@@ -231,13 +231,14 @@ def infer(counts_raw, outdir, lengths, ploidy, alpha, seed=0, normalize=True,
                                   constraint_params={'hsc': hsc_r})
 
         if struct_true is not None and not null and (reorienter is None or not reorienter.reorient):
-            test_objective(struct=struct_true, counts=counts,
-                           lengths=lengths, ploidy=ploidy, alpha=alpha_,
-                           bias=bias, multiscale_factor=multiscale_factor,
-                           multiscale_variances=multiscale_variances,
-                           constraints=constraints, reorienter=reorienter,
-                           mixture_coefs=mixture_coefs,
-                           output_file=os.path.join(outdir, 'struct_true_obj'))
+            _test_objective(
+                struct=struct_true, counts=counts, lengths=lengths,
+                ploidy=ploidy, alpha=alpha_, bias=bias,
+                multiscale_factor=multiscale_factor,
+                multiscale_variances=multiscale_variances,
+                constraints=constraints, reorienter=reorienter,
+                mixture_coefs=mixture_coefs,
+                output_file=os.path.join(outdir, 'struct_true_obj'))
 
         if callback_freq is None:
             callback_freq = {'print': 100, 'history': 100, 'save': None}
@@ -286,7 +287,7 @@ def infer(counts_raw, outdir, lengths, ploidy, alpha, seed=0, normalize=True,
 
         for i in all_multiscale_factors:
             if verbose:
-                print_code_header(
+                _print_code_header(
                     'MULTISCALE FACTOR %d' % i, max_length=50, blank_lines=1)
             if multiscale_factor == 1:
                 multiscale_outdir = outdir
@@ -345,7 +346,7 @@ def pastis(counts, outdir, lengths_full, ploidy, chrom_full, chrom_subset,
         stepwise_genome = False
 
     if (not stepwise_genome) or len(chrom_subset) == 1:
-        outdir = output_subdir(
+        outdir = _output_subdir(
             outdir=outdir, chrom_full=chrom_full, chrom_subset=chrom_subset,
             null=null)
 
@@ -383,9 +384,9 @@ def pastis(counts, outdir, lengths_full, ploidy, chrom_full, chrom_subset,
             mixture_coefs=mixture_coefs, verbose=verbose)
 
 
-def output_subdir(outdir, chrom_full, chrom_subset=None, null=False,
-                  stepwise_genome=False, stepwise_genome__step=None,
-                  stepwise_genome__chrom=None):
+def _output_subdir(outdir, chrom_full, chrom_subset=None, null=False,
+                   stepwise_genome=False, stepwise_genome__step=None,
+                   stepwise_genome__chrom=None):
     """Returns subdirectory for inference output files.
     """
 

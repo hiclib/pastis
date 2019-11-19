@@ -4,8 +4,8 @@ import warnings
 from autograd import grad
 from autograd.builtins import SequenceBox
 from sklearn.utils import check_random_state
-from .poisson import format_X, objective
-from .counts import update_betas_in_counts_matrices
+from .poisson import _format_X, objective
+from .counts import _update_betas_in_counts_matrices
 
 
 def _estimate_beta_single(structures, counts, alpha, lengths, bias=None,
@@ -42,7 +42,7 @@ def _estimate_beta(X, counts, alpha, lengths, bias=None, reorienter=None,
     """Estimates beta for all counts matrices.
     """
 
-    structures, mixture_coefs = format_X(X, reorienter, mixture_coefs)
+    structures, mixture_coefs = _format_X(X, reorienter, mixture_coefs)
     if reorienter is not None and reorienter.reorient:
         structures = reorienter.translate_and_rotate(X)
 
@@ -89,7 +89,7 @@ def _estimate_beta(X, counts, alpha, lengths, bias=None, reorienter=None,
             raise ValueError("Beta inferred for %s counts is zero."
                              % ambiguity)
 
-    counts = update_betas_in_counts_matrices(counts=counts, beta=beta)
+    counts = _update_betas_in_counts_matrices(counts=counts, beta=beta)
 
     if verbose:
         print('INFERRED BETA: %s' % ', '.join(['%s=%.2g' %
@@ -125,7 +125,7 @@ def objective_wrapper_alpha(alpha, counts, X, lengths, bias=None,
     counts = _estimate_beta(X, counts, alpha=alpha, lengths=lengths, bias=bias,
                             reorienter=reorienter, mixture_coefs=mixture_coefs)
 
-    X, mixture_coefs = format_X(X, reorienter, mixture_coefs)
+    X, mixture_coefs = _format_X(X, reorienter, mixture_coefs)
 
     new_obj, obj_logs, structures, alpha = objective_alpha(
         alpha, counts=counts, X=X, lengths=lengths, bias=bias, constraints=constraints,
@@ -147,7 +147,7 @@ def fprime_wrapper_alpha(alpha, counts, X, lengths, bias=None, constraints=None,
     counts = _estimate_beta(X, counts, alpha=alpha, lengths=lengths, bias=bias,
                             reorienter=reorienter, mixture_coefs=mixture_coefs)
 
-    X, mixture_coefs = format_X(X, reorienter, mixture_coefs)
+    X, mixture_coefs = _format_X(X, reorienter, mixture_coefs)
 
     with warnings.catch_warnings():
         warnings.filterwarnings(

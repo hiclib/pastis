@@ -130,7 +130,7 @@ def objective(X, counts, alpha, lengths, bias=None, constraints=None,
         return obj
 
 
-def format_X(X, reorienter=None, mixture_coefs=None):
+def _format_X(X, reorienter=None, mixture_coefs=None):
     """Reformat and check X.
     """
 
@@ -158,7 +158,7 @@ def objective_wrapper(X, counts, alpha, lengths, bias=None, constraints=None,
     """Objective function wrapper to match scipy.optimize's interface
     """
 
-    X, mixture_coefs = format_X(X, reorienter, mixture_coefs)
+    X, mixture_coefs = _format_X(X, reorienter, mixture_coefs)
 
     new_obj, obj_logs, structures, alpha = objective(
         X, counts=counts, alpha=alpha, lengths=lengths, bias=bias,
@@ -183,7 +183,7 @@ def fprime_wrapper(X, counts, alpha, lengths, bias=None, constraints=None,
     """Gradient function wrapper to match scipy.optimize's interface.
     """
 
-    X, mixture_coefs = format_X(X, reorienter, mixture_coefs)
+    X, mixture_coefs = _format_X(X, reorienter, mixture_coefs)
 
     with warnings.catch_warnings():
         warnings.filterwarnings(
@@ -282,7 +282,7 @@ def estimate_X(counts, init_X, alpha, lengths, ploidy, bias=None,
     return X, obj, converged, callback.history
 
 
-def convergence_criteria(f_k, f_kplus1, factr=10000000.0):
+def _convergence_criteria(f_k, f_kplus1, factr=10000000.0):
     """Convergence criteria for joint inference of alpha & structure.
     """
     if f_k is None:
@@ -425,13 +425,13 @@ class PastisPM(object):
 
         from timeit import default_timer as timer
         from datetime import timedelta
-        from .counts import null_counts_matrix
+        from .counts import NullCountsMatrix
 
         if self.null:
             print('GENERATING NULL STRUCTURE', flush=True)
             # Dummy counts need to be inputted because we need to know which
             # row/col to include in calculations of constraints
-            self.counts = [null_counts_matrix(
+            self.counts = [NullCountsMatrix(
                 counts=self.counts, lengths=self.lengths, ploidy=self.ploidy,
                 multiscale_factor=self.multiscale_factor)]
 
@@ -475,7 +475,7 @@ class PastisPM(object):
                     self._fit_structure(alpha_loop=alpha_loop)
                     if not self.converged:
                         break
-                    if convergence_criteria(
+                    if _convergence_criteria(
                             f_k=prev_alpha_obj, f_kplus1=self.alpha_obj_,
                             factr=self.alpha_factr):
                         break
