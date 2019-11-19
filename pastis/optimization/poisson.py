@@ -484,7 +484,7 @@ class PastisPM(object):
         print("OPTIMIZATION AT %dX RESOLUTION COMPLETE, TOTAL ELAPSED TIME=%s" %
               (self.multiscale_factor, time_current), flush=True)
 
-        if self.callback is None or self.callback_freq['history'] is None or self.callback_freq['history'] == 0:
+        if self.callback is None or self.callback.frequency['history'] is None or self.callback.frequency['history'] == 0:
             self.history_ = None
 
         if self.reorienter.reorient:
