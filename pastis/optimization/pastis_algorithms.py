@@ -95,6 +95,8 @@ def infer(counts_raw, outdir, lengths, ploidy, alpha, seed=0, normalize=True,
         filter_threshold=filter_threshold, multiscale_factor=multiscale_factor,
         exclude_zeros=exclude_zeros, beta=beta, input_weight=input_weight,
         verbose=verbose, fullres_torm=fullres_torm, output_directory=None)
+    if mixture_coefs is not None:
+        torm = np.tile(torm, len(mixture_coefs))
     if simple_diploid:
         if simple_diploid_init is None:
             raise ValueError("Must provide simple_diploid_init.")
@@ -259,7 +261,7 @@ def infer(counts_raw, outdir, lengths, ploidy, alpha, seed=0, normalize=True,
                       mixture_coefs=mixture_coefs, verbose=verbose)
         pm.fit()
         struct_ = pm.struct_.reshape(-1, 3)
-        struct_[np.tile(torm, len(mixture_coefs))] = np.nan
+        struct_[torm] = np.nan
 
         infer_var = {'alpha': pm.alpha_, 'beta': pm.beta_, 'hsc_r': hsc_r,
                      'obj': pm.obj_, 'seed': seed}
