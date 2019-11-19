@@ -35,7 +35,7 @@ def _test_objective(struct, counts, lengths, ploidy, alpha, bias,
 
 def infer(counts_raw, outdir, lengths, ploidy, alpha, seed=0, normalize=True,
           filter_threshold=0.04, alpha_init=-3., max_alpha_loop=20, beta=None,
-          multiscale_factor=1, multiscale_rounds=0, use_multiscale_variance=True,
+          multiscale_factor=1, multiscale_rounds=1, use_multiscale_variance=True,
           final_multiscale_round=False, init='msd', max_iter=1e40,
           factr=10000000.0, pgtol=1e-05, alpha_factr=1000000000000.,
           bcc_lambda=0., hsc_lambda=0., hsc_r=None, hsc_min_beads=5,
@@ -144,7 +144,7 @@ def infer(counts_raw, outdir, lengths, ploidy, alpha, seed=0, normalize=True,
     beta_ = beta
     if multiscale_factor == 1 and not draft:
         if struct_draft_fullres is None and ((
-                multiscale_rounds > 0 and use_multiscale_variance) or alpha is None):
+                multiscale_rounds > 1 and use_multiscale_variance) or alpha is None):
             struct_draft_fullres, infer_var_fullres = infer(
                 counts_raw=counts_raw,
                 outdir=os.path.join(outdir, 'struct_draft_fullres'),
@@ -222,7 +222,7 @@ def infer(counts_raw, outdir, lengths, ploidy, alpha, seed=0, normalize=True,
                 print("Estimated distance between homolog barycenters for each"
                       " chromosome: %s" % ' '.join(map(str, hsc_r.round(2))), flush=True)
 
-    if multiscale_rounds == 0 or multiscale_factor > 1 or final_multiscale_round:
+    if multiscale_rounds <= 1 or multiscale_factor > 1 or final_multiscale_round:
         # INFER STRUCTURE
         constraints = Constraints(counts=counts, lengths=lengths, ploidy=ploidy,
                                   multiscale_factor=multiscale_factor,
@@ -321,7 +321,7 @@ def infer(counts_raw, outdir, lengths, ploidy, alpha, seed=0, normalize=True,
 
 def pastis(counts, outdir, lengths_full, ploidy, chrom_full, chrom_subset,
            alpha, seed=0, normalize=True, filter_threshold=0.04, alpha_init=-3.,
-           max_alpha_loop=20, multiscale_rounds=0, use_multiscale_variance=True,
+           max_alpha_loop=20, multiscale_rounds=1, use_multiscale_variance=True,
            max_iter=1e40, factr=10000000.0, pgtol=1e-05,
            alpha_factr=1000000000000., bcc_lambda=0., hsc_lambda=0., hsc_r=None,
            hsc_min_beads=5, callback_function=None, callback_freq=None,

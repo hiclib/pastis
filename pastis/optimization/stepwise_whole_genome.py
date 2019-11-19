@@ -288,7 +288,7 @@ def _assemble_highres_chrom_via_lowres_genome(outdir, outdir_lowres, outdir_orie
 
 
 def stepwise_inference(counts, outdir, lengths, ploidy, chromosomes, alpha, seed=0, normalize=True,
-                       filter_threshold=0.04, alpha_init=-3., max_alpha_loop=20, multiscale_rounds=0,
+                       filter_threshold=0.04, alpha_init=-3., max_alpha_loop=20, multiscale_rounds=1,
                        use_multiscale_variance=True,
                        max_iter=1e40, factr=10000000.0, pgtol=1e-05, alpha_factr=1000000000000.,
                        bcc_lambda=0., hsc_lambda=0., hsc_r=None, hsc_min_beads=5,
