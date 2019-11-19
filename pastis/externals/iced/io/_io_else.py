@@ -1,7 +1,6 @@
 import numpy as np
 from scipy import sparse
 from .fastio_ import loadtxt
-from . import get_counts_shape
 
 
 def load_counts(filename, lengths=None):
@@ -21,6 +20,9 @@ def load_counts(filename, lengths=None):
     --------
     X : the interaction counts file
     """
+
+    from . import get_counts_shape
+
     n = None
     if lengths is not None:
         n = lengths.sum()

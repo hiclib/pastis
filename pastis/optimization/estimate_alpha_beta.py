@@ -18,8 +18,8 @@ def _estimate_beta_single(structures, counts, alpha, lengths, bias=None,
     n, m = counts.shape
 
     if mixture_coefs is not None and len(structures) != len(mixture_coefs):
-        raise ValueError("The number of structures (%d) and of mixture "
-                         "coefficents (%d) should be identical." %
+        raise ValueError("The number of structures (%d) and of mixture"
+                         " coefficents (%d) should be identical." %
                          (len(structures), len(mixture_coefs)))
     elif mixture_coefs is None:
         mixture_coefs = [1.]
@@ -152,7 +152,7 @@ def fprime_wrapper_alpha(alpha, counts, X, lengths, bias=None, constraints=None,
     with warnings.catch_warnings():
         warnings.filterwarnings(
             "ignore", message='Using a non-tuple sequence for multidimensional'
-                              'indexing is deprecated', category=FutureWarning)
+                              ' indexing is deprecated', category=FutureWarning)
         new_grad = np.array(gradient_alpha(
             alpha, counts=counts, X=X, lengths=lengths, bias=bias,
             constraints=constraints, reorienter=reorienter,
@@ -167,8 +167,7 @@ def estimate_alpha(counts, X, alpha_init, lengths, ploidy, bias=None,
                    multiscale_variances=None, random_state=None,
                    max_iter=10000000000, factr=10000000.0, pgtol=1e-05,
                    callback=None, alpha_loop=None, reorienter=None,
-                   struct_true=None, alpha_true=None, mixture_coefs=None,
-                   verbose=True):
+                   mixture_coefs=None, verbose=True):
     """Estimates alpha, given current structure.
 
     Parameters
@@ -194,8 +193,8 @@ def estimate_alpha(counts, X, alpha_init, lengths, ploidy, bias=None,
 
     if verbose:
         print('=' * 30, flush=True)
-        print('\nRUNNING THE L-BFGS-B CODE\n\n           * * *\n\n'
-              'Machine precision = %.4g\n' % np.finfo(np.float).eps, flush=True)
+        print('\nRUNNING THE L-BFGS-B CODE\n\n           * * *\n\n Machine'
+              ' precision = %.4g\n' % np.finfo(np.float).eps, flush=True)
 
     if callback is not None:
         if reorienter is not None and reorienter.reorient:

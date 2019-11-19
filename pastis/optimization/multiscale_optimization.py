@@ -1,11 +1,12 @@
 import numpy as np
 
 
-def decrease_lengths_res(lengths, factor):
+def decrease_lengths_res(lengths, multiscale_factor):
     """Reduce resolution of chromosome lengths.
     """
 
-    return np.ceil(np.array(lengths).astype(float) / factor).astype(int)
+    return np.ceil(
+        np.array(lengths).astype(float) / multiscale_factor).astype(int)
 
 
 def increase_struct_res(struct, multiscale_factor, lengths, mask=None):
@@ -29,9 +30,9 @@ def increase_struct_res(struct, multiscale_factor, lengths, mask=None):
     lengths_lowres = decrease_lengths_res(lengths, multiscale_factor)
     ploidy = struct.shape[0] / lengths_lowres.sum()
     if ploidy != 1 and ploidy != 2:
-        raise ValueError('Not consistent with haploid or diploid... struct is %d'
-                         'beads (and 3 cols), sum of lengths is'
-                         '%d' % (struct.reshape(-1, 3).shape[0], lengths_lowres.sum()))
+        raise ValueError("Not consistent with haploid or diploid... struct is"
+                         " %d beads (and 3 cols), sum of lengths is %d" %
+                         (struct.reshape(-1, 3).shape[0], lengths_lowres.sum()))
     ploidy = int(ploidy)
 
     indices = get_struct_indices(ploidy, multiscale_factor,
@@ -263,8 +264,8 @@ def group_highres_struct(struct, multiscale_factor, lengths, indices=None, mask=
 
     ploidy = struct.reshape(-1, 3).shape[0] / lengths.sum()
     if ploidy != 1 and ploidy != 2:
-        raise ValueError('Not consistent with haploid or diploid... struct is %d'
-                         'beads (and 3 cols), sum of lengths is %d' % (
+        raise ValueError("Not consistent with haploid or diploid... struct is"
+                         " %d beads (and 3 cols), sum of lengths is %d" % (
                              struct.reshape(-1, 3).shape[0], lengths.sum()))
     ploidy = int(ploidy)
 
@@ -282,8 +283,8 @@ def group_highres_struct(struct, multiscale_factor, lengths, indices=None, mask=
     # Apply mask
     if mask is not None and mask != [None]:
         indices[~mask] = 0
-        incorrect_indices = (incorrect_indices +
-                             np.invert(mask)).astype(bool).astype(int)
+        incorrect_indices = (incorrect_indices + np.invert(
+            mask)).astype(bool).astype(int)
 
     # Apply to struct, and set incorrect indices to np.nan
     return np.where(np.repeat(incorrect_indices.reshape(-1, 1), 3, axis=1), np.nan,
@@ -296,7 +297,7 @@ def decrease_struct_res(struct, multiscale_factor, lengths, indices=None, mask=N
 
     if int(multiscale_factor) != multiscale_factor:
         raise ValueError(
-            'The multiscale_factor to reduce size by must be an integer')
+            "The multiscale_factor to reduce size by must be an integer.")
     if multiscale_factor == 1:
         return struct
 

@@ -22,7 +22,7 @@ def initialize_struct_mds(counts, lengths, ploidy, alpha, bias, random_state,
     elif len(ua_index) != 0:
         raise ValueError(
             "Multiple unambiguous counts matrices detected."
-            "Pool data from unambiguous counts matrices before inference.")
+            " Pool data from unambiguous counts matrices before inference.")
 
     ua_counts = counts[ua_index]
     ua_beta = ua_counts.beta
@@ -66,13 +66,13 @@ def initialize_struct(counts, lengths, ploidy, alpha, bias, random_state,
             print('INITIALIZATION: 3D structure', flush=True)
         structures = format_structures(init, lengths=lengths, ploidy=ploidy,
                                        mixture_coefs=mixture_coefs)
-    elif isinstance(init, str) and (init.lower() in ("mds", 'mds2')) and len(ua_index) != 0:
+    elif isinstance(init, str) and (init.lower() in ("mds", "mds2")) and len(ua_index) != 0:
         struct = initialize_struct_mds(
             counts=counts, lengths=lengths, ploidy=ploidy, alpha=alpha,
             bias=bias, random_state=random_state,
             multiscale_factor=multiscale_factor, verbose=verbose)
         structures = [struct] * len(mixture_coefs)
-    elif isinstance(init, str) and (init.lower() in ("random", "rand")):
+    elif isinstance(init, str) and (init.lower() in ("random", "rand", "mds", "mds2")):
         if verbose:
             print('INITIALIZATION: random points', flush=True)
         structures = [(1 - 2 * random_state.rand(int(lengths.sum() * ploidy * 3))).reshape(-1, 3) for coef in mixture_coefs]
@@ -85,14 +85,14 @@ def initialize_struct(counts, lengths, ploidy, alpha, bias, random_state,
         if struct.shape[0] < int(lengths.sum() * ploidy):
             if verbose:
                 print('INITIALIZATION: increasing resolution of structure by'
-                      '%g' % np.ceil(lengths.sum() * ploidy / struct.shape[0]),
+                      ' %g' % np.ceil(lengths.sum() * ploidy / struct.shape[0]),
                       flush=True)
             struct = increase_struct_res(struct, multiscale_factor=np.ceil(
                 lengths.sum() * ploidy / struct.shape[0]), lengths=lengths)
         elif struct.shape[0] > int(lengths.sum() * ploidy):
             if verbose:
                 print('INITIALIZATION: decreasing resolution of structure by'
-                      '%g' % np.ceil(lengths.sum() * ploidy / struct.shape[0]),
+                      ' %g' % np.ceil(lengths.sum() * ploidy / struct.shape[0]),
                       flush=True)
             struct = decrease_struct_res(struct, multiscale_factor=np.ceil(
                 lengths.sum() * ploidy / struct.shape[0]), lengths=lengths)
@@ -108,13 +108,13 @@ def initialize(counts, lengths, random_state, init, ploidy, alpha=-3.,
 
     from sklearn.utils import check_random_state
 
-    lengths_lowres = decrease_lengths_res(lengths, multiscale_factor=multiscale_factor)
+    lengths_lowres = decrease_lengths_res(
+        lengths, multiscale_factor=multiscale_factor)
 
-    if reorienter.reorient:
+    if reorienter is not None and reorienter.reorient:
         if isinstance(init, np.ndarray):
-            print(
-                'INITIALIZATION: inputted translation coordinates'
-                'and/or rotation quaternions', flush=True)
+            print('INITIALIZATION: inputted translation coordinates'
+                  ' and/or rotation quaternions', flush=True)
             init_reorient = init
         else:
             print('INITIALIZATION: random', flush=True)
@@ -122,10 +122,12 @@ def initialize(counts, lengths, random_state, init, ploidy, alpha=-3.,
             init_reorient = []
             if reorienter.translate:
                 init_reorient.append(1 - 2 * random_state.rand(
-                    lengths_lowres.shape[0] * 3 * (1 + np.invert(reorienter.fix_homo))))
+                    lengths_lowres.shape[0] * 3 * (
+                        1 + np.invert(reorienter.fix_homo))))
             if reorienter.rotate:
                 init_reorient.append(random_state.rand(
-                    lengths_lowres.shape[0] * 4 * (1 + np.invert(reorienter.fix_homo))))
+                    lengths_lowres.shape[0] * 4 * (
+                        1 + np.invert(reorienter.fix_homo))))
             init_reorient = np.concatenate(init_reorient)
         return init_reorient
     else:

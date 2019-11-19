@@ -33,8 +33,8 @@ class Callback(object):
                               'history': frequency, 'save': frequency}
         else:
             if not isinstance(frequency, dict) or any([k not in ('print', 'history', 'save') for k in frequency.keys()]):
-                raise ValueError(
-                    "Callback frequency must be None, int, or dict with keys = (print, history, save).")
+                raise ValueError("Callback frequency must be None, int, or dict"
+                                 " with keys = (print, history, save).")
             self.frequency = {'print': None, 'history': None, 'save': None}
             for k, v in frequency.items():
                 self.frequency[k] = v
