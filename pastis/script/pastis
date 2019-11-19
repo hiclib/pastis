@@ -113,4 +113,4 @@ parser.add_argument('--exclude_zeros', default=False,
 parser.add_argument('--null', dest='null', default=False,
                     action='store_true', help=argparse.SUPPRESS)
 
-pastis(**parser.parse_args())
+pastis(**vars(parser.parse_args()))

@@ -1,5 +1,6 @@
 import numpy as np
 import autograd.numpy as ag_np
+from autograd.builtins import SequenceBox
 from .multiscale_optimization import decrease_struct_res, decrease_lengths_res
 from .utils import find_beads_to_remove
 
@@ -32,7 +33,7 @@ class Constraints(object):
             lengths=self.lengths_lowres, ploidy=ploidy)
         # Calculating distances for neighbors, which are on the off diagonal
         # line - i & j where j = i + 1
-        rows_adj = ag_np.unique(self.row)
+        rows_adj = ag_np.unique(self.row).astype(int)
         rows_adj = rows_adj[ag_np.isin(rows_adj + 1, self.col)]
         # Remove if "neighbor" beads are actually on different chromosomes or
         # homologs
@@ -118,7 +119,7 @@ class Constraints(object):
 
         if mixture_coefs is None:
             mixture_coefs = [1.]
-        if not isinstance(structures, list):
+        if not (isinstance(structures, list) or isinstance(structures, SequenceBox)):
             structures = [structures]
         if len(structures) != len(mixture_coefs):
             raise ValueError(

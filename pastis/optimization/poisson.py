@@ -17,8 +17,8 @@ def _poisson_obj_single(structures, counts, alpha, lengths, bias=None,
         return 0.
 
     if mixture_coefs is not None and len(structures) != len(mixture_coefs):
-        raise ValueError("The number of structures (%d) and of mixture "
-                         "coefficents (%d) should be identical." %
+        raise ValueError("The number of structures (%d) and of mixture"
+                         " coefficents (%d) should be identical." %
                          (len(structures), len(mixture_coefs)))
     elif mixture_coefs is None:
         mixture_coefs = [1.]
@@ -188,7 +188,7 @@ def fprime_wrapper(X, counts, alpha, lengths, bias=None, constraints=None,
     with warnings.catch_warnings():
         warnings.filterwarnings(
             "ignore", message="Using a non-tuple sequence for multidimensional"
-            "indexing is deprecated", category=FutureWarning)
+            " indexing is deprecated", category=FutureWarning)
         new_grad = np.array(gradient(
             X, counts=counts, alpha=alpha, lengths=lengths, bias=bias,
             constraints=constraints, reorienter=reorienter,
@@ -203,8 +203,7 @@ def estimate_X(counts, init_X, alpha, lengths, ploidy, bias=None,
                constraints=None, multiscale_factor=1, multiscale_variances=None,
                max_iter=10000000000, factr=10000000.0, pgtol=1e-05,
                callback=None, alpha_loop=None, reorienter=None,
-               struct_true=None, alpha_true=None, mixture_coefs=None,
-               verbose=True):
+               mixture_coefs=None, verbose=True):
     """Estimates a 3D structure, given current alpha.
 
     Parameters
@@ -240,7 +239,7 @@ def estimate_X(counts, init_X, alpha, lengths, ploidy, bias=None,
     if verbose:
         print('=' * 30, flush=True)
         print("\nRUNNING THE L-BFGS-B CODE\n\n           * * *\n\nMachine"
-              "precision = %.4g\n" % np.finfo(np.float).eps, flush=True)
+              " precision = %.4g\n" % np.finfo(np.float).eps, flush=True)
 
     if callback is not None:
         if reorienter is not None and reorienter.reorient:
@@ -299,18 +298,18 @@ class PastisPM(object):
     null - Estimates a "null" structure that fullfills the constraints but is not fitted to the data
     """
 
-    def __init__(self, counts, lengths, ploidy, alpha, init=None,
-                 constraints=None, callback=None, multiscale_factor=1,
-                 multiscale_variances=None, alpha_init=-3., max_alpha_loop=20,
-                 max_iter=1e15, factr=10000000.0, pgtol=1e-05,
+    def __init__(self, counts, lengths, ploidy, alpha, beta=1., init=None,
+                 bias=None, constraints=None, callback=None,
+                 multiscale_factor=1, multiscale_variances=None, alpha_init=-3.,
+                 max_alpha_loop=20, max_iter=1e15, factr=10000000.0, pgtol=1e-05,
                  alpha_factr=1000000000000., reorienter=None, null=False,
-                 mixture_coefs=None):
+                 mixture_coefs=None, verbose=True):
         from .constraints import Constraints
         from .callbacks import Callback
         from .stepwise_whole_genome import ChromReorienter
 
-        print('%s\n%s 3D STRUCTURAL INFERENCE' % (
-            '=' * 30, {2: 'DIPLOID', 1: 'HAPLOID'}[ploidy]), flush=True)
+        print('%s\n%s 3D STRUCTURAL INFERENCE' %
+              ('=' * 30, {2: 'DIPLOID', 1: 'HAPLOID'}[ploidy]), flush=True)
 
         if constraints is None:
             constraints = Constraints(
@@ -328,7 +327,9 @@ class PastisPM(object):
         self.lengths = lengths
         self.ploidy = ploidy
         self.alpha = alpha
+        self.beta = beta
         self.init_X = init
+        self.bias = bias
         self.constraints = constraints
         self.callback = callback
         self.multiscale_factor = multiscale_factor
@@ -342,6 +343,7 @@ class PastisPM(object):
         self.reorienter = reorienter
         self.null = null
         self.mixture_coefs = mixture_coefs
+        self.verbose = verbose
 
         self.X_ = None
         self.alpha_ = None
@@ -360,9 +362,8 @@ class PastisPM(object):
 
         self.counts = _estimate_beta(
             self.X_.flatten(), self.counts, alpha=self.alpha_, bias=self.bias,
-            lengths=self.lengths, multiscale_factor=self.multiscale_factor,
-            mixture_coefs=self.mixture_coefs, reorienter=self.reorienter,
-            verbose=verbose)
+            lengths=self.lengths, mixture_coefs=self.mixture_coefs,
+            reorienter=self.reorienter, verbose=verbose)
         return [c.beta for c in self.counts if c.sum() != 0]
 
     def _fit_structure(self, alpha_loop=None):
@@ -385,8 +386,6 @@ class PastisPM(object):
             callback=self.callback,
             alpha_loop=alpha_loop,
             reorienter=self.reorienter,
-            struct_true=self.struct_true,
-            alpha_true=self.alpha_true,
             mixture_coefs=self.mixture_coefs,
             verbose=self.verbose)
 
@@ -415,8 +414,6 @@ class PastisPM(object):
             callback=self.callback,
             alpha_loop=alpha_loop,
             reorienter=self.reorienter,
-            struct_true=self.struct_true,
-            alpha_true=self.alpha_true,
             mixture_coefs=self.mixture_coefs,
             verbose=self.verbose)
 

@@ -107,7 +107,7 @@ def infer(counts_raw, outdir, lengths, ploidy, alpha, seed=0, normalize=True,
     if isinstance(init, str) and init.lower() == 'true':
         if struct_true is None:
             raise ValueError("Attempting to initialize with struct_true but"
-                             "struct_true is None")
+                             " struct_true is None")
         print('INITIALIZATION: initializing with true structure', flush=True)
         init = struct_true
     struct_init = initialize(
@@ -129,7 +129,7 @@ def infer(counts_raw, outdir, lengths, ploidy, alpha, seed=0, normalize=True,
     if hsc_lambda > 0:
         if ploidy == 1:
             raise ValueError("Can not apply homolog-separating constraint to"
-                             "haploid data.")
+                             " haploid data.")
         if hsc_r is not None:
             hsc_r = np.array(hsc_r, dtype=float).reshape(-1, )
             if hsc_r.shape[0] == 1 and lengths.shape[0] != 1:
@@ -169,10 +169,10 @@ def infer(counts_raw, outdir, lengths, ploidy, alpha, seed=0, normalize=True,
         if hsc_lambda > 0 and hsc_r is None:
             if ploidy == 1:
                 raise ValueError("Can not apply homolog-separating constraint"
-                                 "to haploid data.")
+                                 " to haploid data.")
             if alpha_ is None:
                 raise ValueError("Alpha must be set prior to inferring r from"
-                                 "counts data")
+                                 " counts data")
             fullres_torm_for_lowres = [find_beads_to_remove(
                 c, nbeads=lengths.sum() * ploidy) for c in counts]
             ua_index = [i for i in range(len(counts)) if counts[
@@ -183,11 +183,12 @@ def infer(counts_raw, outdir, lengths, ploidy, alpha, seed=0, normalize=True,
                 fullres_torm_for_lowres = fullres_torm_for_lowres[ua_index[0]]
             elif len(ua_index) > 1:
                 raise ValueError("Only input one matrix of unambiguous counts."
-                                 "Please pool unambiguos counts before inputting.")
+                                 " Please pool unambiguos counts before"
+                                 " inputting.")
             else:
                 if lengths.shape[0] == 1:
                     raise ValueError("Please input more than one chromosome to"
-                                     "estimate hsc_r from ambiguous data.")
+                                     " estimate hsc_r from ambiguous data.")
                 counts_for_lowres = counts_raw
                 simple_diploid_for_lowres = True
             multiscale_factor_for_lowres = choose_max_multiscale_factor(
@@ -219,7 +220,7 @@ def infer(counts_raw, outdir, lengths, ploidy, alpha, seed=0, normalize=True,
                 simple_diploid=simple_diploid_for_lowres)
             if verbose:
                 print("Estimated distance between homolog barycenters for each"
-                      "chromosome: %s" % ' '.join(map(str, hsc_r.round(2))), flush=True)
+                      " chromosome: %s" % ' '.join(map(str, hsc_r.round(2))), flush=True)
 
     if multiscale_rounds == 0 or multiscale_factor > 1 or final_multiscale_round:
         # INFER STRUCTURE
@@ -247,13 +248,14 @@ def infer(counts_raw, outdir, lengths, ploidy, alpha, seed=0, normalize=True,
                             struct_true=struct_true, alpha_true=alpha_true)
 
         pm = PastisPM(counts=counts, lengths=lengths, ploidy=ploidy,
-                      alpha=alpha_, init=struct_init, constraints=constraints,
-                      callback=callback, multiscale_factor=multiscale_factor,
+                      alpha=alpha_, beta=beta_, init=struct_init, bias=bias,
+                      constraints=constraints, callback=callback,
+                      multiscale_factor=multiscale_factor,
                       multiscale_variances=multiscale_variances,
                       alpha_init=alpha_init, max_alpha_loop=max_alpha_loop,
                       max_iter=max_iter, factr=factr, pgtol=pgtol,
                       alpha_factr=alpha_factr, reorienter=reorienter, null=null,
-                      mixture_coefs=mixture_coefs)
+                      mixture_coefs=mixture_coefs, verbose=verbose)
         pm.fit()
         struct_ = pm.struct_.reshape(-1, 3)
         struct_[np.tile(torm, len(mixture_coefs))] = np.nan

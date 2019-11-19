@@ -56,7 +56,7 @@ def get_counts(counts, lengths):
 
 
 def load_data(counts, ploidy, lengths_full, chrom_full=None,
-              chrom_subset=None, as_sparse=True, struct_true=None):
+              chrom_subset=None, exclude_zeros=True, struct_true=None):
     """Load all input data from file, or reformat data objects.
     """
 
@@ -71,8 +71,8 @@ def load_data(counts, ploidy, lengths_full, chrom_full=None,
 
     counts, struct_true, lengths_subset, chrom_subset = subset_chrom(
         counts=counts, ploidy=ploidy, lengths_full=lengths_full,
-        chrom_full=chrom_full, chrom_subset=chrom_subset, as_sparse=as_sparse,
-        struct_true=struct_true)
+        chrom_full=chrom_full, chrom_subset=chrom_subset,
+        exclude_zeros=exclude_zeros, struct_true=struct_true)
 
     return counts, struct_true, lengths_subset, chrom_subset, lengths_full, chrom_full
 
