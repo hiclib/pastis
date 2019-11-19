@@ -273,9 +273,14 @@ def prep_counts(counts_list, lengths, ploidy=1, multiscale_factor=1,
                 counts, multiscale_factor, lengths, ploidy)
             counts_dict[counts_type] = counts
 
-    # Filter all counts together... and if an entire bead has 0 counts from
-    # this filtering, set that bead to 0 in all counts matrices
-    if filter_threshold is not None and filter_threshold > 0 and len(counts_list) > 1:
+    # Optionally filter counts
+    if filter_threshold is None:
+        filter_threshold = 0
+    if filter_threshold and len(counts_list) > 1:
+        # If there are multiple counts matrices, filter them together.
+        # Counts will be ambiguated for deciding which beads to remove.
+        # For diploid, any beads that are filtered out will be removed from both
+        # homologs.
         if verbose:
             print("FILTERING LOW COUNTS: manually filtering all counts together"
                   " by %g" % filter_threshold, flush=True)
@@ -297,9 +302,11 @@ def prep_counts(counts_list, lengths, ploidy=1, multiscale_factor=1,
             counts[:, np.tile(torm, int(counts.shape[1] / torm.shape[0]))] = 0.
             counts = sparse.coo_matrix(counts)
             counts_dict[counts_type] = counts
-
-    # Filter counts
-    if filter_threshold is not None and filter_threshold > 0:
+    elif filter_threshold:
+        # If there is just one counts matrix, filter the full, non-ambiguated
+        # counts matrix.
+        # For diploid unambiguous or partially ambigous counts, it is possible
+        # that a bead will be filtered out on one homolog but not another.
         individual_counts_torms = np.full((lengths_lowres.sum(),), False)
         for counts_type, counts in counts_dict.items():
             if verbose:
