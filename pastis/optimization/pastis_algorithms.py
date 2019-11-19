@@ -236,7 +236,7 @@ def infer(counts_raw, outdir, lengths, ploidy, alpha, seed=0, normalize=True,
                            multiscale_variances=multiscale_variances,
                            constraints=constraints, reorienter=reorienter,
                            mixture_coefs=mixture_coefs,
-                           output_file=os.path.join(outdir, 'struct_true_obj.txt'))
+                           output_file=os.path.join(outdir, 'struct_true_obj'))
 
         if callback_freq is None:
             callback_freq = {'print': 100, 'history': 100, 'save': None}
