@@ -3,16 +3,8 @@ from sklearn.metrics import euclidean_distances
 from scipy import sparse
 
 
-def save_params(outfile, **kwargs):
-    """Save all parameters to file.
-    """
-    with open(outfile, 'w') as f:
-        f.write('\n'.join(['%s\t%g' % (k, v) if isinstance(
-            v, float) else '%s\t%s' % (k, v) for k, v in kwargs.items()]))
-
-
-def print_code_header(header, sub_header=None, max_length=80, blank_lines=None,
-                      verbose=True):
+def _print_code_header(header, sub_header=None, max_length=80, blank_lines=None,
+                       verbose=True):
     """Prints a header, for demarcation of output.
     """
 
@@ -28,11 +20,11 @@ def print_code_header(header, sub_header=None, max_length=80, blank_lines=None,
             print('\n' * (blank_lines - 1), flush=True)
 
 
-def format_structures(structures, lengths, ploidy, mixture_coefs=None):
+def _format_structures(structures, lengths, ploidy, mixture_coefs=None):
     """Reformats and checks shape of structures.
     """
 
-    from .poisson import format_X
+    from .poisson import _format_X
 
     if isinstance(structures, list):
         if not all([isinstance(struct, np.ndarray) for struct in structures]):
@@ -50,7 +42,7 @@ def format_structures(structures, lengths, ploidy, mixture_coefs=None):
             structures = structures.reshape(-1, 3)
         except ValueError:
             raise ValueError("Structure should be composed of 3D coordinates")
-        structures, _ = format_X(structures, mixture_coefs=mixture_coefs)
+        structures, _ = _format_X(structures, mixture_coefs=mixture_coefs)
 
     if mixture_coefs is not None and len(structures) != len(mixture_coefs):
         raise ValueError("The number of structures (%d) and of mixture "
@@ -97,7 +89,7 @@ def find_beads_to_remove(counts, nbeads, threshold=0):
     return torm
 
 
-def struct_replace_nan(struct, lengths, kind='linear', random_state=None):
+def _struct_replace_nan(struct, lengths, kind='linear', random_state=None):
     """Replace NaNs in structure via linear interpolation.
     """
 

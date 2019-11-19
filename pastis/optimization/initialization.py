@@ -4,8 +4,8 @@ from .multiscale_optimization import increase_struct_res, decrease_lengths_res, 
 import os
 
 
-def initialize_struct_mds(counts, lengths, ploidy, alpha, bias, random_state,
-                          multiscale_factor=1, verbose=True):
+def _initialize_struct_mds(counts, lengths, ploidy, alpha, bias, random_state,
+                           multiscale_factor=1, verbose=True):
     """Initialize structure via multi-dimensional scaling of unambig counts.
     """
 
@@ -45,13 +45,13 @@ def initialize_struct_mds(counts, lengths, ploidy, alpha, bias, random_state,
     return struct
 
 
-def initialize_struct(counts, lengths, ploidy, alpha, bias, random_state,
-                      init='mds', multiscale_factor=1, mixture_coefs=None,
-                      verbose=True):
+def _initialize_struct(counts, lengths, ploidy, alpha, bias, random_state,
+                       init='mds', multiscale_factor=1, mixture_coefs=None,
+                       verbose=True):
     """Initialize structure, randomly or via MDS of unambig counts.
     """
 
-    from .utils import struct_replace_nan, format_structures
+    from .utils import _struct_replace_nan, _format_structures
 
     random_state = check_random_state(random_state)
 
@@ -65,10 +65,10 @@ def initialize_struct(counts, lengths, ploidy, alpha, bias, random_state,
     if isinstance(init, np.ndarray) or isinstance(init, list):
         if verbose:
             print('INITIALIZATION: 3D structure', flush=True)
-        structures = format_structures(init, lengths=lengths, ploidy=ploidy,
-                                       mixture_coefs=mixture_coefs)
+        structures = _format_structures(init, lengths=lengths, ploidy=ploidy,
+                                        mixture_coefs=mixture_coefs)
     elif isinstance(init, str) and (init.lower() in ("mds", "mds2")) and len(ua_index) != 0:
-        struct = initialize_struct_mds(
+        struct = _initialize_struct_mds(
             counts=counts, lengths=lengths, ploidy=ploidy, alpha=alpha,
             bias=bias, random_state=random_state,
             multiscale_factor=multiscale_factor, verbose=verbose)
@@ -81,12 +81,13 @@ def initialize_struct(counts, lengths, ploidy, alpha, bias, random_state,
         if verbose:
             print('INITIALIZATION: 3D structure', flush=True)
         init = np.loadtxt(init)
-        structures = format_structures(init, lengths=lengths, ploidy=ploidy,
-                                       mixture_coefs=mixture_coefs)
+        structures = _format_structures(init, lengths=lengths, ploidy=ploidy,
+                                        mixture_coefs=mixture_coefs)
     else:
         raise ValueError("Initialization method not understood.")
 
-    structures = [struct_replace_nan(struct, lengths, random_state=random_state) for struct in structures]
+    structures = [_struct_replace_nan(
+        struct, lengths, random_state=random_state) for struct in structures]
 
     for struct in structures:
         if struct.shape[0] < int(lengths.sum() * ploidy):
@@ -138,7 +139,7 @@ def initialize(counts, lengths, random_state, init, ploidy, alpha=-3.,
             init_reorient = np.concatenate(init_reorient)
         return init_reorient
     else:
-        struct_init = initialize_struct(
+        struct_init = _initialize_struct(
             counts=counts, lengths=lengths_lowres, ploidy=ploidy, alpha=alpha,
             bias=bias, random_state=random_state, init=init,
             multiscale_factor=multiscale_factor, mixture_coefs=mixture_coefs,

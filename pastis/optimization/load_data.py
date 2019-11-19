@@ -3,7 +3,7 @@ import os
 from ..externals.iced.io import load_counts, load_lengths
 
 
-def get_lengths(lengths):
+def _get_lengths(lengths):
     """Load chromosome lengths from file, or reformat lengths object.
     """
 
@@ -16,11 +16,11 @@ def get_lengths(lengths):
     return lengths
 
 
-def get_chrom(chrom, lengths):
+def _get_chrom(chrom, lengths):
     """Load chromosome names from file, or reformat chromosome names object.
     """
 
-    lengths = get_lengths(lengths)
+    lengths = _get_lengths(lengths)
     if isinstance(chrom, str) and os.path.exists(chrom):
         chrom = np.array(np.genfromtxt(chrom, dtype='str')).reshape(-1)
     elif chrom is not None and (isinstance(chrom, list) or isinstance(chrom, np.ndarray)):
@@ -32,13 +32,13 @@ def get_chrom(chrom, lengths):
     return chrom
 
 
-def get_counts(counts, lengths):
+def _get_counts(counts, lengths):
     """Load counts from file, or reformat counts object.
     """
 
     if not isinstance(counts, list):
         counts = [counts]
-    lengths = get_lengths(lengths)
+    lengths = _get_lengths(lengths)
     output = []
     for f in counts:
         if isinstance(f, np.ndarray):
@@ -62,9 +62,9 @@ def load_data(counts, ploidy, lengths_full, chrom_full=None,
 
     from .counts import subset_chrom
 
-    lengths_full = get_lengths(lengths_full)
-    chrom_full = get_chrom(chrom_full, lengths_full)
-    counts = get_counts(counts, lengths_full)
+    lengths_full = _get_lengths(lengths_full)
+    chrom_full = _get_chrom(chrom_full, lengths_full)
+    counts = _get_counts(counts, lengths_full)
 
     if struct_true is not None and isinstance(struct_true, str):
         struct_true = np.loadtxt(struct_true)
@@ -77,7 +77,7 @@ def load_data(counts, ploidy, lengths_full, chrom_full=None,
     return counts, struct_true, lengths_subset, chrom_subset, lengths_full, chrom_full
 
 
-def choose_best_seed(outdir):
+def _choose_best_seed(outdir):
     """Choose seed with the lowest final objective value.
     """
 
@@ -92,8 +92,8 @@ def choose_best_seed(outdir):
     var_per_seed = [dict(pd.read_csv(f, sep='\t', header=None, names=(
         'label', 'value')).set_index('label').value) for f in infer_var_files]
     try:
-        best_seed_var = [x for x in var_per_seed if x['obj']
-                         == pd.DataFrame(var_per_seed).obj.min()][0]
+        best_seed_var = [x for x in var_per_seed if x['obj'] == pd.DataFrame(
+            var_per_seed).obj.min()][0]
     except KeyError as e:
         print(e, flush=True)
         print(infer_var_files, flush=True)
@@ -102,12 +102,12 @@ def choose_best_seed(outdir):
     return best_seed_var
 
 
-def choose_struct_inferred_file(outdir, seed=None, verbose=True):
+def _choose_struct_inferred_file(outdir, seed=None, verbose=True):
     """Choose inferred structure with the lowest final objective value.
     """
 
     if seed is None:
-        best_seed_var = choose_best_seed(outdir)
+        best_seed_var = _choose_best_seed(outdir)
         if 'seed' in best_seed_var:
             seed = best_seed_var['seed']
 
@@ -122,9 +122,9 @@ def choose_struct_inferred_file(outdir, seed=None, verbose=True):
         return os.path.join(outdir, 'struct_inferred.%03d.txt' % int(seed))
 
 
-def load_inferred_struct(outdir, seed=None, verbose=True):
+def _load_inferred_struct(outdir, seed=None, verbose=True):
     """Load inferred structure with the lowest final objective value.
     """
 
     return np.loadtxt(
-        choose_struct_inferred_file(outdir, seed=seed, verbose=verbose))
+        _choose_struct_inferred_file(outdir, seed=seed, verbose=verbose))

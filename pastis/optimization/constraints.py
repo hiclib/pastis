@@ -28,7 +28,7 @@ class Constraints(object):
             counts=counts, nbeads=self.lengths_lowres.sum() * ploidy)
         self.torm_3d = np.repeat(torm.reshape(-1, 1), 3, axis=1)
 
-        self.row, self.col = constraint_dis_indices(
+        self.row, self.col = _constraint_dis_indices(
             counts=counts, n=self.lengths_lowres.sum(),
             lengths=self.lengths_lowres, ploidy=ploidy)
         # Calculating distances for neighbors, which are on the off diagonal
@@ -172,8 +172,8 @@ class Constraints(object):
         return {'obj_' + k: v for k, v in obj.items()}
 
 
-def constraint_dis_indices(counts, n, lengths, ploidy, mask=None,
-                           adjacent_beads_only=False):
+def _constraint_dis_indices(counts, n, lengths, ploidy, mask=None,
+                            adjacent_beads_only=False):
     """Return distance matrix indices associated with any counts matrix data.
     """
 
@@ -231,7 +231,7 @@ def constraint_dis_indices(counts, n, lengths, ploidy, mask=None,
     return rows, cols
 
 
-def inter_homolog_dis(struct, lengths):
+def _inter_homolog_dis(struct, lengths):
     """Computes distance between homologs for a normal diploid structure.
     """
 
@@ -260,7 +260,7 @@ def inter_homolog_dis(struct, lengths):
     return homo_dis
 
 
-def inter_homolog_dis_via_simple_diploid(struct, lengths):
+def _inter_homolog_dis_via_simple_diploid(struct, lengths):
     """Computes distance between chromosomes for a faux-haploid structure.
     """
 
@@ -290,18 +290,18 @@ def distance_between_homologs(structures, lengths, ploidy, mixture_coefs=None,
     """Computes distance between homologs for a given structure.
     """
 
-    from .utils import format_structures
+    from .utils import _format_structures
 
-    structures = format_structures(
+    structures = _format_structures(
         structures=structures, lengths=lengths, ploidy=ploidy,
         mixture_coefs=mixture_coefs)
 
     homo_dis = []
     for struct in structures:
         if simple_diploid:
-            homo_dis.append(inter_homolog_dis_via_simple_diploid(
+            homo_dis.append(_inter_homolog_dis_via_simple_diploid(
                 struct=struct, lengths=lengths))
         else:
-            homo_dis.append(inter_homolog_dis(struct=struct, lengths=lengths))
+            homo_dis.append(_inter_homolog_dis(struct=struct, lengths=lengths))
 
     return np.mean(homo_dis, axis=0)

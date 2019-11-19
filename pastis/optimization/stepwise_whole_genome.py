@@ -74,7 +74,7 @@ class ChromReorienter(object):
                     length = lengths[i]
                     end += length
                     if self.rotate:
-                        new_structure.append(ag_np.dot(init_structure[begin:end, :] + translations[i, :], quat_to_rotation_matrix(rotations[i, :])))
+                        new_structure.append(ag_np.dot(init_structure[begin:end, :] + translations[i, :], _quat_to_rotation_matrix(rotations[i, :])))
                     else:
                         new_structure.append(init_structure[begin:end, :] + translations[i, :])
                     begin = end
@@ -85,11 +85,11 @@ class ChromReorienter(object):
             return new_structures
 
 
-def norm(x):
+def _norm(x):
     return ag_np.sqrt(sum(i**2 for i in x))
 
 
-def quat_to_rotation_matrix(q):
+def _quat_to_rotation_matrix(q):
     q = q.flatten()
     if q.shape[0] != 4:
         raise ValueError('Quaternion must be of length 4')
@@ -99,7 +99,7 @@ def quat_to_rotation_matrix(q):
     y = q[2]
     z = q[3]
 
-    n = norm(q)
+    n = _norm(q)
     if n == 0.0:
         raise ZeroDivisionError("Input to `as_rotation_matrix({0})` has zero norm".format(q))
     elif abs(n - 1.0) < np.finfo(np.float).eps:  # Input q is basically normalized
@@ -114,7 +114,7 @@ def quat_to_rotation_matrix(q):
             [2 * (x * z - y * w) / n,         2 * (y * z + x * w) / n,         1 - 2 * (x ** 2 + y ** 2) / n]])
 
 
-def realignment_error(X, Y, error_type):
+def _realignment_error(X, Y, error_type):
     if error_type.lower() == 'rmsd':
         return np.sqrt(((X - Y) ** 2.).sum() / len(X))
     elif error_type.lower() == 'distanceerror':
@@ -123,7 +123,7 @@ def realignment_error(X, Y, error_type):
         raise ValueError('Error error_type must be rmsd or distanceerror')
 
 
-def realign_structures(X, Y, rescale=False, copy=True, verbose=False, error_type='rmsd'):
+def _realign_structures(X, Y, rescale=False, copy=True, verbose=False, error_type='rmsd'):
     """
     Realigns Y and X
 
@@ -159,7 +159,7 @@ def realign_structures(X, Y, rescale=False, copy=True, verbose=False, error_type
     mask = np.invert(np.isnan(X[:, 0]) | np.isnan(Y[:, 0]))
 
     if rescale:
-        Y, _, _, _ = realign_structures(X, Y)
+        Y, _, _, _ = _realign_structures(X, Y)
         if error_type.lower() == 'rmsd':
             alpha = (X[mask] * Y[mask]).sum() / (Y[mask] ** 2).sum()  # np.sqrt(((X - Y) ** 2.).sum() / len(X))
         elif error_type.lower() == 'distanceerror':
@@ -182,7 +182,7 @@ def realign_structures(X, Y, rescale=False, copy=True, verbose=False, error_type
         R = np.dot(V, U.T)
     Y_fit = np.dot(Y, R)
 
-    error = realignment_error(X[mask], Y_fit[mask], error_type)
+    error = _realignment_error(X[mask], Y_fit[mask], error_type)
 
     # Check at the mirror
     Y_mirror = Y.copy()
@@ -196,7 +196,7 @@ def realign_structures(X, Y, rescale=False, copy=True, verbose=False, error_type
 
     R_mirror = np.dot(V, U.T)
     Y_mirror_fit = np.dot(Y_mirror, R_mirror)
-    error_mirror = realignment_error(X[mask], Y_mirror_fit[mask], error_type)
+    error_mirror = _realignment_error(X[mask], Y_mirror_fit[mask], error_type)
 
     if error <= error_mirror:
         best_Y_fit = Y_fit
@@ -214,13 +214,13 @@ def realign_structures(X, Y, rescale=False, copy=True, verbose=False, error_type
     return best_Y_fit, best_error, mirror, best_R
 
 
-def lowres_genome_vs_highres_chrom(X_genome_lowres, X_chrom, ploidy, lengths, chromosomes, chrom, lowres_genome_factor, stepwise_genome__fix_homo):
-    from counts import get_chrom_subset_index
+def _lowres_genome_vs_highres_chrom(X_genome_lowres, X_chrom, ploidy, lengths, chromosomes, chrom, lowres_genome_factor, stepwise_genome__fix_homo):
+    from counts import _get_chrom_subset_index
     from multiscale_optimization import decrease_lengths_res, decrease_struct_res
     import quaternion
 
     # Extract the chromosome from low-res whole-genome structure
-    index, chrom_lengths_lowres = get_chrom_subset_index(ploidy, lengths_full=decrease_lengths_res(lengths, lowres_genome_factor), chrom_full=chromosomes, chrom_subset=[chrom])
+    index, chrom_lengths_lowres = _get_chrom_subset_index(ploidy, lengths_full=decrease_lengths_res(lengths, lowres_genome_factor), chrom_full=chromosomes, chrom_subset=[chrom])
     X_lowres_2chrom = X_genome_lowres = X_genome_lowres[index]
 
     # Reduce the resolution of high-res single-chromosome structure
@@ -242,7 +242,7 @@ def lowres_genome_vs_highres_chrom(X_genome_lowres, X_chrom, ploidy, lengths, ch
     for each_X_lowres_2chrom, each_X_chrom_2lowres, each_X_chrom in zip(X_lowres_2chrom_list, X_chrom_2lowres_list, X_chrom_list):
         # Find ideal translation, rotation & mirroring; Convert rotation matrix to quaternions
         homolog_translations.append(np.nanmean(each_X_lowres_2chrom, axis=0) - np.nanmean(each_X_chrom_2lowres, axis=0))
-        Y_fit, rmsd, mirror, rotation_matrix = realign_structures(X=each_X_lowres_2chrom, Y=each_X_chrom_2lowres, rescale=False, type='RMSD', return_realignment_details=True)
+        Y_fit, rmsd, mirror, rotation_matrix = _realign_structures(X=each_X_lowres_2chrom, Y=each_X_chrom_2lowres, rescale=False, type='RMSD', return_realignment_details=True)
         homolog_rotations.append(quaternion.as_float_array(quaternion.from_rotation_matrix(rotation_matrix)))
 
         # Apply mirror to highres chrom
@@ -253,12 +253,12 @@ def lowres_genome_vs_highres_chrom(X_genome_lowres, X_chrom, ploidy, lengths, ch
     return homolog_translations, homolog_rotations, highres_homolog_mirrored
 
 
-def assemble_highres_chrom_via_lowres_genome(outdir, outdir_lowres, outdir_orient, chromosomes, lengths, alpha, ploidy, lowres_genome_factor, stepwise_genome__fix_homo=True, msv_type=None, struct_true=None, modifications=None):
+def _assemble_highres_chrom_via_lowres_genome(outdir, outdir_lowres, outdir_orient, chromosomes, lengths, alpha, ploidy, lowres_genome_factor, stepwise_genome__fix_homo=True, msv_type=None, struct_true=None, modifications=None):
     import os
-    from .load_data import load_inferred_struct
+    from .load_data import _load_inferred_struct
 
     # Load inferred lowres genome
-    X_genome_lowres = load_inferred_struct(outdir_lowres)
+    X_genome_lowres = _load_inferred_struct(outdir_lowres)
 
     # Load each inferred chromosome
     # Use lowres genome to decide when to mirror inferred chromosomes & initialize chromosome positons
@@ -266,8 +266,8 @@ def assemble_highres_chrom_via_lowres_genome(outdir, outdir_lowres, outdir_orien
     all_rotations = []
     all_translations = []
     for chrom in chromosomes:
-        X_chrom = load_inferred_struct(os.path.join(outdir, chrom))
-        homolog_translations, homolog_rotations, highres_homolog_mirrored = lowres_genome_vs_highres_chrom(X_genome_lowres, X_chrom, ploidy, lengths, chromosomes, chrom, lowres_genome_factor, stepwise_genome__fix_homo)
+        X_chrom = _load_inferred_struct(os.path.join(outdir, chrom))
+        homolog_translations, homolog_rotations, highres_homolog_mirrored = _lowres_genome_vs_highres_chrom(X_genome_lowres, X_chrom, ploidy, lengths, chromosomes, chrom, lowres_genome_factor, stepwise_genome__fix_homo)
         X_all_chrom.extend(highres_homolog_mirrored)
         all_rotations.extend(homolog_rotations)
         all_translations.extend(homolog_translations)
@@ -301,64 +301,64 @@ def stepwise_inference(counts, outdir, lengths, ploidy, chromosomes, alpha, seed
     """
 
     import os
-    from .load_data import load_inferred_struct, choose_best_seed
+    from .load_data import _load_inferred_struct, _choose_best_seed
     from .counts import subset_chrom
-    from .pastis_algorithms import infer, output_subdir
-    from .utils import choose_max_multiscale_factor, print_code_header
+    from .pastis_algorithms import infer, _output_subdir
+    from .utils import _choose_max_multiscale_factor, _print_code_header
 
     if stepwise_genome__step is None:
         stepwise_genome__step = [1, 2, 3, 4]
     stepwise_genome__step = [{'lowres': 1, 'chrom': 2, 'orient': 3, 'final': 4, 1: 1, 2: 2, 3: 3, 4: 4}[x.lower() if isinstance(x, str) else x] for x in stepwise_genome__step]
 
-    lowres_genome_factor = choose_max_multiscale_factor(lengths=lengths, min_beads=stepwise_genome__min_beads)
+    lowres_genome_factor = _choose_max_multiscale_factor(lengths=lengths, min_beads=stepwise_genome__min_beads)
 
     # Set directories
-    outdir_lowres = output_subdir(outdir=outdir, chrom_full=chromosomes, null=null, stepwise_genome=True, stepwise_genome__step=1)
-    outdir_orient = output_subdir(outdir=outdir, chrom_full=chromosomes, null=null, stepwise_genome=True, stepwise_genome__step=3)
-    outdir_final = output_subdir(outdir=outdir, chrom_full=chromosomes, null=null, stepwise_genome=True, stepwise_genome__step=4)
+    outdir_lowres = _output_subdir(outdir=outdir, chrom_full=chromosomes, null=null, stepwise_genome=True, stepwise_genome__step=1)
+    outdir_orient = _output_subdir(outdir=outdir, chrom_full=chromosomes, null=null, stepwise_genome=True, stepwise_genome__step=3)
+    outdir_final = _output_subdir(outdir=outdir, chrom_full=chromosomes, null=null, stepwise_genome=True, stepwise_genome__step=4)
 
     # Infer entire genome at low res; optionally use to infer alpha????? probably, but WOULD have to test that
     # Also used to initialize individual chrom, right? account for seed tho.... ugh but this would really increase run time
     # It WILL at least initialize the positions of chrom when assembling them all together
     if 1 in stepwise_genome__step:
-        print_code_header('STEWISE GENOME ASSEMBLY: STEP 1', sub_header='Inferring low-res whole-genome structure', max_length=80, blank_lines=2)
+        _print_code_header('STEWISE GENOME ASSEMBLY: STEP 1', sub_header='Inferring low-res whole-genome structure', max_length=80, blank_lines=2)
 
         # Infer all chromosomes at this resolution only
         infer(
-            counts=counts, lengths=lengths, alpha=alpha, ploidy=ploidy, init=init, outdir=outdir_lowres, bcc_lambda=bcc_lambda, hsc_lambda=hsc_lambda, hsc_r=hsc_r, input_weight=input_weight, exclude_zeros=exclude_zeros, norm=norm,
+            counts=counts, lengths=lengths, alpha=alpha, ploidy=ploidy, init=init, outdir=outdir_lowres, bcc_lambda=bcc_lambda, hsc_lambda=hsc_lambda, hsc_r=hsc_r, input_weight=input_weight, exclude_zeros=exclude_zeros, normalize=normalize,
             alpha_init=alpha_init, alpha_true=alpha_true, max_alpha_loop=max_alpha_loop, alpha_factr=alpha_factr,
             lowres_genome_factor=lowres_genome_factor, hsc_min_beads=hsc_min_beads, null=null, filter_threshold=filter_threshold, struct_true=struct_true, max_iter=max_iter, factr=factr, pgtol=pgtol)
 
     # Load lowres genome inferred variables
     lowres_var = None
     if (alpha is None) and (2 in stepwise_genome__step or 3 in stepwise_genome__step or 4 in stepwise_genome__step):
-        lowres_var = choose_best_seed(outdir_lowres)
+        lowres_var = _choose_best_seed(outdir_lowres)
         alpha = float(lowres_var['alpha'])
         beta = [float(x) for x in lowres_var['beta'].strip('[]').split(' ')]
 
     # Infer each chromosome individually
     if 2 in stepwise_genome__step:
-        print_code_header('STEWISE GENOME ASSEMBLY: STEP 2', sub_header='Inferring high-res structure per chromosome', max_length=80, blank_lines=2)
+        _print_code_header('STEWISE GENOME ASSEMBLY: STEP 2', sub_header='Inferring high-res structure per chromosome', max_length=80, blank_lines=2)
         if stepwise_genome__chrom is None:
             stepwise_genome__chrom = chromosomes
         for chrom in stepwise_genome__chrom:
-            print_code_header('CHROMOSOME %s' % chrom, max_length=70, blank_lines=1)
+            _print_code_header('CHROMOSOME %s' % chrom, max_length=70, blank_lines=1)
             chrom_counts, chrom_struct_true, chrom_lengths, _ = subset_chrom(counts=counts, ploidy=ploidy, lengths_full=lengths, chrom_full=chromosomes, chrom_subset=chrom, exclude_zeros=exclude_zeros, struct_true=struct_true)
 
-            infer(counts=chrom_counts, lengths=chrom_lengths, alpha=alpha, ploidy=ploidy, init=init, outdir=os.path.join(outdir, chrom), bcc_lambda=bcc_lambda, hsc_lambda=hsc_lambda, hsc_r=hsc_r, input_weight=input_weight, exclude_zeros=exclude_zeros, norm=norm,
+            infer(counts=chrom_counts, lengths=chrom_lengths, alpha=alpha, ploidy=ploidy, init=init, outdir=os.path.join(outdir, chrom), bcc_lambda=bcc_lambda, hsc_lambda=hsc_lambda, hsc_r=hsc_r, input_weight=input_weight, exclude_zeros=exclude_zeros, normalize=normalize,
                   alpha_init=alpha_init, alpha_true=alpha_true, max_alpha_loop=max_alpha_loop, alpha_factr=alpha_factr,
                   multiscale_rounds=multiscale_rounds, hsc_min_beads=hsc_min_beads, null=null, filter_threshold=filter_threshold, struct_true=chrom_struct_true, max_iter=max_iter, factr=factr, pgtol=pgtol)
 
     # Assemble 3D structure for entire genome
     if 3 in stepwise_genome__step:
-        print_code_header('STEWISE GENOME ASSEMBLY: STEP 3', sub_header='Orienting high-res chromosomes', max_length=80, blank_lines=2)
+        _print_code_header('STEWISE GENOME ASSEMBLY: STEP 3', sub_header='Orienting high-res chromosomes', max_length=80, blank_lines=2)
 
-        X_all_chrom, trans_rot_init = assemble_highres_chrom_via_lowres_genome(outdir=outdir, outdir_lowres=outdir_lowres, outdir_orient=outdir_orient, chromosomes=chromosomes, lengths=lengths, alpha=alpha, ploidy=ploidy, lowres_genome_factor=lowres_genome_factor, stepwise_genome__fix_homo=stepwise_genome__fix_homo, struct_true=struct_true)
+        X_all_chrom, trans_rot_init = _assemble_highres_chrom_via_lowres_genome(outdir=outdir, outdir_lowres=outdir_lowres, outdir_orient=outdir_orient, chromosomes=chromosomes, lengths=lengths, alpha=alpha, ploidy=ploidy, lowres_genome_factor=lowres_genome_factor, stepwise_genome__fix_homo=stepwise_genome__fix_homo, struct_true=struct_true)
 
         # OPTIONAL - Assemble all chromosomes together - rotate & translate previously inferred chromosomes
         if stepwise_genome__optimize_orient:
             infer(
-                counts=counts, lengths=lengths, alpha=alpha, ploidy=ploidy, init=trans_rot_init, outdir=outdir_orient, bcc_lambda=0., hsc_lambda=hsc_lambda, hsc_r=hsc_r, input_weight=input_weight, exclude_zeros=exclude_zeros, norm=norm,
+                counts=counts, lengths=lengths, alpha=alpha, ploidy=ploidy, init=trans_rot_init, outdir=outdir_orient, bcc_lambda=0., hsc_lambda=hsc_lambda, hsc_r=hsc_r, input_weight=input_weight, exclude_zeros=exclude_zeros, normalize=normalize,
                 alpha_init=alpha_init, alpha_true=alpha_true, max_alpha_loop=max_alpha_loop, alpha_factr=alpha_factr,
                 initial_seed=None, num_infer=1, multiscale_rounds=multiscale_rounds, hsc_min_beads=hsc_min_beads,
                 init_structures=X_all_chrom, translate=True, rotate=True, stepwise_genome__fix_homo=stepwise_genome__fix_homo,
@@ -366,14 +366,14 @@ def stepwise_inference(counts, outdir, lengths, ploidy, chromosomes, alpha, seed
 
     # Infer once more, letting all bead positions vary
     if 4 in stepwise_genome__step:
-        print_code_header('STEWISE GENOME ASSEMBLY: STEP 4', sub_header='Final whole-genome inference, allowing all beads to vary', max_length=80, blank_lines=2)
+        _print_code_header('STEWISE GENOME ASSEMBLY: STEP 4', sub_header='Final whole-genome inference, allowing all beads to vary', max_length=80, blank_lines=2)
 
         if stepwise_genome__optimize_orient:
-            X_all_chrom_oriented = load_inferred_struct(outdir_orient)
+            X_all_chrom_oriented = _load_inferred_struct(outdir_orient)
         else:
             X_all_chrom_oriented = np.loadtxt(os.path.join(outdir_orient, 'X.orient_via_lowres.txt'))
 
         infer(
-            counts=counts, lengths=lengths, alpha=alpha, ploidy=ploidy, init=X_all_chrom_oriented, outdir=outdir_final, bcc_lambda=bcc_lambda, hsc_lambda=hsc_lambda, hsc_r=hsc_r, input_weight=input_weight, exclude_zeros=exclude_zeros, norm=norm,
+            counts=counts, lengths=lengths, alpha=alpha, ploidy=ploidy, init=X_all_chrom_oriented, outdir=outdir_final, bcc_lambda=bcc_lambda, hsc_lambda=hsc_lambda, hsc_r=hsc_r, input_weight=input_weight, exclude_zeros=exclude_zeros, normalize=normalize,
             alpha_init=alpha_init, alpha_true=alpha_true, max_alpha_loop=max_alpha_loop, alpha_factr=alpha_factr,
             initial_seed=None, num_infer=1, multiscale_rounds=multiscale_rounds, hsc_min_beads=hsc_min_beads, null=null, filter_threshold=filter_threshold, struct_true=struct_true, max_iter=max_iter, factr=factr, pgtol=pgtol)
