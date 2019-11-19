@@ -359,7 +359,7 @@ def _var3d(struct_grouped):
 
 
 def _choose_max_multiscale_rounds(lengths, min_beads):
-    multiscale_rounds = 0
+    multiscale_rounds = 1
     while decrease_lengths_res(lengths, 2 ** (multiscale_rounds + 1)).min() >= min_beads:
         multiscale_rounds += 1
     return multiscale_rounds

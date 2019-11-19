@@ -49,10 +49,11 @@ parser.add_argument("--alpha_init", type=float, default=-3.,
 parser.add_argument("--max_alpha_loop", type=int, default=20,
                     help="For PM2, Number of times alpha and structure are"
                          "inferred.")
-parser.add_argument("--multiscale_rounds", default=0, type=int,
+parser.add_argument("--multiscale_rounds", default=1, type=int,
                     help="The number of resolutions at which a structure"
-                         "should be inferred during multiscale optimization. A"
-                         "value of `0` disables multiscale optimization.")
+                         "should be inferred during multiscale optimization."
+                         "Values of `1` or `0` disable multiscale"
+                         "optimization.")
 
 # Optimization convergence
 parser.add_argument("--max_iter", default=1e15, type=float,
