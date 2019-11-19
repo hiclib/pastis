@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.utils import check_random_state
 from .multiscale_optimization import increase_struct_res, decrease_lengths_res, decrease_struct_res
+import os
 
 
 def initialize_struct_mds(counts, lengths, ploidy, alpha, bias, random_state,
@@ -76,6 +77,12 @@ def initialize_struct(counts, lengths, ploidy, alpha, bias, random_state,
         if verbose:
             print('INITIALIZATION: random points', flush=True)
         structures = [(1 - 2 * random_state.rand(int(lengths.sum() * ploidy * 3))).reshape(-1, 3) for coef in mixture_coefs]
+    elif isinstance(init, str) and os.path.exists(init):
+        if verbose:
+            print('INITIALIZATION: 3D structure', flush=True)
+        init = np.loadtxt(init)
+        structures = format_structures(init, lengths=lengths, ploidy=ploidy,
+                                       mixture_coefs=mixture_coefs)
     else:
         raise ValueError("Initialization method not understood.")
 
