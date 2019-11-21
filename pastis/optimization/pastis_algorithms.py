@@ -322,15 +322,14 @@ def infer(counts_raw, outdir, lengths, ploidy, alpha=None, seed=0, normalize=Tru
 
 
 def pastis(counts, outdir, lengths, ploidy, chromosomes=None, chrom_subset=None,
-           alpha=None, seed=0, normalize=True, filter_threshold=0.04, alpha_init=-3.,
-           max_alpha_loop=20, multiscale_rounds=1, use_multiscale_variance=True,
-           max_iter=1e40, factr=10000000., pgtol=1e-05,
-           alpha_factr=1000000000000., bcc_lambda=0., hsc_lambda=0., hsc_r=None,
-           hsc_min_beads=5, callback_function=None, callback_freq=None,
-           stepwise_genome=False, stepwise_genome__step=None,
-           stepwise_genome__chrom=None, stepwise_genome__min_beads=5,
-           stepwise_genome__fix_homo=False,
-           stepwise_genome__optimize_orient=True, alpha_true=None,
+           alpha=None, seed=0, normalize=True, filter_threshold=0.04,
+           alpha_init=-3., max_alpha_loop=20, multiscale_rounds=1,
+           use_multiscale_variance=True, max_iter=1e40, factr=10000000.,
+           pgtol=1e-05, alpha_factr=1000000000000., bcc_lambda=0.,
+           hsc_lambda=0., hsc_r=None, hsc_min_beads=5, callback_function=None,
+           print_freq=100, history_freq=100, save_freq=None, piecewise=False,
+           piecewise_step=None, piecewise_chrom=None, piecewise_min_beads=5,
+           piecewise_fix_homo=False, piecewise_opt_orient=True, alpha_true=None,
            struct_true=None, init='msd', input_weight=None, exclude_zeros=False,
            null=False, mixture_coefs=None, verbose=True):
     """Infer 3D structures with PASTIS.
@@ -400,6 +399,8 @@ def pastis(counts, outdir, lengths, ploidy, chromosomes=None, chrom_subset=None,
 
     lengths_full = lengths
     chrom_full = chromosomes
+    callback_freq = {'print': print_freq, 'history': history_freq,
+                     'save': save_freq}
 
     counts, struct_true, lengths_subset, chrom_subset, lengths_full, chrom_full = load_data(
         counts=counts, ploidy=ploidy, lengths_full=lengths_full,
@@ -407,9 +408,9 @@ def pastis(counts, outdir, lengths, ploidy, chromosomes=None, chrom_subset=None,
         exclude_zeros=exclude_zeros, struct_true=struct_true)
 
     if len(chrom_subset) == 1:
-        stepwise_genome = False
+        piecewise = False
 
-    if (not stepwise_genome) or len(chrom_subset) == 1:
+    if (not piecewise) or len(chrom_subset) == 1:
         outdir = _output_subdir(
             outdir=outdir, chrom_full=chrom_full, chrom_subset=chrom_subset,
             null=null)
@@ -438,39 +439,39 @@ def pastis(counts, outdir, lengths, ploidy, chromosomes=None, chrom_subset=None,
             bcc_lambda=bcc_lambda, hsc_lambda=hsc_lambda, hsc_r=hsc_r,
             hsc_min_beads=hsc_min_beads, callback_function=callback_function,
             callback_freq=callback_freq,
-            stepwise_genome__step=stepwise_genome__step,
-            stepwise_genome__chrom=stepwise_genome__chrom,
-            stepwise_genome__min_beads=stepwise_genome__min_beads,
-            stepwise_genome__fix_homo=stepwise_genome__fix_homo,
-            stepwise_genome__optimize_orient=stepwise_genome__optimize_orient,
+            piecewise_step=piecewise_step,
+            piecewise_chrom=piecewise_chrom,
+            piecewise_min_beads=piecewise_min_beads,
+            piecewise_fix_homo=piecewise_fix_homo,
+            piecewise_opt_orient=piecewise_opt_orient,
             alpha_true=alpha_true, struct_true=struct_true, init=init,
             input_weight=input_weight, exclude_zeros=exclude_zeros, null=null,
             mixture_coefs=mixture_coefs, verbose=verbose)
 
 
 def _output_subdir(outdir, chrom_full, chrom_subset=None, null=False,
-                   stepwise_genome=False, stepwise_genome__step=None,
-                   stepwise_genome__chrom=None):
+                   piecewise=False, piecewise_step=None,
+                   piecewise_chrom=None):
     """Returns subdirectory for inference output files.
     """
 
     if null:
         outdir = os.path.join(outdir, 'null')
 
-    if (not stepwise_genome) or (stepwise_genome__step is not None and stepwise_genome__step != 2):
+    if (not piecewise) or (piecewise_step is not None and piecewise_step != 2):
         if chrom_subset is not None and len(chrom_subset) != len(chrom_full):
             outdir = os.path.join(outdir, '.'.join(chrom_subset))
 
-    if stepwise_genome:
-        if stepwise_genome__step is None:
-            raise ValueError("stepwise_genome__step may not be None")
-        if stepwise_genome__step == 1:
+    if piecewise:
+        if piecewise_step is None:
+            raise ValueError("piecewise_step may not be None")
+        if piecewise_step == 1:
             outdir = os.path.join(outdir, 'step1_lowres')
-        elif stepwise_genome__step == 2:
-            if stepwise_genome__chrom is None:
-                raise ValueError("stepwise_genome__chrom may not be None")
-            outdir = os.path.join(outdir, stepwise_genome__chrom)
-        elif stepwise_genome__step == 3:
+        elif piecewise_step == 2:
+            if piecewise_chrom is None:
+                raise ValueError("piecewise_chrom may not be None")
+            outdir = os.path.join(outdir, piecewise_chrom)
+        elif piecewise_step == 3:
             outdir = os.path.join(outdir, 'step3_assembled')
 
     return outdir
