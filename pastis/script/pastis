@@ -75,22 +75,19 @@ parser.add_argument("--hsc_min_beads", type=int, default=5,
                          " estimated.")
 
 # Hidden options
-parser.add_argument('--stepwise_genome', default=False, action='store_true',
+parser.add_argument('--piecewise', default=False, action='store_true',
                     help=argparse.SUPPRESS)
-parser.add_argument("--stepwise_genome.step", dest="stepwise_genome__step",
-                    nargs="+", default=None, type=int, help=argparse.SUPPRESS)
-parser.add_argument("--stepwise_genome.step2_chrom",
-                    dest="stepwise_genome__chrom", nargs="+", default=None,
+parser.add_argument("--piecewise_step", nargs="+", default=None, type=int,
+                    help=argparse.SUPPRESS)
+parser.add_argument("--piecewise_chrom", nargs="+", default=None,
                     type=str, help=argparse.SUPPRESS)
-parser.add_argument("--stepwise_genome.min_beads",
-                    dest="stepwise_genome__min_beads", default=5, type=int,
+parser.add_argument("--piecewise_min_beads", default=5, type=int,
                     help=argparse.SUPPRESS)
-parser.add_argument('--stepwise_genome.fix_homologs',
-                    dest='stepwise_genome__fix_homo', default=False,
+parser.add_argument('--piecewise_fix_homo', default=False,
                     action='store_true', help=argparse.SUPPRESS)
-parser.add_argument('--stepwise_genome.dont_optimize_orientation',
-                    dest='stepwise_genome__optimize_orient',
-                    default=True, action='store_false', help=argparse.SUPPRESS)
+parser.add_argument('--piecewise_dont_optimize_orientation',
+                    dest='piecewise_opt_orient', default=True,
+                    action='store_false', help=argparse.SUPPRESS)
 parser.add_argument("--alpha_true", type=float, default=None,
                     help=argparse.SUPPRESS)
 parser.add_argument("--struct_true", type=str, default=None,
