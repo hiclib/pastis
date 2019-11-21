@@ -321,7 +321,7 @@ def infer(counts_raw, outdir, lengths, ploidy, alpha=None, seed=0, normalize=Tru
         return struct_, infer_var
 
 
-def pastis(counts, outdir, lengths_full, ploidy, chrom_full=None, chrom_subset=None,
+def pastis(counts, outdir, lengths, ploidy, chromosomes=None, chrom_subset=None,
            alpha=None, seed=0, normalize=True, filter_threshold=0.04, alpha_init=-3.,
            max_alpha_loop=20, multiscale_rounds=1, use_multiscale_variance=True,
            max_iter=1e40, factr=10000000., pgtol=1e-05,
@@ -341,13 +341,13 @@ def pastis(counts, outdir, lengths_full, ploidy, chrom_full=None, chrom_subset=N
     ----------
     counts : list of str
         Counts data files in the hiclib format or as numpy ndarrays.
-    lengths_full : list of str
+    lengths : list of str
         Number of beads per homolog of each chromosome.
     ploidy : int
         Ploidy, 1 indicates haploid, 2 indicates diploid.
     outdir : str, optional
         Directory in which to save results
-    chrom_full : list of str, optional
+    chromosomes : list of str, optional
         Label for each chromosome in the data.
     chrom_subset : list of str, optional
         Chromosomes for which inference should be performed.
@@ -397,6 +397,9 @@ def pastis(counts, outdir, lengths_full, ploidy, chrom_full=None, chrom_subset=N
 
     from .load_data import load_data
     from .stepwise_whole_genome import stepwise_inference
+
+    lengths_full = lengths
+    chrom_full = chromosomes
 
     counts, struct_true, lengths_subset, chrom_subset, lengths_full, chrom_full = load_data(
         counts=counts, ploidy=ploidy, lengths_full=lengths_full,
