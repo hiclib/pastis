@@ -33,7 +33,7 @@ def _test_objective(struct, counts, lengths, ploidy, alpha, bias,
     return callback.obj
 
 
-def infer(counts_raw, outdir, lengths, ploidy, alpha, seed=0, normalize=True,
+def infer(counts_raw, outdir, lengths, ploidy, alpha=None, seed=0, normalize=True,
           filter_threshold=0.04, alpha_init=-3., max_alpha_loop=20, beta=None,
           multiscale_factor=1, multiscale_rounds=1, use_multiscale_variance=True,
           final_multiscale_round=False, init='msd', max_iter=1e40,
@@ -321,10 +321,10 @@ def infer(counts_raw, outdir, lengths, ploidy, alpha, seed=0, normalize=True,
         return struct_, infer_var
 
 
-def pastis(counts, outdir, lengths_full, ploidy, chrom_full, chrom_subset,
-           alpha, seed=0, normalize=True, filter_threshold=0.04, alpha_init=-3.,
+def pastis(counts, outdir, lengths_full, ploidy, chrom_full=None, chrom_subset=None,
+           alpha=None, seed=0, normalize=True, filter_threshold=0.04, alpha_init=-3.,
            max_alpha_loop=20, multiscale_rounds=1, use_multiscale_variance=True,
-           max_iter=1e40, factr=10000000.0, pgtol=1e-05,
+           max_iter=1e40, factr=10000000., pgtol=1e-05,
            alpha_factr=1000000000000., bcc_lambda=0., hsc_lambda=0., hsc_r=None,
            hsc_min_beads=5, callback_function=None, callback_freq=None,
            stepwise_genome=False, stepwise_genome__step=None,
@@ -334,6 +334,65 @@ def pastis(counts, outdir, lengths_full, ploidy, chrom_full, chrom_subset,
            struct_true=None, init='msd', input_weight=None, exclude_zeros=False,
            null=False, mixture_coefs=None, verbose=True):
     """Infer 3D structures with PASTIS.
+
+    TODO Write extended summary.
+
+    Parameters
+    ----------
+    counts : list of str
+        Counts data files in the hiclib format or as numpy ndarrays.
+    lengths_full : list of str
+        Number of beads per homolog of each chromosome.
+    ploidy : int
+        Ploidy, 1 indicates haploid, 2 indicates diploid.
+    outdir : str, optional
+        Directory in which to save results
+    chrom_full : list of str, optional
+        Label for each chromosome in the data.
+    chrom_subset : list of str, optional
+        Chromosomes for which inference should be performed.
+    alpha : float, optional
+        Biophysical parameter of the transfer function used in converting
+        counts to wish distances. If alpha is not specified, it will be
+        inferred.
+    seed : int, optional
+        Random seed used when generating the starting point in the
+        optimization.
+    normalize : list, optional
+        Prevents ICE normalization on the counts prior to optimization.
+        Normalization is reccomended.
+    filter_threshold : float, optional
+        Ratio of non-zero beads to be filtered out. Filtering is
+        reccomended.
+    alpha_init : float, optional
+        For PM2, the initial value of alpha to use.
+    max_alpha_loop : int, optional
+        For PM2, Number of times alpha and structure are inferred.
+    multiscale_rounds : int, optional
+        The number of resolutions at which a structure should be inferred
+        during multiscale optimization. Values of 1 or 0 disable multiscale
+        optimization.
+    max_iter : float, optional
+        Maximum number of iterations per optimization.
+    factr : float, optional
+        factr for scipy's L-BFGS-B, alters convergence criteria
+    pgtol : float, optional
+        pgtol for scipy's L-BFGS-B, alters convergence criteria
+    alpha_factr : float, optional
+        factr for convergence criteria of joint alpha/structure inference
+    bcc_lambda : float, optional
+        Lambda of the bead chain connectivity constraint
+    hsc_lambda : float, optional
+        For diploid organisms, lambda of the homolog- separating
+        constraint.
+    hsc_r : optional
+        For diploid organisms, hyperparameter of the homolog-separating
+        constraint specificying the expected distance between homolog
+        centers of mass for each chromosome. If not supplied, `hsc_r` will
+        be inferred from the counts data.
+    hsc_min_beads : int, optional
+        For diploid organisms, number of beads in the low-resolution
+        structure from which `hsc_r` is estimated.
     """
 
     from .load_data import load_data
