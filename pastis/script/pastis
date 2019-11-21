@@ -18,15 +18,15 @@ class PastisArgumentParser(argparse.ArgumentParser):
 parser = PastisArgumentParser(description="Run PASTIS-PM1 or PASTIS-PM2.",
                               fromfile_prefix_chars='@', prog="PASTIS")
 parser.add_argument("--counts", nargs="+", type=str, required=True,
-                    help="All counts data files, in the hiclib format or as"
+                    help="Counts data files in the hiclib format or as"
                          " numpy ndarrays.")
-parser.add_argument("--outdir", type=str, default="",
-                    help="Directory in which to save results")
 parser.add_argument("--lengths", dest="lengths_full", nargs="+", type=str,
                     required=True,
                     help="Number of beads per homolog of each chromosome.")
 parser.add_argument('--ploidy', type=int, required=True, choices=[1, 2],
-                    help="Ploidy, `1` indicates haploid, `2` indicates diploid.")
+                    help="Ploidy, 1 indicates haploid, 2 indicates diploid.")
+parser.add_argument("--outdir", type=str, default="",
+                    help="Directory in which to save results")
 parser.add_argument("--chromosomes", dest="chrom_full", nargs="+", default=None,
                     type=str, help="Label for each chromosome in the data.")
 parser.add_argument("--chrom_subset", nargs="+", default=None, type=str,
@@ -53,7 +53,7 @@ parser.add_argument("--max_alpha_loop", type=int, default=20,
 parser.add_argument("--multiscale_rounds", default=1, type=int,
                     help="The number of resolutions at which a structure"
                          " should be inferred during multiscale optimization."
-                         " Values of `1` or `0` disable multiscale"
+                         " Values of 1 or 0 disable multiscale"
                          " optimization.")
 
 # Optimization convergence
