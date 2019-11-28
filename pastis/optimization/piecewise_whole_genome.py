@@ -343,7 +343,7 @@ def stepwise_inference(counts, outdir, lengths, ploidy, chromosomes, alpha, seed
             piecewise_chrom = chromosomes
         for chrom in piecewise_chrom:
             _print_code_header('CHROMOSOME %s' % chrom, max_length=70, blank_lines=1)
-            chrom_counts, chrom_struct_true, chrom_lengths, _ = subset_chrom(counts=counts, ploidy=ploidy, lengths_full=lengths, chrom_full=chromosomes, chrom_subset=chrom, exclude_zeros=exclude_zeros, struct_true=struct_true)
+            chrom_lengths, _, chrom_counts, chrom_struct_true = subset_chrom(counts=counts, ploidy=ploidy, lengths_full=lengths, chrom_full=chromosomes, chrom_subset=chrom, exclude_zeros=exclude_zeros, struct_true=struct_true)
 
             infer(counts=chrom_counts, lengths=chrom_lengths, alpha=alpha, ploidy=ploidy, init=init, outdir=os.path.join(outdir, chrom), bcc_lambda=bcc_lambda, hsc_lambda=hsc_lambda, hsc_r=hsc_r, input_weight=input_weight, exclude_zeros=exclude_zeros, normalize=normalize,
                   alpha_init=alpha_init, alpha_true=alpha_true, max_alpha_loop=max_alpha_loop, alpha_factr=alpha_factr,

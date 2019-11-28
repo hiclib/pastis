@@ -108,13 +108,55 @@ def _initialize_struct(counts, lengths, ploidy, alpha, bias, random_state,
     return np.concatenate(structures)
 
 
-def initialize(counts, lengths, random_state, init, ploidy, alpha=-3.,
+def initialize(counts, lengths, init, ploidy, random_state=None, alpha=-3.,
                bias=None, multiscale_factor=1, reorienter=None,
                mixture_coefs=None, verbose=False):
-    """Initialize optimization, for structure or for rotation and translation.
+    """Initialize optimization.
+
+    Create initialization for optimization. Structures can be initialized
+    randomly, or via MDS2.
+
+    Parameters
+    ----------
+    counts : list of pastis.counts.CountsMatrix instances
+        Preprocessed counts data.
+    lengths : array_like of int
+        Number of beads per homolog of each chromosome.
+    random_state : int or RandomState instance
+        If int, random_state is the seed used by the random number generator;
+        If RandomState instance, random_state is the random number generator;
+        If None, the random number generator is the RandomState instance used
+        by `np.random`.
+    init : str or array_like of float
+        If array of float, this will be used for initialization. Structures
+        will be re-sized to the appropriate resolution, and NaN beads will be
+        linearly interpolated. If str, indicates the method of initalization:
+        random ("random" or "rand") or MDS2 ("mds2" or "mds").
+    ploidy : {1, 2}
+        Ploidy, 1 indicates haploid, 2 indicates diploid.
+    alpha : float, optional
+        Biophysical parameter of the transfer function used in converting
+        counts to wish distances.
+    bias : array_like of float, optional
+        Biases computed by ICE normalization.
+    multiscale_factor : int, optional
+        Factor by which to reduce the resolution. A value of 2 halves the
+        resolution. A value of 1 indicates full resolution.
+
+    Returns
+    -------
+    array of float
+        Initialization for inference.
+
     """
 
     from sklearn.utils import check_random_state
+
+    if random_state is None:
+        random_state = np.random.RandomState()
+    elif isinstance(random_state, int):
+        random_state = np.random.RandomState(random_state)
+    random_state = check_random_state(random_state)
 
     lengths_lowres = decrease_lengths_res(
         lengths, multiscale_factor=multiscale_factor)
@@ -126,7 +168,6 @@ def initialize(counts, lengths, random_state, init, ploidy, alpha=-3.,
             init_reorient = init
         else:
             print('INITIALIZATION: random', flush=True)
-            random_state = check_random_state(random_state)
             init_reorient = []
             if reorienter.translate:
                 init_reorient.append(1 - 2 * random_state.rand(

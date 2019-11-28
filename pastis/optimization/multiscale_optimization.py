@@ -3,6 +3,23 @@ import numpy as np
 
 def decrease_lengths_res(lengths, multiscale_factor):
     """Reduce resolution of chromosome lengths.
+
+    Determine the number of beads per homolog of each chromosome at the
+    specified resolution.
+
+    Parameters
+    ----------
+    lengths : array_like of int
+        Number of beads per homolog of each chromosome at current resolution.
+    multiscale_factor : int, optional
+        Factor by which to reduce the resolution. A value of 2 halves the
+        resolution. A value of 1 does not change the resolution.
+
+    Returns
+    -------
+    array of int
+        Number of beads per homolog of each chromosome at the given
+        `multiscale_factor`.
     """
 
     return np.ceil(
@@ -11,6 +28,25 @@ def decrease_lengths_res(lengths, multiscale_factor):
 
 def increase_struct_res(struct, multiscale_factor, lengths, mask=None):
     """Linearly interpolate structure to increase resolution.
+
+    Increase resolution of structure via linear interpolation between beads.
+
+    Parameters
+    ----------
+    struct : array of float
+        3D chromatin structure at low resolution.
+    lengths : array_like of int
+        Number of beads per homolog of each chromosome at high resolution (the
+        desired resolution of the output structure).
+    multiscale_factor : int, optional
+        Factor by which to increase the resolution. A value of 2 doubles the
+        resolution. A value of 1 does not change the resolution.
+
+    Returns
+    -------
+    struct_highres : array of float
+        3D chromatin structure that has been linearly interpolated to the
+        specified high resolution.
     """
 
     from scipy.interpolate import interp1d
@@ -182,7 +218,33 @@ def _convert_indices_to_full_res(rows, cols, rows_max, cols_max,
 
 
 def decrease_counts_res(counts, multiscale_factor, lengths, ploidy):
-    """Decrease resolution of counts matrix by summing adjacent bins.
+    """Decrease resolution of counts matrices by summing adjacent bins.
+
+    Decrease the resolution of the contact counts matrices. Each bin in a
+    low-resolution counts matrix is the sum of corresponding high-resolution
+    counts matrix bins.
+
+    Parameters
+    ----------
+    counts_raw : list of array or coo_matrix
+        Counts data at full resolution, ideally without normalization or
+        filtering.
+    multiscale_factor : int, optional
+        Factor by which to reduce the resolution. A value of 2 halves the
+        resolution. A value of 1 does not change the resolution.
+    lengths : array_like of int
+        Number of beads per homolog of each chromosome at full resolution.
+    ploidy : {1, 2}
+        Ploidy, 1 indicates haploid, 2 indicates diploid.
+
+    Returns
+    -------
+    counts_lowres : list of array or coo_matrix
+        Counts data at reduced resolution, as specified by the given
+        `multiscale_factor`.
+    lengths_lowres : array of int
+        Number of beads per homolog of each chromosome at the given
+        `multiscale_factor`.
     """
 
     from .counts import _row_and_col
@@ -289,6 +351,26 @@ def _group_highres_struct(struct, multiscale_factor, lengths, indices=None, mask
 
 def decrease_struct_res(struct, multiscale_factor, lengths, indices=None, mask=None):
     """Decrease resolution of structure by averaging adjacent beads.
+
+    Decrease the resolution of the 3D chromatin structure. Each bead in the
+    low-resolution structure is the mean of corresponding beads in the
+    high-resolution structure.
+
+    Parameters
+    ----------
+    struct : array of float
+        3D chromatin structure at full resolution.
+    multiscale_factor : int, optional
+        Factor by which to reduce the resolution. A value of 2 halves the
+        resolution. A value of 1 does not change the resolution.
+    lengths : array_like of int
+        Number of beads per homolog of each chromosome at full resolution.
+
+    Returns
+    -------
+    array of float
+        3D chromatin structure at reduced resolution, as specified by the given
+        `multiscale_factor`.
     """
 
     if int(multiscale_factor) != multiscale_factor:
@@ -324,6 +406,31 @@ def _count_fullres_per_lowres_bead(multiscale_factor, lengths, ploidy,
 def get_multiscale_variances_from_struct(structures, lengths, multiscale_factor,
                                          ploidy, mixture_coefs=None):
     """Compute multiscale variances from full-res structure.
+
+    Generates multiscale variances at the specified resolution from the
+    inputted full-resolution structure(s). Multiscale variances are defined as
+    follows: for each low-resolution bead, the variances of the distances
+    between all high-resolution beads that correspond to that low-resolution
+    bead.
+
+    Parameters
+    ----------
+    structures : array of float or list of array of float
+        3D chromatin structure(s) at full resolution.
+    lengths : array_like of int
+        Number of beads per homolog of each chromosome at full resolution.
+    multiscale_factor : int, optional
+        Factor by which to reduce the resolution. A value of 2 halves the
+        resolution. A value of 1 does not change the resolution.
+    ploidy : {1, 2}
+        Ploidy, 1 indicates haploid, 2 indicates diploid.
+
+    Returns
+    -------
+    array of float
+        Multiscale variances: for each low-resolution bead, the variances of the
+        distances between all high-resolution beads that correspond to that
+        low-resolution bead.
     """
 
     from .utils import _format_structures
@@ -359,6 +466,9 @@ def _var3d(struct_grouped):
 
 
 def _choose_max_multiscale_rounds(lengths, min_beads):
+    """Choose the maximum number of multiscale rounds, given `min_beads`.
+    """
+
     multiscale_rounds = 1
     while decrease_lengths_res(lengths, 2 ** (multiscale_rounds + 1)).min() >= min_beads:
         multiscale_rounds += 1
@@ -366,5 +476,8 @@ def _choose_max_multiscale_rounds(lengths, min_beads):
 
 
 def _choose_max_multiscale_factor(lengths, min_beads):
+    """Choose the maximum multiscale factor, given `min_beads`.
+    """
+
     return 2 ** _choose_max_multiscale_rounds(
         lengths=lengths, min_beads=min_beads)

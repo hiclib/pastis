@@ -1,5 +1,6 @@
 import numpy as np
 import os
+from scipy import sparse
 from ..externals.iced.io import load_counts, load_lengths
 
 
@@ -41,7 +42,7 @@ def _get_counts(counts, lengths):
     lengths = _get_lengths(lengths)
     output = []
     for f in counts:
-        if isinstance(f, np.ndarray):
+        if isinstance(f, np.ndarray) or isinstance(f, sparse.coo_matrix):
             counts_maps = f
         if f.endswith(".npy"):
             counts_maps = np.load(f)
@@ -51,13 +52,51 @@ def _get_counts(counts, lengths):
         else:
             raise ValueError("Counts file must end with .npy (for numpy array)"
                              " or .matrix (for hiclib / iced format)")
-        output.append(counts_maps)
+        output.append(sparse.coo_matrix(counts_maps))
     return output
 
 
-def load_data(counts, ploidy, lengths_full, chrom_full=None,
+def load_data(counts, lengths_full, ploidy, chrom_full=None,
               chrom_subset=None, exclude_zeros=True, struct_true=None):
-    """Load all input data from file, or reformat data objects.
+    """Load all input data from files, and/or reformat data objects.
+
+    If files are provided, load data from files. Also reformats data objects.
+
+    Parameters
+    ----------
+    counts : list of str or list of array or list of coo_matrix
+        Counts data files in the hiclib format or as numpy ndarrays.
+    lengths_full : str or list
+        Number of beads per homolog of each chromosome in the inputted data, or
+        hiclib .bed file with lengths data.
+    ploidy : {1, 2}
+        Ploidy, 1 indicates haploid, 2 indicates diploid.
+    chrom_full : str or list of str, optional
+        Label for each chromosome in the in the inputted data, or file with
+        chromosome labels (one label per line).
+    chrom_subset : list of str, optional
+        Label for each chromosome to be excised from the full data; labels of
+        chromosomes for which inference should be performed.
+
+    Returns
+    -------
+    counts : coo_matrix of int or ndarray or int
+        Counts data. If `chrom_subset` is not None, only counts data for the
+        specified chromosomes are returned.
+    lengths_subset : array of int
+        Number of beads per homolog of each chromosome in the returned data. If
+        `chrom_subset` is not None, only chromosome lengths for the specified
+        chromosomes are returned.
+    chrom_subset : array of str
+        Label for each chromosome in the returned data; labels of chromosomes
+        for which inference should be performed.
+    lengths_full : array of int
+        Number of beads per homolog of each chromosome in the inputted data.
+    chrom_full : array of str
+        Label for each chromosome in the inputted data.
+    struct_true : None or array of float
+        The true structure. If `chrom_subset` is not None, only beads for the
+        specified chromosomes are returned.
     """
 
     from .counts import subset_chrom
@@ -69,12 +108,12 @@ def load_data(counts, ploidy, lengths_full, chrom_full=None,
     if struct_true is not None and isinstance(struct_true, str):
         struct_true = np.loadtxt(struct_true)
 
-    counts, struct_true, lengths_subset, chrom_subset = subset_chrom(
+    lengths_subset, chrom_subset, counts, struct_true = subset_chrom(
         counts=counts, ploidy=ploidy, lengths_full=lengths_full,
         chrom_full=chrom_full, chrom_subset=chrom_subset,
         exclude_zeros=exclude_zeros, struct_true=struct_true)
 
-    return counts, struct_true, lengths_subset, chrom_subset, lengths_full, chrom_full
+    return counts, lengths_subset, chrom_subset, lengths_full, chrom_full, struct_true
 
 
 def _choose_best_seed(outdir):

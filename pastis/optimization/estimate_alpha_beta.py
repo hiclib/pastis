@@ -100,14 +100,46 @@ def _estimate_beta(X, counts, alpha, lengths, bias=None, reorienter=None,
 
 
 def objective_alpha(alpha, counts, X, lengths, bias=None, constraints=None,
-                    reorienter=None, multiscale_factor=1, mixture_coefs=None,
+                    reorienter=None, multiscale_factor=1,
+                    multiscale_variances=None, mixture_coefs=None,
                     return_components=False):
-    """Compute the objective.
+    """Computes the objective function.
+
+    Computes the negative log likelihood of the poisson model and constraints.
+
+    Parameters
+    ----------
+    alpha : float, optional
+        Biophysical parameter of the transfer function used in converting
+        counts to wish distances.
+    counts : list of CountsMatrix subclass instances
+        Preprocessed counts data.
+    X : array of float
+        Structure being inferred.
+    lengths : array of int
+        Number of beads per homolog of each chromosome.
+    bias : array of float, optional
+        Biases computed by ICE normalization.
+    constraints : Constraints instance, optional
+        Object to compute constraints at each iteration.
+    multiscale_factor : int, optional
+        Factor by which to reduce the resolution. A value of 2 halves the
+        resolution. A value of 1 indicates full resolution.
+    multiscale_variances : float or array of float, optional
+        For multiscale optimization at low resolution, the variances of each
+        group of full-resolution beads corresponding to a single low-resolution
+        bead.
+
+    Returns
+    -------
+    obj : float
+        The total negative log likelihood of the poisson model and constraints.
     """
 
     return objective(X, counts, alpha=alpha, lengths=lengths, bias=bias,
                      constraints=constraints, reorienter=reorienter,
                      multiscale_factor=multiscale_factor,
+                     multiscale_variances=multiscale_variances,
                      mixture_coefs=mixture_coefs,
                      return_components=return_components)
 
@@ -117,8 +149,8 @@ gradient_alpha = grad(objective_alpha)
 
 def objective_wrapper_alpha(alpha, counts, X, lengths, bias=None,
                             constraints=None, reorienter=None,
-                            multiscale_factor=1, mixture_coefs=None,
-                            callback=None):
+                            multiscale_factor=1, multiscale_variances=None,
+                            mixture_coefs=None, callback=None):
     """Objective function wrapper to match scipy.optimize's interface.
     """
 
@@ -130,7 +162,8 @@ def objective_wrapper_alpha(alpha, counts, X, lengths, bias=None,
     new_obj, obj_logs, structures, alpha = objective_alpha(
         alpha, counts=counts, X=X, lengths=lengths, bias=bias, constraints=constraints,
         reorienter=reorienter, multiscale_factor=multiscale_factor,
-        mixture_coefs=mixture_coefs, return_components=True)
+        multiscale_variances=multiscale_variances, mixture_coefs=mixture_coefs,
+        return_components=True)
 
     if callback is not None:
         callback.on_epoch_end(obj_logs, structures, alpha, X)
@@ -140,7 +173,8 @@ def objective_wrapper_alpha(alpha, counts, X, lengths, bias=None,
 
 def fprime_wrapper_alpha(alpha, counts, X, lengths, bias=None, constraints=None,
                          reorienter=None, multiscale_factor=1,
-                         mixture_coefs=None, callback=None):
+                         multiscale_variances=None, mixture_coefs=None,
+                         callback=None):
     """Gradient function wrapper to match scipy.optimize's interface.
     """
 
@@ -157,29 +191,75 @@ def fprime_wrapper_alpha(alpha, counts, X, lengths, bias=None, constraints=None,
             alpha, counts=counts, X=X, lengths=lengths, bias=bias,
             constraints=constraints, reorienter=reorienter,
             multiscale_factor=multiscale_factor,
+            multiscale_variances=multiscale_variances,
             mixture_coefs=mixture_coefs)).flatten()
 
     return new_grad
 
 
-def estimate_alpha(counts, X, alpha_init, lengths, ploidy, bias=None,
+def estimate_alpha(counts, X, alpha_init, lengths, bias=None,
                    constraints=None, multiscale_factor=1,
                    multiscale_variances=None, random_state=None,
-                   max_iter=10000000000, factr=10000000.0, pgtol=1e-05,
+                   max_iter=10000000000, factr=10000000., pgtol=1e-05,
                    callback=None, alpha_loop=None, reorienter=None,
                    mixture_coefs=None, verbose=True):
     """Estimates alpha, given current structure.
 
     Parameters
     ----------
+    Given a chromatin structure, infer alpha from Hi-C contact counts data for
+    haploid or diploid organisms at a given resolution.
+
+    Parameters
+    ----------
+    counts : list of CountsMatrix subclass instances
+        Preprocessed counts data.
+    X : array_like of float
+        3D chromatin structure.
+    alpha_init : float
+        Initialization of alpha, the biophysical parameter of the transfer
+        function used in converting counts to wish distances.
+    lengths : array_like of int
+        Number of beads per homolog of each chromosome.
+    bias : array_like of float, optional
+        Biases computed by ICE normalization.
+    constraints : Constraints instance, optional
+        Object to compute constraints at each iteration.
+    multiscale_factor : int, optional
+        Factor by which to reduce the resolution. A value of 2 halves the
+        resolution. A value of 1 indicates full resolution.
+    multiscale_variances : float or array_like of float, optional
+        For multiscale optimization at low resolution, the variances of each
+        group of full-resolution beads corresponding to a single low-resolution
+        bead.
+    max_iter : int, optional
+        Maximum number of iterations per optimization.
+    factr : float, optional
+        factr for scipy's L-BFGS-B, alters convergence criteria.
+    pgtol : float, optional
+        pgtol for scipy's L-BFGS-B, alters convergence criteria.
+    callback : pastis.callbacks.Callback object, optional
+        Object to perform callback at each iteration and before and after
+        optimization.
+    alpha_loop : int, optional
+        Current iteration of alpha/structure optimization.
+
+    Returns
+    -------
+    alpha : float
+        Output of the optimization, the biophysical parameter of the transfer
+        function used in converting counts to wish distances.
+    obj : float
+        Final objective value.
+    converged : bool
+        Whether the optimization successfully converged.
+    callback.history : list of dict
+        History generated by the callback, containing information about the
+        objective function during optimization.
     """
 
     # Check format of input
     counts = (counts if isinstance(counts, list) else [counts])
-    if lengths is None:
-        if ploidy != 1:
-            raise ValueError("Must supply lengths for diploid inference")
-        lengths = [min([min(counts_maps.shape) for counts_maps in counts])]
     lengths = np.array(lengths)
     if bias is None:
         bias = np.ones((min([min(counts_maps.shape) for counts_maps in counts]),))
@@ -223,7 +303,7 @@ def estimate_alpha(counts, X, alpha_init, lengths, ploidy, bias=None,
               mixture_coefs, callback))
 
     if callback is not None:
-        history = callback.on_training_end()
+        callback.on_training_end()
 
     alpha, obj, d = results
     converged = d['warnflag'] == 0
@@ -237,4 +317,4 @@ def estimate_alpha(counts, X, alpha_init, lengths, ploidy, bias=None,
         print('INIT ALPHA: %.3g, FINAL ALPHA: %.3g' %
               (alpha_init, alpha), flush=True)
 
-    return float(alpha), obj, converged, history
+    return float(alpha), obj, converged, callback.history
