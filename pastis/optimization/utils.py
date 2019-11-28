@@ -64,6 +64,22 @@ def _format_structures(structures, lengths, ploidy, mixture_coefs=None):
 
 def find_beads_to_remove(counts, nbeads, threshold=0):
     """Determine beads for which no corresponding counts data exists.
+
+    Identifies beads that should be removed (set to NaN) in the structure.
+    If there aren't any counts in the rows/columns corresponding to a given
+    bead, that bead should be removed.
+
+    Parameters
+    ----------
+    counts : list of np.ndarray or scipy.sparse.coo_matrix
+        Counts data.
+    nbeads : int
+        Total number of beads in the structure.
+
+    Returns
+    -------
+    torm : array of bool of shape (nbeads,)
+        Beads that should be removed (set to NaN) in the structure.
     """
 
     if not isinstance(counts, list):

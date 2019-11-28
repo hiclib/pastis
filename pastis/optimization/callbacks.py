@@ -7,18 +7,124 @@ from .multiscale_optimization import decrease_lengths_res, decrease_struct_res
 
 
 class Callback(object):
-    """An object that adds functionality during training.
+    """An object that adds functionality during optimization.
 
     A callback is a function or group of functions that can be executed during
     optimization. A callback can be called at three stages-- the
-    beginning of training, at the end of each epoch (or iteration), and at
-    the end of training. Users can define any functions that they wish in
-    the corresponding functions.
+    beginning of optimization, at the end of each epoch (or iteration), and at
+    the end of optimization. Users can define any functions that they wish in
+    the corresponding functions.Compute objective constraints.
+
+    Parameters
+    ----------
+    lengths : array_like of int
+        Number of beads per homolog of each chromosome at full resolution.
+    ploidy : {1, 2}
+        Ploidy, 1 indicates haploid, 2 indicates diploid.
+    counts : list of CountsMatrix subclass instances
+        Preprocessed counts data.
+    multiscale_factor : int, optional
+        Factor by which to reduce the resolution. A value of 2 halves the
+        resolution. A value of 1 indicates full resolution.
+    history : dict of list, optional
+        Previously generated history logs, to be added to during this
+        optimization.
+    analysis_function : function, optional
+        Analysis function to be executed before history is logged.
+        The function should only take `self` as an input, and should return a
+        dictionary of items that will be added to the history logs.
+    frequency : int or dict, optional
+        Frequency of iterations at which operations are performed. Each key
+        indicates an operation, options: "history" (logs history), "print"
+        (prints time and current objective value), "save" (saves current
+        structure to file).
+    on_training_begin : function, optional
+        Function to be executed at the beginning of optimization.
+    on_training_end : function, optional
+        Function to be executed at the end of optimization.
+    on_epoch_end : function, optional
+        Function to be executed at the end of each epoch.
+    directory : str, optional
+        Directory in which to save structures generated during optimization.
+    struct_true : array of float, optional
+        True structure, to be used by `analysis_function`.
+    alpha_true : array of float, optional
+        True alpha, to be used by `analysis_function`.
+    verbose : bool, optional
+        Verbosity.
+
+    Attributes
+    ----------
+    lengths : array of int
+        Number of beads per homolog of each chromosome at full the current
+        resolution (indicated by `multiscale_factor`).
+    ploidy : {1, 2}
+        Ploidy, 1 indicates haploid, 2 indicates diploid.
+    multiscale_factor : int
+        Factor by which to reduce the resolution. A value of 2 halves the
+        resolution. A value of 1 indicates full resolution.
+    torm : array of bool
+        Beads that should be removed (set to NaN) in the structure.
+    frequency : dict
+        Frequency of iterations at which operations are performed. Each key
+        indicates an operation, options: "history" (logs history), "print"
+        (prints time and current objective value), "save" (saves current
+        structure to file).
+    analysis_function : function or None
+        Analysis function to be executed before history is logged.
+        The function should only take `self` as an input, and should return a
+        dictionary of items that will be added to the history logs.
+    on_training_begin_ : function or None
+        Function to be executed at the beginning of optimization.
+    on_training_end_ : function or None
+        Function to be executed at the end of optimization.
+    on_epoch_end_ : function or None
+        Function to be executed at the end of each epoch.
+    directory : str
+        Directory in which to save structures generated during optimization.
+    struct_true : array of float or None
+        True structure, to be used by `analysis_function`.
+    alpha_true : array of float or None
+        True alpha, to be used by `analysis_function`.
+    verbose : bool
+        Verbosity.
+    history : dict of list
+        History logs generated during optimization. By default, history includes
+        the following information and keys, respectively: iteration ("iter"),
+        alpha ("alpha"), multiscale_factor ("multiscale_factor"),
+        current iteration of alpha/structure optimization ("alpha_loop"),
+        relative orientation of each chromosome ("opt_type").
+    opt_type : {"structure", "alpha", "chrom_reorient", None}
+        Type of optimization being performed. Options: 3D chromatin structure
+        ("structure"), alpha ("alpha"), relative orientation of each chromosome
+        ("chrom_reorient").
+    alpha_loop : int or None
+        Current iteration of alpha/structure optimization.
+    epoch : int
+        Current epoch (iteration) of optimization.
+    time : str
+        Time since optimization began.
+    structures : list of array of float or None
+        Current 3D chromatin structure(s).
+    alpha : float or None
+        Current biophysical parameter of the transfer function used in
+        converting counts to wish distances.
+    Xi : float or array of float or None
+        Current values being optimized (structure, alpha, or chromosome
+        orientation).
+    orientation : array of float or None
+        Current values for the relative orientation of each chromosome
+        (for `opt_type` == "chrom_reorient").
+    time_start : timeit.default_timer instance
+        Time at which optimization began.
+
     """
 
-    def __init__(self, lengths, ploidy, counts=None, multiscale_factor=1, history=None,
-                 analysis_function=None, frequency=100, on_training_begin=None, on_training_end=None, on_epoch_end=None,
-                 directory=None, struct_true=None, alpha_true=None, verbose=False):
+    def __init__(self, lengths, ploidy, counts=None, multiscale_factor=1,
+                 history=None, analysis_function=None, frequency=None,
+                 on_training_begin=None, on_training_end=None,
+                 on_epoch_end=None, directory=None, struct_true=None,
+                 alpha_true=None, verbose=False):
         self.ploidy = ploidy
         self.multiscale_factor = multiscale_factor
         self.lengths = decrease_lengths_res(lengths, multiscale_factor)
@@ -32,7 +138,8 @@ class Callback(object):
             self.frequency = {'print': frequency,
                               'history': frequency, 'save': frequency}
         else:
-            if not isinstance(frequency, dict) or any([k not in ('print', 'history', 'save') for k in frequency.keys()]):
+            if not isinstance(frequency, dict) or any(
+                    [k not in ('print', 'history', 'save') for k in frequency.keys()]):
                 raise ValueError("Callback frequency must be None, int, or dict"
                                  " with keys = (print, history, save).")
             self.frequency = {'print': None, 'history': None, 'save': None}
@@ -44,18 +151,28 @@ class Callback(object):
         if directory is None:
             directory = ''
         self.directory = directory
-        self.struct_true = decrease_struct_res(struct_true,
-                                               multiscale_factor=multiscale_factor,
-                                               lengths=lengths)
+        self.struct_true = decrease_struct_res(
+            struct_true, multiscale_factor=multiscale_factor, lengths=lengths)
         self.alpha_true = alpha_true
         self.verbose = verbose
 
         if history is None:
             self.history = {}
-        elif isinstance(history, dict) and all([isinstance(v, list) for v in history.values()]):
+        elif isinstance(history, dict) and all(
+                [isinstance(v, list) for v in history.values()]):
             self.history = history
         else:
             raise ValueError("History must be dictionary of lists")
+
+        self.opt_type = None
+        self.alpha_loop = None
+        self.epoch = -1
+        self.time = '0:00:00.0'
+        self.structures = None
+        self.alpha = None
+        self.X = None
+        self.orientation = None
+        self.time_start = None
 
     def _set_structures(self, structures):
         self.structures = [struct.copy().reshape(-1, 3)
@@ -77,7 +194,8 @@ class Callback(object):
 
         if self._check_frequency(self.frequency['print'], last_epoch):
             info_dict = {'At iterate': ' ' * (6 - len(str(self.epoch))) + str(
-                self.epoch), 'f= ': '%.6g' % self.obj['obj'], 'time= ': self.time}
+                self.epoch), 'f= ': '%.6g' % self.obj['obj'],
+                'time= ': self.time}
             print('\t\t'.join(['%s%s' % (k, v)
                                for k, v in info_dict.items()]), flush=True)
             if self.epoch == 10:
@@ -94,10 +212,12 @@ class Callback(object):
             for i in range(len(X_list)):
                 if len(X_list) == 1:
                     filename = os.path.join(
-                        self.directory, 'inferred_%s.epoch_%07d.txt' % (self.opt_type, self.epoch))
+                        self.directory, 'inferred_%s.epoch_%07d.txt'
+                                        % (self.opt_type, self.epoch))
                 else:
-                    filename = os.path.join(self.directory, 'struct%d.inferred_%s.epoch_%07d.txt' % (
-                        i, self.opt_type, self.epoch))
+                    filename = os.path.join(
+                        self.directory, 'struct%d.inferred_%s.epoch_%07d.txt'
+                                        % (i, self.opt_type, self.epoch))
                 if self.verbose:
                     print("[%d] Saving model checkpoint to %s" %
                           (self.epoch, filename))
@@ -111,8 +231,10 @@ class Callback(object):
                 alpha = float(self.alpha)
             else:
                 alpha = ','.join(map(str, self.alpha))
-            to_log = [('iter', self.epoch), ('alpha', alpha), ('alpha_loop', self.alpha_loop),
-                      ('opt_type', self.opt_type), ('multiscale_factor', self.multiscale_factor)]
+            to_log = [('iter', self.epoch), ('alpha', alpha),
+                      ('alpha_loop', self.alpha_loop),
+                      ('opt_type', self.opt_type),
+                      ('multiscale_factor', self.multiscale_factor)]
             to_log.extend(list(self.obj.items()))
 
             if self.analysis_function is not None:
@@ -125,10 +247,19 @@ class Callback(object):
                     self.history[k] = [v]
 
     def on_training_begin(self, opt_type=None, alpha_loop=None):
-        """Functionality to add to the beginning of training.
+        """Functionality to add to the beginning of optimization.
 
-        This method will be called at the beginning of each model's training
+        This method will be called at the beginning of the optimization
         procedure.
+
+        Parameters
+        ----------
+        opt_type : {"structure", "alpha", "chrom_reorient", None}
+            Type of optimization being performed. Options: 3D chromatin
+            structure ("structure"), alpha ("alpha"), relative orientation of
+            each chromosome ("chrom_reorient").
+        alpha_loop : int
+            Current iteration of alpha/structure optimization.
         """
 
         if opt_type is None:
@@ -148,8 +279,22 @@ class Callback(object):
     def on_epoch_end(self, obj_logs, structures, alpha, Xi):
         """Functionality to add to the end of each epoch.
 
-        This method will be called at the end of each epoch during the model's
-        iterative training procedure.
+        This method will be called at the end of each epoch during the
+        iterative optimization procedure.
+
+        Parameters
+        ----------
+        obj_logs : dict of float
+            Current objective function. Each component of the objective is
+            indicated by a separate dictionary item.
+        structures : list of array of float
+            Current 3D chromatin structure(s).
+        alpha : float
+            Current biophysical parameter of the transfer function used in
+            converting counts to wish distances.
+        Xi : float or array of float
+            Current values being optimized (structure, alpha, or chromosome
+            orientation).
         """
 
         self.epoch += 1
@@ -176,10 +321,9 @@ class Callback(object):
             self.on_epoch_end_(self)
 
     def on_training_end(self):
-        """Functionality to add to the end of training.
+        """Functionality to add to the end of optimization.
 
-        This method will be called at the end of each model's training
-        procedure.
+        This method will be called at the end of the optimization procedure.
         """
 
         self._print(last_epoch=True)

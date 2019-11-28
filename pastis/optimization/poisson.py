@@ -64,29 +64,37 @@ def _poisson_obj_single(structures, counts, alpha, lengths, bias=None,
 def objective(X, counts, alpha, lengths, bias=None, constraints=None,
               reorienter=None, multiscale_factor=1, multiscale_variances=None,
               mixture_coefs=None, return_extras=False):
-    """
-    Computes the objective function.
+    """Computes the objective function.
+
+    Computes the negative log likelihood of the poisson model and constraints.
 
     Parameters
     ----------
-    structures : list of ndarray or ndarray of shape (n, 3)
-
-    counts : list of contact maps of shape (n, n) or (m, m)
-
-    alpha : float, optional, default: -3
-        counts-to-distance mapping parameter
-
-    beta : float or array of floats, optional, default: None
-        scaling factor of the structures. If counts is a list of contact maps,
-        beta should be a list of scaling factors of the same length.
-        if None, the optimal beta will be estimated.
-
-    mixture_coefs : list, optional, default: None
-        If inferring a mixture model, the mixture coefficients
+    X : array of float
+        Structure being inferred.
+    counts : list of CountsMatrix subclass instances
+        Preprocessed counts data.
+    alpha : float, optional
+        Biophysical parameter of the transfer function used in converting
+        counts to wish distances.
+    lengths : array of int
+        Number of beads per homolog of each chromosome.
+    bias : array of float, optional
+        Biases computed by ICE normalization.
+    constraints : Constraints instance, optional
+        Object to compute constraints at each iteration.
+    multiscale_factor : int, optional
+        Factor by which to reduce the resolution. A value of 2 halves the
+        resolution. A value of 1 indicates full resolution.
+    multiscale_variances : float or array of float, optional
+        For multiscale optimization at low resolution, the variances of each
+        group of full-resolution beads corresponding to a single low-resolution
+        bead.
 
     Returns
     -------
-    obj : the value of the negative likelihood of the poisson model
+    obj : float
+        The total negative log likelihood of the poisson model and constraints.
     """
 
     # Optionally translate & rotate structures
@@ -155,7 +163,7 @@ def objective_wrapper(X, counts, alpha, lengths, bias=None, constraints=None,
                       reorienter=None, multiscale_factor=1,
                       multiscale_variances=None, mixture_coefs=None,
                       callback=None):
-    """Objective function wrapper to match scipy.optimize's interface
+    """Objective function wrapper to match scipy.optimize's interface.
     """
 
     X, mixture_coefs = _format_X(X, reorienter, mixture_coefs)
@@ -199,42 +207,71 @@ def fprime_wrapper(X, counts, alpha, lengths, bias=None, constraints=None,
     return new_grad
 
 
-def estimate_X(counts, init_X, alpha, lengths, ploidy, bias=None,
-               constraints=None, multiscale_factor=1, multiscale_variances=None,
-               max_iter=10000000000, factr=10000000.0, pgtol=1e-05,
+def estimate_X(counts, init_X, alpha, lengths, bias=None, constraints=None,
+               multiscale_factor=1, multiscale_variances=None,
+               max_iter=10000000000, factr=10000000., pgtol=1e-05,
                callback=None, alpha_loop=None, reorienter=None,
                mixture_coefs=None, verbose=True):
     """Estimates a 3D structure, given current alpha.
 
+    Infer 3D structure from Hi-C contact counts data for haploid or diploid
+    organisms at a given resolution.
+
     Parameters
     ----------
-    counts : list of contact maps of shape (n, n) or (m, m)
+    counts : list of CountsMatrix subclass instances
+        Preprocessed counts data.
+    init_X : array_like of float
+        Initialization for inference.
+    alpha : float, optional
+        Biophysical parameter of the transfer function used in converting
+        counts to wish distances. If alpha is not specified, it will be
+        inferred.
+    lengths : array_like of int
+        Number of beads per homolog of each chromosome.
+    bias : array_like of float, optional
+        Biases computed by ICE normalization.
+    constraints : Constraints instance, optional
+        Object to compute constraints at each iteration.
+    multiscale_factor : int, optional
+        Factor by which to reduce the resolution. A value of 2 halves the
+        resolution. A value of 1 indicates full resolution.
+    multiscale_variances : float or array_like of float, optional
+        For multiscale optimization at low resolution, the variances of each
+        group of full-resolution beads corresponding to a single low-resolution
+        bead.
+    max_iter : int, optional
+        Maximum number of iterations per optimization.
+    factr : float, optional
+        factr for scipy's L-BFGS-B, alters convergence criteria.
+    pgtol : float, optional
+        pgtol for scipy's L-BFGS-B, alters convergence criteria.
+    callback : pastis.callbacks.Callback object, optional
+        Object to perform callback at each iteration and before and after
+        optimization.
+    alpha_loop : int, optional
+        Current iteration of alpha/structure optimization.
 
-    alpha : float, optional, default: -3
-        counts-to-distance mapping parameter
-
-    beta : float or array of floats, optional, default: None
-        scaling factor of the structures. If counts is a list of contact maps,
-        beta should be a list of scaling factors of the same length.
-        if None, the optimal beta will be estimated.
-
-    mixture_coefs : list, optional, default: None
-        If inferring a mixture model, the mixture coefficients
-
-    use_zero_counts : boolean, optional, default: False
-        Whether to use zero contact counts
+    Returns
+    -------
+    X : array_like of float
+        Output of the optimization (typically a 3D structure).
+    obj : float
+        Final objective value.
+    converged : bool
+        Whether the optimization successfully converged.
+    callback.history : list of dict
+        History generated by the callback, containing information about the
+        objective function during optimization.
     """
 
     # Check format of input
     counts = (counts if isinstance(counts, list) else [counts])
-    if lengths is None:
-        if ploidy != 1:
-            raise ValueError("Must supply lengths for diploid inference")
-        lengths = [min([min(counts_maps.shape) for counts_maps in counts])]
     lengths = np.array(lengths)
     if bias is None:
         bias = np.ones((min([min(counts_maps.shape)
                              for counts_maps in counts]),))
+    bias = np.array(bias)
 
     if verbose:
         print('=' * 30, flush=True)
@@ -282,7 +319,7 @@ def estimate_X(counts, init_X, alpha, lengths, ploidy, bias=None,
     return X, obj, converged, callback.history
 
 
-def _convergence_criteria(f_k, f_kplus1, factr=10000000.0):
+def _convergence_criteria(f_k, f_kplus1, factr=10000000.):
     """Convergence criteria for joint inference of alpha & structure.
     """
     if f_k is None:
@@ -295,13 +332,74 @@ def _convergence_criteria(f_k, f_kplus1, factr=10000000.0):
 class PastisPM(object):
     """Infer 3D structures with PASTIS.
 
-    null - Estimates a "null" structure that fullfills the constraints but is not fitted to the data
+    Infer 3D structure from Hi-C contact counts data for haploid or diploid
+    organisms at a given resolution. Optionally, jointly infer alpha alongside
+    structure.
+
+    Parameters
+    ----------
+    counts : list of CountsMatrix subclass instances
+        Preprocessed counts data.
+    lengths : array_like of int
+        Number of beads per homolog of each chromosome.
+    ploidy : {1, 2}
+        Ploidy, 1 indicates haploid, 2 indicates diploid.
+    alpha : float
+        Biophysical parameter of the transfer function used in converting
+        counts to wish distances. If alpha is not specified, it will be
+        inferred.
+    init : array_like of float
+        Initialization for inference.
+    bias : array_like of float, optional
+        Biases computed by ICE normalization.
+    constraints : Constraints instance, optional
+        Object to compute constraints at each iteration.
+    callback : pastis.callbacks.Callback object, optional
+        Object to perform callback at each iteration and before and after
+        optimization.
+    multiscale_factor : int, optional
+        Factor by which to reduce the resolution. A value of 2 halves the
+        resolution. A value of 1 indicates full resolution.
+    multiscale_variances : float or array_like of float, optional
+        For multiscale optimization at low resolution, the variances of each
+        group of full-resolution beads corresponding to a single low-resolution
+        bead.
+    alpha_init : float, optional
+        For PM2, the initial value of alpha to use.
+    max_alpha_loop : int, optional
+        For PM2, Number of times alpha and structure are inferred.
+    max_iter : int, optional
+        Maximum number of iterations per optimization.
+    factr : float, optional
+        factr for scipy's L-BFGS-B, alters convergence criteria.
+    pgtol : float, optional
+        pgtol for scipy's L-BFGS-B, alters convergence criteria.
+    alpha_factr : float, optional
+        factr for convergence criteria of joint alpha/structure inference.
+
+    Attributes
+    ----------
+    X_ : array_like of float
+        Output of the optimization (typically a 3D structure).
+    alpha_ : float
+        Inferred alpha (or inputted alpha if alpha is not inferred).
+    beta_ : list of float
+        Estimated beta (or inputted beta if alpha is not inferred).
+    obj_ : float
+        Final objective value.
+    converged_ : bool
+        Whether the optimization successfully converged.
+    history_ : list of dict
+        History generated by the callback, containing information about the
+        objective function during optimization.
+    struct_ : array_like of float of shape (lengths.sum() * ploidy, 3)
+        3D structure resulting from the optimization.
     """
 
-    def __init__(self, counts, lengths, ploidy, alpha, beta=1., init=None,
-                 bias=None, constraints=None, callback=None,
-                 multiscale_factor=1, multiscale_variances=None, alpha_init=-3.,
-                 max_alpha_loop=20, max_iter=1e15, factr=10000000.0, pgtol=1e-05,
+    def __init__(self, counts, lengths, ploidy, alpha, init, bias=None,
+                 constraints=None, callback=None, multiscale_factor=1,
+                 multiscale_variances=None, alpha_init=-3., max_alpha_loop=20,
+                 max_iter=10000000000, factr=10000000., pgtol=1e-05,
                  alpha_factr=1000000000000., reorienter=None, null=False,
                  mixture_coefs=None, verbose=True):
         from .constraints import Constraints
@@ -310,6 +408,8 @@ class PastisPM(object):
 
         print('%s\n%s 3D STRUCTURAL INFERENCE' %
               ('=' * 30, {2: 'DIPLOID', 1: 'HAPLOID'}[ploidy]), flush=True)
+
+        lengths = np.ndarray(lengths)
 
         if constraints is None:
             constraints = Constraints(
@@ -327,7 +427,6 @@ class PastisPM(object):
         self.lengths = lengths
         self.ploidy = ploidy
         self.alpha = alpha
-        self.beta = beta
         self.init_X = init
         self.bias = bias
         self.constraints = constraints
@@ -375,7 +474,6 @@ class PastisPM(object):
             init_X=self.X_.flatten(),
             alpha=self.alpha_,
             lengths=self.lengths,
-            ploidy=self.ploidy,
             bias=self.bias,
             constraints=self.constraints,
             multiscale_factor=self.multiscale_factor,
@@ -402,7 +500,6 @@ class PastisPM(object):
             X=self.X_.flatten(),
             alpha_init=self.alpha_,
             lengths=self.lengths,
-            ploidy=self.ploidy,
             bias=self.bias,
             constraints=self.constraints,
             multiscale_factor=self.multiscale_factor,
@@ -420,7 +517,11 @@ class PastisPM(object):
         self.history_.extend(history_)
 
     def fit(self):
-        """ Fit structure to counts data, optionally estimate alpha
+        """Fit structure to counts data, optionally estimate alpha.
+
+        Returns
+        -------
+        self : returns an instance of self.
         """
 
         from timeit import default_timer as timer
@@ -440,10 +541,12 @@ class PastisPM(object):
             self.alpha_ = self.alpha
         else:
             self.alpha_ = self.alpha_init
-        if self.beta is None:
-            self.beta_ = self._infer_beta()
-        else:
-            self.beta_ = self.beta
+        self.beta_ = [c.beta for c in self.counts if c.sum() != 0]
+        if any([b is None for b in self.beta_]):
+            if all([b is None for b in self.beta_]):
+                self.beta_ = self._infer_beta()
+            else:
+                raise ValueError("Some but not all values in beta are None.")
 
         # Infer structure
         self.history_ = []
@@ -493,3 +596,5 @@ class PastisPM(object):
                 0].reshape(-1, 3)
         else:
             self.struct_ = self.X_.reshape(-1, 3)
+
+        return self
