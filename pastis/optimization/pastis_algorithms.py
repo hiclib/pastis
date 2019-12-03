@@ -339,7 +339,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
 
         if callback_freq is None:
             callback_freq = {'print': 100, 'history': 100, 'save': None}
-        callback = Callback(lengths, ploidy, counts=counts,
+        callback = Callback(lengths, ploidy=ploidy, counts=counts,
                             multiscale_factor=multiscale_factor,
                             analysis_function=callback_function,
                             frequency=callback_freq, directory=outdir,
@@ -416,13 +416,14 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         return struct_, infer_var
 
 
-def pastis(counts, lengths, ploidy, outdir='', chromosomes=None, chrom_subset=None,
-           alpha=None, seed=0, normalize=True, filter_threshold=0.04,
-           alpha_init=-3., max_alpha_loop=20, multiscale_rounds=1,
-           use_multiscale_variance=True, max_iter=10000000000, factr=10000000.,
-           pgtol=1e-05, alpha_factr=1000000000000., bcc_lambda=0.,
-           hsc_lambda=0., hsc_r=None, hsc_min_beads=5, callback_function=None,
-           print_freq=100, history_freq=100, save_freq=None, piecewise=False,
+def pastis(counts, lengths, ploidy, outdir='', chromosomes=None,
+           chrom_subset=None, alpha=None, seed=0, normalize=True,
+           filter_threshold=0.04, alpha_init=-3., max_alpha_loop=20,
+           multiscale_rounds=1, use_multiscale_variance=True,
+           max_iter=10000000000, factr=10000000., pgtol=1e-05,
+           alpha_factr=1000000000000., bcc_lambda=0., hsc_lambda=0., hsc_r=None,
+           hsc_min_beads=5, callback_function=None, print_freq=100,
+           history_freq=100, save_freq=None, piecewise=False,
            piecewise_step=None, piecewise_chrom=None, piecewise_min_beads=5,
            piecewise_fix_homo=False, piecewise_opt_orient=True, alpha_true=None,
            struct_true=None, init='msd', input_weight=None, exclude_zeros=False,
@@ -490,6 +491,14 @@ def pastis(counts, lengths, ploidy, outdir='', chromosomes=None, chrom_subset=No
     hsc_min_beads : int, optional
         For diploid organisms: number of beads in the low-resolution
         structure from which `hsc_r` is estimated.
+    print_freq : int, optional
+        Frequency of iterations at which to print during optimization.
+    history_freq : int, optional
+        Frequency of iterations at which to log objective value and other
+        information during optimization.
+    save_freq : int, optional
+        Frequency of iterations at which to save the 3D structure during
+        optimization.
     """
 
     from .load_data import load_data

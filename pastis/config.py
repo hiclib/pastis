@@ -151,7 +151,7 @@ def _make_parser(parser_class=None, dev_options=None):
     return parser
 
 
-def _parse_pastis_args(dev_options=None):
+def _parse_pastis_args(algorithm, dev_options=None):
     """Parse commpand line arguments, save parameters, generate structure.
     """
 
@@ -161,6 +161,6 @@ def _parse_pastis_args(dev_options=None):
 
     args = vars(parser.parse_args())
 
-    _save_params(os.path.join(args['outdir'], 'params'), **args)
+    _save_params(os.path.join(args['outdir'], 'params.%s' % algorithm), **args)
 
     return args
