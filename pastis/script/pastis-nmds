@@ -1,14 +1,8 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 
-from pastis.algorithms import run_nmds
+from pastis.optimization.mds_algorithms import nmds
+from pastis.config import _parse_pastis_args
 
 
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(description='Run NMDS.')
-    parser.add_argument('directory', type=str,
-                        help='directory', default=None)
-    args = parser.parse_args()
-
-    if args.directory is not None and not "":
-        run_nmds(args.directory)
+args = _parse_pastis_args()
+nmds(**args)
