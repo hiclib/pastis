@@ -215,8 +215,8 @@ def _realign_structures(X, Y, rescale=False, copy=True, verbose=False, error_typ
 
 
 def _lowres_genome_vs_highres_chrom(X_genome_lowres, X_chrom, ploidy, lengths, chromosomes, chrom, lowres_genome_factor, piecewise_fix_homo):
-    from counts import _get_chrom_subset_index
-    from multiscale_optimization import decrease_lengths_res, decrease_struct_res
+    from .counts import _get_chrom_subset_index
+    from .multiscale_optimization import decrease_lengths_res, decrease_struct_res
     import quaternion
 
     # Extract the chromosome from low-res whole-genome structure

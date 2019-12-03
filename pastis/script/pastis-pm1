@@ -1,13 +1,5 @@
 #! /usr/bin/env python
 
-import os
-import stat
-
-import subprocess
-import shutil
-
-import numpy as np
-
 from pastis.algorithms import run_pm1
 
 
