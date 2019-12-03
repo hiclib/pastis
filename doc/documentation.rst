@@ -15,7 +15,7 @@ Pastis
 In this package, we provide four algorithms to infer the 3D structure of the
 genome: MDS, NMDS, PM1, PM2. For all methods, chromosomes are represented as
 beads on a string, at a given resolution. All are installed as a standalone
-program: pastis-mds, pastis-nmds, pastis-pm1, pastis-pm2.
+program: pastis-pm, pastis-mds, and pastis-nmds.
 
 Running the example
 ===================
