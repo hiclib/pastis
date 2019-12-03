@@ -83,9 +83,7 @@ def setup_package():
         version=VERSION,
         scripts=["pastis/script/pastis-mds",
                  'pastis/script/pastis-nmds',
-                 "pastis/script/pastis-pm1",
-                 "pastis/script/pastis-pm2",
-                 "pastis/script/pastis"],
+                 "pastis/script/pastis-pm"],
         classifiers=[
             'Intended Audience :: Science/Research',
             'Intended Audience :: Developers',

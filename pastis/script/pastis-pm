@@ -4,5 +4,5 @@ from pastis.optimization.pastis_algorithms import pastis
 from pastis.config import _parse_pastis_args
 
 
-args = _parse_pastis_args()
+args = _parse_pastis_args(algorithm="pastis")
 pastis(**args)

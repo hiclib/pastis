@@ -4,5 +4,5 @@ from pastis.optimization.mds_algorithms import mds
 from pastis.config import _parse_pastis_args
 
 
-args = _parse_pastis_args()
-mds(**args)
+args = _parse_pastis_args(algorithm="mds")
+mds(nonmetric=False, **args)
