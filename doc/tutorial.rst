@@ -2,8 +2,8 @@
 Tutorial
 ================================================================================
 
-MDS, NMDS, PM1, PM2
-===================
+PM, MDS, NMDS
+=============
 
 In this package, we provide four algorithms to infer the 3D structure of the
 genome: MDS, NMDS, PM1, PM2. For all methods, chromosomes are represented as

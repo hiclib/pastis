@@ -12,8 +12,8 @@ Documentation
 Pastis
 ======
 
-In this package, we provide four algorithms to infer the 3D structure of the
-genome: MDS, NMDS, PM1, PM2. For all methods, chromosomes are represented as
+In this package, we provide three algorithms to infer the 3D structure of the
+genome: PM, MDS, NMDS. For all methods, chromosomes are represented as
 beads on a string, at a given resolution. All are installed as a standalone
 program: pastis-pm, pastis-mds, and pastis-nmds.
 
@@ -21,9 +21,7 @@ Running the example
 ===================
 
 We provide a sample interaction count matrix of the first 5 chromosomes and
-configuration file ``config.ini``. To run the example, edit the two options
-``binary_mds`` (respectively ``binary_pm``) to the path where you have
-installed ``MDS_all`` (respectively ``PM_all``).
+configuration file ``config.ini``.
 
 .. code-block:: guess
 

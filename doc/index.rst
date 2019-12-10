@@ -7,6 +7,14 @@
 PASTIS: Poisson-based Algorithm for STable Inference of DNA Structure
 =====================================================================
 
+.. toctree::
+   :maxdepth: 2
+
+   install
+   tutorial
+   documentation
+
+
 .. figure:: images/yeast_chr2.png
    :scale: 50%
 
@@ -30,10 +38,10 @@ distances between the loci. The method can automatically adjust the transfer
 function relating the spatial distance to the Poisson intensity and infer a
 genome structure that best explains the observed data.
 
-The package pastis contains four methods to infer the three dimensional
-methods of a genome from Hi-C data: MDS, NMDS, PM1, PM2. MDS and NMDS are
-algorithms from the multidimensional scaling family, while PM1 and PM2 are
-novel approaches, derived from a statistical modeling of the interaction
+The package pastis contains three methods to infer the three dimensional
+methods of a genome from Hi-C data: PM, MDS, NMDS. MDS and NMDS are
+algorithms from the multidimensional scaling family, while PM is a
+novel approach, derived from a statistical modeling of the interaction
 counts and the physical distances.
 
 Download
@@ -61,6 +69,6 @@ Germany, 2019. Schloss Dagstuhl–Leibniz-Zentrum fuer Informatik.
 Contacts
 ========
 
-If you have any questions or suggestions, please email nelle dot varoquaux at
-ensmp dot fr, or open a ticket on `Github
+If you have any questions or suggestions, please email gesine at uw dot edu and
+nelle dot varoquaux at ensmp dot fr, or open a ticket on `Github
 <https://github.com/hiclib/pastis/issues>`_
