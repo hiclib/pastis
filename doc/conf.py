@@ -17,6 +17,9 @@
 
 # -- Project information -----------------------------------------------------
 
+# The master toctree document.
+master_doc = 'index'
+
 project = 'PASTIS'
 copyright = '2019, Nelle Varoquaux & Gesine Cauer'
 author = 'Nelle Varoquaux & Gesine Cauer'
