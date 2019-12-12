@@ -21,20 +21,40 @@
 master_doc = 'index'
 
 project = 'PASTIS'
-copyright = '2019, Nelle Varoquaux & Gesine Cauer'
-author = 'Nelle Varoquaux & Gesine Cauer'
+copyright = u'2014-2019, Nelle Varoquaux & Gesine Cauer'
+author = u'Nelle Varoquaux & Gesine Cauer'
 
-# The full version, including alpha/beta/rc tags
-release = '2014'
+# The version info for the project you're documenting, acts as replacement for
+# |version| and |release|, also used in various other places throughout the
+# built documents.
+#
+import pastis
+# The short X.Y version.
+# If you really want the short one use the next line.
+# version = '.'.join(pomegranate.__version__.split('.')[0:2])
+# Use this version if you want the full version string in the document
+version = pastis.__version__
+# The full version, including alpha/beta/rc tags.
+release = pastis.__version__  # '2014'
 
 
 # -- General configuration ---------------------------------------------------
+
+# If your documentation needs a minimal Sphinx version, state it here.
+#needs_sphinx = '1.0'
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc'
+    'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.doctest',
+    'sphinx.ext.todo',
+    'sphinx.ext.coverage',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.viewcode',
+    'numpydoc'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -51,7 +71,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'  #'classic' 'nature' 'sphinx_rtd_theme'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

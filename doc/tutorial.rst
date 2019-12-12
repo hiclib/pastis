@@ -28,3 +28,30 @@ installed ``MDS_all`` (respectively ``PM_all``).
    organism_structure: files/budding_yeast_structure
    counts: data/counts.npy
 
+
+
+Running the example
+===================
+
+We provide a sample interaction count matrix of the first 5 chromosomes and
+configuration file ``config.ini``.
+
+.. code-block:: guess
+
+   [all]
+   resolution: 10000
+   output_name: structure.pdb
+   counts: data/counts.matrix
+
+
+To run the code, simply call the program of your choice, and the repository
+containing the configuration file as argument. From the root of the
+repository, to run the MDS::
+
+  pastis-mds example
+
+A bunch of files, necessary for the optimization are written in the same
+folder as the optimization, including the results of the optimization:
+``MDS.structure`` and ``MDS.structure.pdb``. The ``txt`` file contains the
+array of coordinates while the ``pdb`` contains a smoothed interpolation of
+the structure for visualization purposes.

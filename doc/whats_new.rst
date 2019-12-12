@@ -1,0 +1,6 @@
+.. currentmodule:: pastis
+
+
+===============
+Release History
+===============

@@ -3,76 +3,70 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-PASTIS Documentation
-====================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+.. image:: _static/logo/logo_1.png
+    :width: 300px
 
-   usage/installation
-   usage/tutorial
-   usage/documentation
+|
 
-Indices and tables
-==================
+.. image:: https://travis-ci.org/hiclib/pastis.svg?branch=master
+   :target: https://travis-ci.org/hiclib/pastis
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. image:: https://readthedocs.org/projects/pastis/badge/?version=latest
+   :target: http://pastis.readthedocs.io/en/latest/?badge=latest
 
+|
 
-About PASTIS
-============
+About
+=====
 
-.. figure:: images/yeast_chr2.png
-   :scale: 50%
+PASTIS infers a single "consensus" 3D chromatin structure from population
+Hi-C data - **for haploid or diploid genomes**.
 
-Recent technological advances allow the measurement, in a single Hi-C
-experiment, of the frequencies of physical contacts among pairs of genomic
-loci at a genome-wide scale. The next challenge is to infer, from the
-resulting DNA-DNA contact maps, accurate three dimensional models of how
-chromosomes fold and fit into the nucleus. Many existing inference methods
-rely upon multidimensional scaling (MDS), in which the pairwise distances of
-the inferred model are optimized to resemble pairwise distances derived
-directly from the contact counts. These approaches, however, often optimize a
-heuristic objective function and require strong assumptions about the
-biophysics of DNA to transform interaction frequencies to spatial distance,
-and thereby may lead to incorrect structure reconstruction.
+PASTIS models chromosomes as beads on a chain. It operates by modeling contact
+counts between two loci via a Poisson distribution that is proportional to the
+distances between corresponding beads. This statistical model allows PASTIS to
+handle noise better than its metric-based predecessors, such as those that
+rely on multidimensional scaling.
 
-In pastis, we propose a novel approach to infer a consensus three-
-dimensional structure of a genome from Hi-C data. The method incorporates a
-statistical model of the contact counts, assuming that the counts between two
-loci follow a Poisson distribution whose intensity decreases with the physical
-distances between the loci. The method can automatically adjust the transfer
-function relating the spatial distance to the Poisson intensity and infer a
-genome structure that best explains the observed data.
+The relationship between contact counts and distances is handled by an
+empirically-based biophysical model. Because this relationship can vary based
+on various biological and technical factors, a parameter of the biophysical
+model is jointly inferred alongside the structure.
 
-The package pastis contains three methods to infer the three dimensional
-methods of a genome from Hi-C data: PM, MDS, NMDS. MDS and NMDS are
-algorithms from the multidimensional scaling family, while PM is a
-novel approach, derived from a statistical modeling of the interaction
-counts and the physical distances.
+Is your data diploid?
+---------------------
 
+Diploid organisms present additional challenges for any structural inference
+approach because Hi-C data does not inherently discriminate between the
+homologs (`see here for details
+<https://pastis.readthedocs.io/en/latest/diploidy.html>`_).
+Nearly all structural inference methods are designed exclusively for
+haploid organisms. Applying a haploid method to a diploid genome has
+significant downsides: it makes the strong assumption that the strucures
+of both homologs are identical, and it prevents modeling of more than one
+individual chromosome at a time.
 
-Download
-========
+PASTIS has the unique ability to infer chromatin structures for diploid
+organisms regardless of whether the Hi-C data is segregatated by allele.
+It takes in any and all Hi-C data
 
-Download the latest version of pastis `here
-<https://github.com/hiclib/pastis/releases>`_
-or `fork the code on github <https://github.com/hiclib/pastis/>`_.
+PASTIS has the unique ability to infer chromatin structures for diploid
+organisms, even if the Hi-C data is not segregated by allele. And if you do
+have allelically segregated Hi-C data, you can input that alongside the
+unsegregated data to build an even better model.
 
 References
 ==========
 
 N. Varoquaux, F. Ay, W. S. Noble, and J.-P. Vert. `A statistical approach for
 inferring the 3D structure of the genome.
-<http://bioinformatics.oxfordjournals.org/content/30/12/i26.short>`
+<http://bioinformatics.oxfordjournals.org/content/30/12/i26.short>`_
 Bioinformatics, 30(12):i26–i33, 2014.
 
 A. G. Cauer, G. Yardimci, J.-P. Vert, N. Varoquaux, and W. S. Noble. `Inferring
 diploid 3D chromatin structures from Hi-C data.
-<http://drops.dagstuhl.de/opus/volltexte/2019/11041/>` In 19th International
+<http://drops.dagstuhl.de/opus/volltexte/2019/11041/>`_ In 19th International
 Workshop on Algorithms in Bioinformatics (WABI 2019), volume 143 of Leibniz
 International Proceedings in Informatics (LIPIcs), pages 11:1–11:13, Dagstuhl,
 Germany, 2019. Schloss Dagstuhl–Leibniz-Zentrum fuer Informatik.
@@ -82,4 +76,32 @@ Contacts
 
 If you have any questions or suggestions, please email gesine at uw dot edu and
 nelle dot varoquaux at ensmp dot fr, or open a ticket on `Github
-<https://github.com/hiclib/pastis/issues>`_
+<https://github.com/hiclib/pastis/issues>`_.
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Getting Started
+
+   self
+   diploidy.rst
+   faq.rst
+   whats_new.rst
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Usage
+
+   installation.rst
+   data.rst
+   tutorial.rst
+   api.rst
+   advanced.rst
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Features
+
+   constraints.rst
