@@ -82,6 +82,13 @@ def setup_package():
         description=DESCRIPTION,
         version=VERSION,
         python_requires='>=3.6',
+        install_requires=[
+            'numpy >= 1.16',
+            'scipy >= 1.2',
+            'scikit-learn >= 0.13',
+            'pandas >= 0.24',
+            'autograd >= 1.2'
+        ],
         scripts=["pastis/script/pastis-mds",
                  'pastis/script/pastis-nmds',
                  "pastis/script/pastis-pm"],
