@@ -47,11 +47,7 @@ significant downsides: it makes the strong assumption that the strucures
 of both homologs are identical, and it prevents modeling of more than one
 individual chromosome at a time.
 
-PASTIS has the unique ability to infer chromatin structures for diploid
-organisms regardless of whether the Hi-C data is segregatated by allele.
-It takes in any and all Hi-C data
-
-PASTIS has the unique ability to infer chromatin structures for diploid
+PASTIS has the ability to infer chromatin structures for diploid
 organisms, even if the Hi-C data is not segregated by allele. And if you do
 have allelically segregated Hi-C data, you can input that alongside the
 unsegregated data to build an even better model.
