@@ -81,6 +81,7 @@ def setup_package():
         maintainer_email=MAINTAINER_EMAIL,
         description=DESCRIPTION,
         version=VERSION,
+        python_requires='>=3.6',
         scripts=["pastis/script/pastis-mds",
                  'pastis/script/pastis-nmds',
                  "pastis/script/pastis-pm"],
