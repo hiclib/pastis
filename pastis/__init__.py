@@ -1,6 +1,6 @@
 from . import config
 from .io import write
-from . import externals
+#from . import externals
 from . import fastio
 
 
