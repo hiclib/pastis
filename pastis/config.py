@@ -12,7 +12,7 @@ def _save_params(outfile, **kwargs):
         if isinstance(v, float):
             output.append('%s\t%g' % (k, v))
         elif isinstance(v, list) or isinstance(v, np.ndarray):
-            output.append('%s\t%s' % (k, ','.join(map(str, v))))
+            output.append('%s\t%s' % (k, ' '.join(map(str, v))))
         elif isinstance(v, type(None)):
             output.append('%s\t' % k)
         else:
@@ -46,7 +46,7 @@ def _make_parser_class(parser):
                 raise ValueError("Error reading arguments from file, argument"
                                  " '%s' not recognized" % dest)
             if const[dest] is None and val != '':
-                return [flags[dest]] + val.split(',')
+                return [flags[dest]] + val.split(' ')
             elif isinstance(const[dest], bool) and bool_states[val.lower()] == const[dest]:
                 return [flags[dest]]
             elif val == const[dest]:
@@ -161,6 +161,6 @@ def _parse_pastis_args(algorithm, dev_options=None):
 
     args = vars(parser.parse_args())
 
-    _save_params(os.path.join(args['outdir'], 'params.%s' % algorithm), **args)
+    _save_params(os.path.join(args['outdir'], 'config.%s' % algorithm), **args)
 
     return args
