@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.utils import check_random_state
 
 from .optimization import MDS, NMDS
-from .load_data import load_data
+from ..io.read import load_data
 from .counts import preprocess_counts
 from .initialization import initialize
 from .callbacks import Callback

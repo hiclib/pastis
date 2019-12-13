@@ -255,7 +255,7 @@ def _lowres_genome_vs_highres_chrom(X_genome_lowres, X_chrom, ploidy, lengths, c
 
 def _assemble_highres_chrom_via_lowres_genome(outdir, outdir_lowres, outdir_orient, chromosomes, lengths, alpha, ploidy, lowres_genome_factor, piecewise_fix_homo=True, msv_type=None, struct_true=None, modifications=None):
     import os
-    from .load_data import _load_inferred_struct
+    from ..io.read import _load_inferred_struct
 
     # Load inferred lowres genome
     X_genome_lowres = _load_inferred_struct(outdir_lowres)
@@ -301,7 +301,7 @@ def stepwise_inference(counts, outdir, lengths, ploidy, chromosomes, alpha, seed
     """
 
     import os
-    from .load_data import _load_inferred_struct, _choose_best_seed
+    from ..io.read import _load_inferred_struct, _choose_best_seed
     from .counts import subset_chrom
     from .pastis_algorithms import infer, _output_subdir
     from .utils import _choose_max_multiscale_factor, _print_code_header

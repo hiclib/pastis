@@ -501,7 +501,7 @@ def pastis(counts, lengths, ploidy, outdir='', chromosomes=None,
         optimization.
     """
 
-    from .load_data import load_data
+    from ..io.read import load_data
     from .stepwise_whole_genome import stepwise_inference
 
     lengths_full = lengths
