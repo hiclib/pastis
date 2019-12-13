@@ -1,6 +1,8 @@
-================================================================================
+.. _install:
+
+============
 Installation
-================================================================================
+============
 
 Dependencies
 ============
@@ -12,23 +14,28 @@ Dependencies
 - pandas (>= 0.24)
 - autograd (>= 1.2)
 
-All of these dependencies can be installed easily using conda:
-`http://conda.pydata.org/miniconda.html <http://conda.pydata.org/miniconda.html>`_
+Dependencies are automatically installed alongside PASTIS. If you prefer, you
+can install dependencies via `conda <http://conda.pydata.org/miniconda.html>`_
+using the following command:
 
-Once conda is installed, just type the following::
+.. code-block:: bash
 
     conda install numpy scipy scikit-learn pandas autograd
 
-Installation
-============
+Installing PASTIS
+=================
 
 The easiest way to install PASTIS is through pip.
 
-To install for all users, use the command::
+To install for all users, use the command:
+
+.. code-block:: bash
 
     pip install pastis
 
-To only install in your home directory, use::
+To only install in your home directory, use:
+
+.. code-block:: bash
 
     pip install --user pastis
 
@@ -36,13 +43,17 @@ To only install in your home directory, use::
 Alternatively, you can install the most up-to-date code from GitHub using the
 following commands.
 
-To install for all users::
+To install for all users:
+
+.. code-block:: bash
 
     git clone https://github.com/hiclib/pastis
     cd pastis
     python setup.py install
 
-To only install in your home directory::
+To only install in your home directory:
+
+.. code-block:: bash
 
     git clone https://github.com/hiclib/pastis
     cd pastis

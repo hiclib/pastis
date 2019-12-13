@@ -16,7 +16,7 @@ PASTIS accepts two formats for interaction counts data files.
 For diploid
 -----------
 
-If a portion of your diploid data is segregated by allele, input three matrices:
+If a portion of your diploid data is segregated by allele, input three counts matrix files:
 
 1. **"Unambiguous" counts** contain data where both ends of each contact count are segregated by allele.
 
@@ -40,16 +40,16 @@ of the chromosomes in the interaction counts matrix.
 
 Lengths can be inputted via two options:
 
-1. A list of chromosome lengths can be inputted directly via the command-line API.
+1. A list of chromosome lengths can be inputted directly via the command-line API using the ``--lengths`` flag. If there is more than one chromosome, values should be separated by spaces. For example, ``--lengths 300 400`` indicates that there are two chromosomes with 300 and 400 beads, respectively.
 
-2. Chromosome lengths can be loaded from a file in the Hiclib "organism structure" format (see ``example/files/budding_yeast_structure`` for an example.)
+2. Chromosome lengths can be loaded from a file in the Hiclib "organism structure" .bed format (see ``example/files/budding_yeast_structure`` for an example.)
 
 For diploid
 -----------
 
 Dach homologous pair is represeneted by only one entry in the chromosome lengths
 data. For example, if chr1 is represented by 300 beads and chr2 is represented
-by 400 beads, the lengths should be "300 400" (rather than "300 400 300 400").
+by 400 beads, the lengths should be ``300 400`` (rather than ``300 400 300 400``).
 
 Optional chromosome names
 =========================

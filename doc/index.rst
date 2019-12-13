@@ -70,9 +70,9 @@ Germany, 2019. Schloss Dagstuhl–Leibniz-Zentrum fuer Informatik.
 Contacts
 ========
 
-If you have any questions or suggestions, please email gesine at uw dot edu and
-nelle dot varoquaux at ensmp dot fr, or open a ticket on `Github
-<https://github.com/hiclib/pastis/issues>`_.
+If you have any questions or suggestions, please open a ticket on `Github
+<https://github.com/hiclib/pastis/issues>`_ or email *gesine at uw dot edu*
+and *nelle dot varoquaux at ensmp dot fr*.
 
 .. toctree::
    :maxdepth: 1
@@ -90,8 +90,8 @@ nelle dot varoquaux at ensmp dot fr, or open a ticket on `Github
    :caption: Usage
 
    installation.rst
-   data.rst
    tutorial.rst
+   data.rst
    api.rst
    advanced.rst
 
@@ -101,3 +101,4 @@ nelle dot varoquaux at ensmp dot fr, or open a ticket on `Github
    :caption: Features
 
    constraints.rst
+   multiscale.rst
