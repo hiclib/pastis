@@ -4,7 +4,7 @@ from scipy import sparse
 import pandas as pd
 
 
-def load_counts(filename, lengths=None):
+def load_counts(filename, lengths=None, base=None):
     """
     Fast loading of a raw interaction counts file
 
@@ -16,6 +16,9 @@ def load_counts(filename, lengths=None):
 
     lengths : ndarray
         lengths of each chromosomes
+
+    base : [None, 0, 1], optional, default: None
+        Is the file 0 or 1 based? If None, attempts to guess.
 
     Returns
     --------
@@ -44,23 +47,33 @@ def load_counts(filename, lengths=None):
     # XXX We need to deal with the fact that we should not duplicate entries
     # for the diagonal.
     # XXX what if n doesn't exist?
-    if (col.min() >= 1 and row.min() >= 1) and \
-       ((n is None) or (col.max() == n)):
-        # This is a hack to deal with the fact that sometimes, the files are
-        # indexed at 1 and not 0
-        col -= 1
-        row -= 1
+    if base is not None:
+        if base not in [0, 1]:
+            raise ValueError("indices should start either at 0 or 1")
+        col -= base
+        row -= base
+    else:
+        warnings.warn(
+            "Attempting to guess whether counts are 0 or 1 based")
+
+        if (col.min() >= 1 and row.min() >= 1) and \
+           ((n is None) or (col.max() == n)):
+            # This is a hack to deal with the fact that sometimes, the files
+            # are indexed at 1 and not 0
+
+            col -= 1
+            row -= 1
 
     if shape is None:
         n = max(col.max(), row.max()) + 1
-        shape = (n, n)
+        shape = (int(n), int(n))
 
     data = data.astype(float)
     counts = sparse.coo_matrix((data, (row, col)), shape=shape)
     return counts
 
 
-def load_lengths(filename):
+def load_lengths(filename, return_base=False):
     """
     Fast loading of the bed files
 
@@ -68,6 +81,9 @@ def load_lengths(filename):
     ----------
     filename : str,
         path to the file to load. The file should be a bed file
+
+    return_base : bool, optional, default: False
+        whether to return if it is 0 or 1-base
 
     Returns
     -------
@@ -77,7 +93,10 @@ def load_lengths(filename):
     data = data.as_matrix()
     _, idx, lengths = np.unique(data[:, 0], return_counts=True,
                                 return_index=True)
-    return lengths[idx.argsort()]
+    if return_base:
+        return lengths[idx.argsort()], data[0, 3]
+    else:
+        return lengths[idx.argsort()]
 
 
 def write_counts(filename, counts):
@@ -101,3 +120,20 @@ def write_counts(filename, counts):
                            counts.col[:, np.newaxis],
                            counts.data[:, np.newaxis]], axis=1)
     np.savetxt(filename, data, fmt="%d\t%d\t%f")
+
+
+def write_lengths(filename, lengths, resolution=1):
+    """
+    Write lengths as bed file
+    """
+    chromosomes = ["Chr%02d" % (i + 1) for i in range(len(lengths))]
+    j = 0
+    with open(filename, "w") as bed_file:
+        for chrid, l in enumerate(lengths):
+            for i in range(l):
+                bed_file.write(
+                    "%s\t%d\t%d\t%d\n" % (chromosomes[chrid],
+                                          i * resolution + 1,
+                                          (i + 1) * resolution,
+                                          j))
+                j += 1

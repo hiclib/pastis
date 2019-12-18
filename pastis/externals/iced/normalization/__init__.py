@@ -1,7 +1,8 @@
 import numpy as np
 from scipy import sparse
 from ._normalization_ import _update_normalization_csr
-from .utils import is_symetric_or_tri, is_tri
+from ..utils import is_symetric_or_tri, is_tri
+from ._ca_utils import estimate_block_biases
 
 
 def ICE_normalization(X, SS=None, max_iter=3000, eps=1e-4, copy=True,
@@ -55,9 +56,8 @@ def ICE_normalization(X, SS=None, max_iter=3000, eps=1e-4, copy=True,
         X = X.copy()
 
     if sparse.issparse(X):
-        if not sparse.isspmatrix_csr(X):
-            X = sparse.csr_matrix(X, dtype="float")
-        X.sort_indices()
+        if not sparse.isspmatrix_coo(X):
+            X = sparse.coo_matrix(X, dtype="float")
     else:
         X[np.isnan(X)] = 0
     X = X.astype('float')
@@ -69,6 +69,17 @@ def ICE_normalization(X, SS=None, max_iter=3000, eps=1e-4, copy=True,
     _is_tri = is_tri(X)
     if verbose:
         print("Matrix is triangular superior")
+
+    if counts_profile is not None:
+        rows_to_remove = counts_profile == 0
+        if sparse.issparse(X):
+            rows_to_remove = np.where(rows_to_remove)[0]
+            X.data[np.isin(X.row, rows_to_remove)] = 0
+            X.data[np.isin(X.col, rows_to_remove)] = 0
+            X.eliminate_zeros()
+        else:
+            X[rows_to_remove] = 0
+            X[:, rows_to_remove] = 0
 
     if total_counts is None:
         total_counts = X.sum()
@@ -93,6 +104,7 @@ def ICE_normalization(X, SS=None, max_iter=3000, eps=1e-4, copy=True,
         dbias = sum_ds.reshape((m, 1))
         if counts_profile is not None:
             dbias /= counts_profile[:, np.newaxis]
+            dbias[counts_profile == 0] = 0
         # To avoid numerical instabilities
         dbias /= dbias[dbias != 0].mean()
 
@@ -100,7 +112,8 @@ def ICE_normalization(X, SS=None, max_iter=3000, eps=1e-4, copy=True,
         bias *= dbias
 
         if sparse.issparse(X):
-            X = _update_normalization_csr(X, np.array(dbias).flatten())
+            X.data /= dbias.A[X.row, 0]
+            X.data /= dbias.A[X.col, 0]
         else:
             X /= dbias
             X /= dbias.T
@@ -120,7 +133,6 @@ def ICE_normalization(X, SS=None, max_iter=3000, eps=1e-4, copy=True,
     # Now that we are finished with the bias estimation, set all biases
     # corresponding to filtered rows to np.nan
     if sparse.issparse(X):
-        X = X.tocoo()
         to_rm = (np.array(X.sum(axis=0)).flatten() +
                  np.array(X.sum(axis=1)).flatten()) == 0
     else:

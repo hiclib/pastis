@@ -1,6 +1,6 @@
 #!/bin/sh
 # Script to do a local install of joblib
-rm -rf tmp joblib
+rm -rf tmp 
 PYTHON_VERSION=$(python -c 'import sys; print("{0[0]}.{0[1]}".format(sys.version_info))')
 SITE_PACKAGES="$PWD/tmp/lib/python$PYTHON_VERSION/site-packages"
 

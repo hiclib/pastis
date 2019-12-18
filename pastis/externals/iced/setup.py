@@ -16,11 +16,12 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('utils')
     config.add_subpackage("datasets")
     config.add_subpackage("io")
+    config.add_subpackage("normalization")
 
     config.add_extension(
-        '_normalization_',
+        'normalization/_normalization_',
         libraries=libraries,
-        sources=['_normalization_.c'],
+        sources=['normalization/_normalization_.c'],
         include_dirs=[join('..', 'src', 'cblas'),
                       numpy.get_include()])
     config.add_extension(
