@@ -23,7 +23,7 @@ print_conda_requirements() {
     # if yes which version to install. For example:
     #   - for numpy, NUMPY_VERSION is used
     #   - for scikit-learn, SCIKIT_LEARN_VERSION is used
-    TO_INSTALL_ALWAYS="python numpy scipy scikit-learn pandas pip nose pytest pytest-cov"
+    TO_INSTALL_ALWAYS="python=${PYTHON_VERSION} numpy=${NUMPY_VERSION} scipy=${SCIPY_VERSION} scikit-learn=${SKLEARN_VERSION} pandas=${PANDAS_VERSION} pip nose pytest pytest-cov"
     REQUIREMENTS="$TO_INSTALL_ALWAYS"
     TO_INSTALL_MAYBE="python numpy scipy scikit-learn pandas pip nose pytest pytest-c"
     for PACKAGE in $TO_INSTALL_MAYBE; do
@@ -85,5 +85,5 @@ else
     exit 1
 fi
 
-pip install coverage coveralls
+pip install coverage coveralls pytest-coverage
 python setup.py install
