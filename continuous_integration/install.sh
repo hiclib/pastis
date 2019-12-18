@@ -85,5 +85,5 @@ else
     exit 1
 fi
 
-pip install coverage coveralls
+pip install coverage coveralls pytest-coverage
 python setup.py install
