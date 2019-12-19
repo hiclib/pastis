@@ -1,11 +1,12 @@
-#! /usr/bin/env python3
+#! /usr/bin/env python
 
-from pastis.optimization.pastis_algorithms import pastis
+from pastis.optimization.pastis_algorithms import pastis_diploid
 import argparse
 
 
-parser = argparse.ArgumentParser(description="Run PASTIS-PM1 or PASTIS-PM2.",
-                                 fromfile_prefix_chars='@', prog="PASTIS")
+parser = argparse.ArgumentParser(
+    description="Run PASTIS-PM1 or PASTIS-PM2 on diploid organisms.",
+    fromfile_prefix_chars='@', prog="PASTIS")
 parser.add_argument("--counts", nargs="+", type=str, required=True,
                     help="Counts data files in the hiclib format or as"
                          " numpy ndarrays.")
@@ -17,8 +18,9 @@ parser.add_argument("--outdir", type=str, default="",
                     help="Directory in which to save results")
 parser.add_argument("--chromosomes", nargs="+", default=None,
                     type=str, help="Label for each chromosome in the data.")
-parser.add_argument("--chrom_subset", nargs="+", default=None, type=str,
-                    help="Chromosomes for which inference should be performed.")
+parser.add_argument(
+    "--chrom_subset", nargs="+", default=None, type=str,
+    help="Chromosomes for which inference should be performed.")
 parser.add_argument("--alpha", type=float, default=None,
                     help="Biophysical parameter of the transfer function used"
                          " in converting counts to wish distances. If alpha is"
@@ -30,9 +32,10 @@ parser.add_argument('--dont-normalize', dest="normalize", default=True,
                     action='store_false',
                     help="Prevents ICE normalization on the counts prior to"
                          " optimization. Normalization is reccomended.")
-parser.add_argument('--filter_threshold', default=0.04, type=float,
-                    help="Ratio of non-zero beads to be filtered out. Filtering"
-                         " is reccomended.")
+parser.add_argument(
+    '--filter_threshold', default=0.04, type=float,
+    help=("Ratio of non-zero beads to be filtered out. Filtering"
+          " is recommended."))
 parser.add_argument("--alpha_init", type=float, default=-3.,
                     help="For PM2, the initial value of alpha to use.")
 parser.add_argument("--max_alpha_loop", type=int, default=20,
@@ -102,4 +105,4 @@ parser.add_argument('--exclude_zeros', default=False,
 parser.add_argument('--null', dest='null', default=False,
                     action='store_true', help=argparse.SUPPRESS)
 
-pastis(**vars(parser.parse_args()))
+pastis_diploid(**vars(parser.parse_args()))

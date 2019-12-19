@@ -4,8 +4,9 @@ from scipy import sparse
 from ..externals.iced.filter import filter_low_counts
 from ..externals.iced.normalization import ICE_normalization
 
-from .utils import find_beads_to_remove
-from .multiscale_optimization import decrease_lengths_res, decrease_counts_res, _count_fullres_per_lowres_bead
+from .utils_diploid import find_beads_to_remove
+from .multiscale_optimization import decrease_lengths_res
+from .multiscale_optimization import decrease_counts_res, _count_fullres_per_lowres_bead
 
 
 def ambiguate_counts(counts, lengths, ploidy, exclude_zeros=None):

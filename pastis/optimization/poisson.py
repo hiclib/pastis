@@ -1,4 +1,9 @@
+import sys
 import numpy as np
+
+if sys.version_info[0] < 3:
+    raise Exception("Must be using Python 3")
+
 from scipy import optimize
 import warnings
 import autograd.numpy as ag_np

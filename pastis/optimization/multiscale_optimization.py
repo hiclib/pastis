@@ -1,4 +1,8 @@
+import sys
 import numpy as np
+
+if sys.version_info[0] < 3:
+    raise Exception("Must be using Python 3")
 
 
 def decrease_lengths_res(lengths, multiscale_factor):
@@ -433,7 +437,7 @@ def get_multiscale_variances_from_struct(structures, lengths, multiscale_factor,
         low-resolution bead.
     """
 
-    from .utils import _format_structures
+    from .utils_diploid import _format_structures
 
     if multiscale_factor == 1:
         return None

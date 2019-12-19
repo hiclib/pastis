@@ -1,8 +1,13 @@
+import sys
+
+if sys.version_info[0] < 3:
+    raise Exception("Must be using Python 3")
+
 import numpy as np
 import autograd.numpy as ag_np
 from autograd.builtins import SequenceBox
 from .multiscale_optimization import decrease_struct_res, decrease_lengths_res
-from .utils import find_beads_to_remove
+from .utils_diploid import find_beads_to_remove
 
 
 class Constraints(object):
@@ -384,7 +389,7 @@ def distance_between_homologs(structures, lengths, ploidy, mixture_coefs=None,
 
     """
 
-    from .utils import _format_structures
+    from .utils_diploid import _format_structures
 
     structures = _format_structures(
         structures=structures, lengths=lengths, ploidy=ploidy,
