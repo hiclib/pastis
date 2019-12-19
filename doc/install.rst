@@ -10,11 +10,14 @@ python modules.
 
 The dependencies are:
 
-- python (>= 2.6)
+- python (>= 2.7)
 - setuptools
 - numpy (>= 1.3)
 - scipy (>= 0.7)
 - scikit-learn (>= 0.13)
+
+For the diploid version, additional dependencies are required:
+- python (>= 3.6)
 - autograd (>= 1.3)
 
 All of these dependencies can be installed at once using `Anaconda
