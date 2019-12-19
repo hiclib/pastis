@@ -86,4 +86,5 @@ else
 fi
 
 pip install coverage coveralls pytest-coverage
+make cython
 python setup.py install
