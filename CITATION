@@ -1,5 +1,23 @@
 To reference Pastis in publication, please cite the following:
 
+@InProceedings{cauer:inferring,
+  author =  {A. G. Cauer and G. Yardimci and J.-P. Vert and N. Varoquaux and W. S. Noble},
+  title = {Inferring Diploid {3D} Chromatin Structures from {Hi-C} Data},
+  booktitle = {19th International Workshop on Algorithms in Bioinformatics (WABI 2019)},
+  pages = {11:1--11:13},
+  series =  {Leibniz International Proceedings in Informatics (LIPIcs)},
+  ISBN =  {978-3-95977-123-8},
+  ISSN =  {1868-8969},
+  year =  {2019},
+  volume =  {143},
+  editor =  {Katharina T. Huber and Dan Gusfield},
+  publisher = {Schloss Dagstuhl--Leibniz-Zentrum fuer Informatik},
+  address = {Dagstuhl, Germany},
+  URL =   {http://drops.dagstuhl.de/opus/volltexte/2019/11041},
+  URN =   {urn:nbn:de:0030-drops-110418},
+  doi =   {10.4230/LIPIcs.WABI.2019.11},
+  annote =  {Keywords: Genome 3D architecture, chromatin structure, Hi-C, 3D modeling}
+}
 
 @article{Varoquaux15062014,
   author = {Varoquaux, Nelle and Ay, Ferhat and Noble, William Stafford and
