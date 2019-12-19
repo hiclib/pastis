@@ -45,7 +45,7 @@ pip install cython
 
 
 if [[ "$COVERAGE" == "true" ]]; then
-    pip install pytest-cov pytest coverage coveralls
+    pip install pytest-cov pytest coverage==4.5.4 coveralls
 fi
 
 if [ ! -d "$CACHED_BUILD_DIR" ]; then
@@ -74,7 +74,7 @@ if [[ "$RUN_FLAKE8" == "true" ]]; then
 fi
 
 
-pip install coverage coveralls pytest-coverage
+pip install coverage==4.5.4 coveralls pytest-coverage
 pip install iced
 make cython
 python setup.py install
