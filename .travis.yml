@@ -7,7 +7,8 @@ notifications:
 
 env:
   global:
-    - TEST_DIR="/tmp/pastis" # folder where the tests are run from
+    - TEST_RUN_FOLDER="/tmp" # folder where the tests are run from
+    - CACHED_BUILD_DIR="cached"
 
   matrix:
     # Ubuntu 14.04 versions
