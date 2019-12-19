@@ -1,12 +1,20 @@
+import os
+
 import numpy as np
 from scipy import sparse
 
-from ..externals.iced.filter import filter_low_counts
-from ..externals.iced.normalization import ICE_normalization
+from iced.filter import filter_low_counts
+from iced.normalization import ICE_normalization
 
+from iced.io import write_counts
+
+from .utils_diploid import _constraint_dis_indices
 from .utils_diploid import find_beads_to_remove
+from .utils_diploid import find_beads_to_remove
+
 from .multiscale_optimization import decrease_lengths_res
-from .multiscale_optimization import decrease_counts_res, _count_fullres_per_lowres_bead
+from .multiscale_optimization import decrease_counts_res
+from .multiscale_optimization import _count_fullres_per_lowres_bead
 
 
 def ambiguate_counts(counts, lengths, ploidy, exclude_zeros=None):
@@ -29,7 +37,6 @@ def ambiguate_counts(counts, lengths, ploidy, exclude_zeros=None):
         Aggregated and ambiguated contact counts matrix.
     """
 
-    from scipy import sparse
 
     lengths = np.array(lengths)
     n = lengths.sum()
@@ -72,7 +79,6 @@ def _create_dummy_counts(counts, lengths, ploidy, multiscale_factor=1):
     """Create sparse matrix of 1's with same row and col as input counts.
     """
 
-    from .utils import _constraint_dis_indices
     lengths_lowres = decrease_lengths_res(lengths, multiscale_factor)
 
     rows, cols = _constraint_dis_indices(
@@ -187,7 +193,6 @@ def _check_counts_matrix(counts, lengths, ploidy, exclude_zeros=True,
     """Check counts dimensions, reformat, & excise selected chromosomes.
     """
 
-    from .utils import find_beads_to_remove
 
     if chrom_subset_index is not None and len(chrom_subset_index) / max(counts.shape) not in (1, 2):
         raise ValueError("chrom_subset_index size (%d) does not fit counts"
@@ -336,9 +341,6 @@ def preprocess_counts(counts_raw, lengths, ploidy, multiscale_factor, normalize,
     torm : array of bool of shape (nbeads,)
         Beads that should be removed (set to NaN) in the structure.
     """
-
-    from ..externals.iced.io import write_counts
-    import os
 
     counts_prepped, bias = _prep_counts(
         counts_raw, lengths=lengths, ploidy=ploidy,
