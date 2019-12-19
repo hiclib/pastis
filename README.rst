@@ -1,27 +1,28 @@
 PASTIS: Poisson-based Algorithm for STable Inference of DNA Structure
 =====================================================================
 
-TODO write blurb about PASTIS & diploid PASTIS
-
 
 Dependencies
 ------------
 
 For Pastis:
 
-- python (>= 3.7)
+- python (>= 2.7)
 - numpy
 - scipy
 - scikit-learn
 - pandas
+
+Additional dependencies for the diploid version:
+- python (>= 3.6)
 - autograd (>= 1.3)
 
-All of these dependencies can be installed easily using conda python3.7:
+All of these dependencies can be installed easily using conda:
 `http://conda.pydata.org/miniconda.html <http://conda.pydata.org/miniconda.html>`_
 
 Once conda is installed, just type the following::
 
-  conda install numpy scipy scikit-learn pandas autograd
+  conda install numpy scipy scikit-learn pandas
 
 
 Install PASTIS
@@ -38,15 +39,7 @@ To install for all users on Unix/Linux::
   sudo python setup.py install
 
 
-Usage
------
+or using pip::
 
-PASTIS
-******
+    pip install --user pastis
 
-TODO
-
-MDS
-***
-
-TODO
