@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import warnings
 import numpy as np
-from ..externals.iced.utils import get_intra_mask
+from iced.utils import get_intra_mask
 from sklearn.utils import check_random_state
 
 
