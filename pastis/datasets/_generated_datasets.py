@@ -65,17 +65,20 @@ def generate_dataset_from_distances(dis, alpha=-3, beta=1,
     random_state = check_random_state(random_state)
 
     with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
         intensity = beta * dis ** alpha
 
     if alpha_inter is not None:
         inter_mask = ~get_intra_mask(lengths)
         with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
             intensity[inter_mask] = beta * dis[inter_mask] ** alpha
 
     intensity[np.isinf(intensity)] = 0
     if distribution in ["NB", "NegativeBinomial"]:
         if hasattr(dispersion, "predict"):
             with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
                 d = beta * dispersion.predict(dis ** alpha)
         else:
             d = beta * dispersion

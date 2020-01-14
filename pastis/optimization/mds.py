@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 from scipy import optimize
 from scipy import sparse
 from sklearn.utils import check_random_state
@@ -19,7 +20,9 @@ def MDS_obj_dense(X, distances):
     X = X.reshape(-1, 3)
     dis = euclidean_distances(X)
     X = X.flatten()
-    obj = 1. / distances ** 2 * (dis - distances) ** 2
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        obj = 1. / distances ** 2 * (dis - distances) ** 2
     return obj[np.invert(np.isnan(obj) | np.isinf(obj))].sum()
 
 
@@ -43,7 +46,9 @@ def MDS_gradient_dense(X, distances):
     dif = tmp - tmp.transpose(1, 0, 2)
     dis = euclidean_distances(X).repeat(3, axis=1).flatten()
     distances = distances.repeat(3, axis=1).flatten()
-    grad = 2 * dif.flatten() * (dis - distances) / dis / distances**2
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        grad = 2 * dif.flatten() * (dis - distances) / dis / distances**2
     grad[(distances == 0) | np.isnan(grad)] = 0
     X = X.flatten()
     return grad.reshape((m, m, n)).sum(axis=1).flatten()
