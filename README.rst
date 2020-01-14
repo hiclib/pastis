@@ -12,6 +12,7 @@ For Pastis:
 - scipy
 - scikit-learn
 - pandas
+- iced
 
 Additional dependencies for the diploid version:
 - python (>= 3.6)
@@ -24,6 +25,10 @@ Once conda is installed, just type the following::
 
   conda install numpy scipy scikit-learn pandas
 
+
+`iced` can be installed via::
+
+  pip install iced
 
 Install PASTIS
 --------------

@@ -15,14 +15,18 @@ The dependencies are:
 - numpy (>= 1.3)
 - scipy (>= 0.7)
 - scikit-learn (>= 0.13)
+- iced
 
 For the diploid version, additional dependencies are required:
 - python (>= 3.6)
 - autograd (>= 1.3)
 
-All of these dependencies can be installed at once using `Anaconda
+Most of these dependencies can be installed at once using `Anaconda
 <http://docs.continuum.io/anaconda/install.html>`_
 
+`iced` can be installed using pip::
+
+  pip install --user iced
 
 
 To install in your home directory, use::

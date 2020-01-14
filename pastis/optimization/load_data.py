@@ -1,7 +1,12 @@
 import numpy as np
+
+import pandas as pd
+import glob
 import os
 from scipy import sparse
-from ..externals.iced.io import load_counts, load_lengths
+from iced.io import load_counts, load_lengths
+
+from .counts import subset_chrom
 
 
 def _get_lengths(lengths):
@@ -99,8 +104,6 @@ def load_data(counts, lengths_full, ploidy, chrom_full=None,
         specified chromosomes are returned.
     """
 
-    from .counts import subset_chrom
-
     lengths_full = _get_lengths(lengths_full)
     chrom_full = _get_chrom(chrom_full, lengths_full)
     counts = _get_counts(counts, lengths_full)
@@ -120,8 +123,6 @@ def _choose_best_seed(outdir):
     """Choose seed with the lowest final objective value.
     """
 
-    import pandas as pd
-    import glob
 
     infer_var_files = glob.glob(
         '%s*.txt' % os.path.join(outdir, 'inference_variables'))

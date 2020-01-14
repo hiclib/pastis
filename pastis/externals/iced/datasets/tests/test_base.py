@@ -1,7 +1,7 @@
 import os
 import tempfile
 from iced.datasets import clear_data_home, get_data_home
-from iced.datasets import load_sample_yeast
+from iced.datasets import load_sample_yeast, load_sample_cancer
 from nose.tools import assert_true, assert_false, assert_equal
 
 DATA_HOME = tempfile.mkdtemp(prefix="hiclib_data_home_test_")
@@ -24,5 +24,10 @@ def test_data_home():
     data_home = get_data_home(data_home=DATA_HOME)
     assert_true(os.path.exists(data_home))
 
+
 def test_data_sub_yeast():
     counts, lengths = load_sample_yeast()
+
+
+def test_sample_cancer():
+    counts, lengths, cnv = load_sample_cancer()
