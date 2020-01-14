@@ -1,28 +1,27 @@
 language: python
 
-notifications:
-  email: false
+dist: xenial
 
 env:
   global:
     - TEST_RUN_FOLDER="/tmp" # folder where the tests are run from
     - CACHED_BUILD_DIR="cached"
 
-  matrix:
+matrix:
+  include:
     # Ubuntu 14.04 versions
-    - os: linux
+    - name: "Python 2.7"
       python: 2.7
-      env: TEST=TRUE NUMPY_VERSION=1.13 SCIPY_VERSION=0.12  PANDAS_VERSION=0.25 SKLEARN_VERSION=0.15
-    - os: linux
+      env: TEST=TRUE NUMPY_VERSION=1.13 SCIPY_VERSION=0.12  PANDAS_VERSION=* SKLEARN_VERSION=0.15
+    - name: "Python 3.6"
       python: 3.6
       env: TEST=TRUE NUMPY_VERSION=1.14 SCIPY_VERSION=0.19  PANDAS_VERSION=0.25 SKLEARN_VERSION=0.18 COVERAGE=TRUE
-    - os: linux
+    - name: "Python 3.6 + recent sklearn"
       python: 3.6
       env: TEST=TRUE NUMPY_VERSION=1.17 SCIPY_VERSION=1.3.1 PANDAS_VERSION=0.25  SKLEARN_VERSION=0.21 COVERAGE=TRUE
-    - os: linux
+    - name: "Python 3.7"
       python: 3.7
-      dist: xenial
-      env: TEST=true COVERAGE=true NUMPY_VERSION="*" SCIPY_VERSION="*" PANDAS_VERSION="*"  SKLEARN_VERSION="*"
+      env: TEST=TRUE COVERAGE=TRUE NUMPY_VERSION=1.17 SCIPY_VERSION=1.3 PANDAS_VERSION="*"  SKLEARN_VERSION="*"
 
 install: 
     - source continuous_integration/install.sh
