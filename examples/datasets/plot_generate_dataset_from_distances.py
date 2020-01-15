@@ -14,7 +14,7 @@ from sklearn.metrics import euclidean_distances
 
 from pastis import datasets
 from pastis.optimization.mds import estimate_X
-from pastis.externals import iced
+import iced
 
 ##############################################################################
 # Generate a 3D structure from a toy dataset
