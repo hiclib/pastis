@@ -13,7 +13,7 @@
 
 set -e
 set -v
-pip install --upgrade pip nose
+pip install --upgrade pip pytest pytest-cov
 
 if [[ $NUMPY_VERSION != "*" ]]; then
     pip install --upgrade \
@@ -46,7 +46,7 @@ pip install cython
 
 
 if [[ "$COVERAGE" == "true" ]]; then
-    pip install pytest-cov pytest coverage==4.5.4 coveralls
+    pip install pytest coverage==4.5.4 coveralls
 fi
 
 if [ ! -d "$CACHED_BUILD_DIR" ]; then
@@ -76,7 +76,4 @@ if [[ "$RUN_FLAKE8" == "true" ]]; then
 fi
 
 
-pip install coverage==4.5.4 coveralls pytest-coverage
 pip install iced
-make cython
-python setup.py install

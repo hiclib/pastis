@@ -7,24 +7,25 @@
 # License: 3-clause BSD
 
 set -e
-set -v
+set -o xtrace
 
 python --version
 python -c "import numpy; print('numpy %s' % numpy.__version__)"
 python -c "import scipy; print('scipy %s' % scipy.__version__)"
+python -c "import pastis; print('pastis %s' % pastis.__version__)"
 python -c "import multiprocessing as mp; print('%d CPUs' % mp.cpu_count())"
 
 run_tests() {
-    TEST_CMD="pytest --showlocals --pyargs"
+    TEST_CMD="pytest --showlocals --pyargs -v"
 
-    # Get into a temp directory to run test from the installed scikit learn
-    # and
-    # check if we do not leave artifacts
+    # Get into a temp directory to run test from the installed package
+    # and check if we do not leave artifacts
+
     mkdir -p $TEST_DIR
     pushd $TEST_DIR
 
     if [[ "$COVERAGE" == "true" ]]; then
-        TEST_CMD="$TEST_CMD --cov pastis"
+        TEST_CMD="$TEST_CMD --cov=pastis"
     fi
     $TEST_CMD pastis
     popd
