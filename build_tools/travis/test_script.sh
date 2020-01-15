@@ -40,3 +40,9 @@ if [[ "$SKIP_TESTS" != "true" ]]; then
     run_tests
 fi
 
+if [[ "$BUILD_DOC" == "true" ]] ; then
+    pushd doc
+    make html
+    popd
+fi
+

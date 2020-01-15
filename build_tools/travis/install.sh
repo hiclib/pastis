@@ -76,4 +76,10 @@ if [[ "$RUN_FLAKE8" == "true" ]]; then
 fi
 
 
+if [[ "$BUILD_DOC" == "true" ]]; then
+    # Install dependencies for building documentation
+    pip install sphinx sphinx_gallery numpydoc pillow matplotlib
+fi
+
+
 pip install iced
