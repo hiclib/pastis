@@ -7,7 +7,7 @@ from sklearn.utils import check_random_state
 
 __all__ = ["generate_dataset_from_distances"]
 
-_DISTRIBUTIONS = ["Poisson", "NB", "NegativeBinomial"]
+_DISTRIBUTIONS = ["Poisson", "NB", "NegativeBinomial", "Intensity"]
 
 
 def generate_dataset_from_distances(dis, alpha=-3, beta=1,
@@ -37,7 +37,9 @@ def generate_dataset_from_distances(dis, alpha=-3, beta=1,
 
     distribution : string, optional, default: "NegativeBinomial"
         The distribution used to draw contact counts from. Can be "Poisson",
-        "NB", "NegativeBinomial".
+        "NB", "NegativeBinomial", or "Intensity".
+        If "Intensity" is provided, returns the intensity of the random
+        process instead of a random distribution.
 
     random_state : int, optional, default: None
         Determines random number generation. Use an int to make the randomness
@@ -88,6 +90,8 @@ def generate_dataset_from_distances(dis, alpha=-3, beta=1,
             d, 1 - p)
     elif distribution == "Poisson":
         counts = random_state.poisson(intensity)
+    elif distribution == "Intensity":
+        counts = intensity
 
     counts = (counts + counts.T)
 
