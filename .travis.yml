@@ -19,9 +19,9 @@ matrix:
     - name: "Python 3.6 + recent sklearn"
       python: 3.6
       env: TEST=TRUE NUMPY_VERSION=1.17 SCIPY_VERSION=1.3.1 PANDAS_VERSION=0.25  SKLEARN_VERSION=0.21 COVERAGE=true
-    - name: "Python 3.7"
-      python: 3.7
-      env: TEST=TRUE COVERAGE=TRUE NUMPY_VERSION=1.17 SCIPY_VERSION=1.3 PANDAS_VERSION="*"  SKLEARN_VERSION="*"
+    # - name: "Python 3.7"
+    #   python: 3.7
+    #  env: TEST=TRUE COVERAGE=TRUE NUMPY_VERSION=1.17 SCIPY_VERSION=1.3 PANDAS_VERSION="*"  SKLEARN_VERSION="*"
 
 install: 
     - source build_tools/travis/install.sh
