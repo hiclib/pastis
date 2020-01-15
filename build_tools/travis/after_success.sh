@@ -12,7 +12,8 @@ if [[ "$COVERAGE" == true ]]; then
     # from TEST_DIR where nosetests has been run
     pip install codecov
     #pushd $TEST_DIR
-    #cp $TEST_DIR/.coverage $TRAVIS_BUILD_DIR
+    cp $TEST_DIR/.coverage $TRAVIS_BUILD_DIR
+    cp $TEST_DIR/coverage.xml $TRAVIS_BUILD_DIR
 
-    codecov --root $TEST_DIR || echo "codecov upload failed"
+    codecov --root $TRAVIS_BUILD_DIR || echo "codecov upload failed"
 fi
