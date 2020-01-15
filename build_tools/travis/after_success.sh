@@ -7,7 +7,7 @@
 set -e
 set -o xtrace
    
-if [[ "$COVERAGE" == "true" ]]; then
+if [[ "$COVERAGE" == true ]]; then
     # Need to run coveralls from a git checkout, so we copy .coverage
     # from TEST_DIR where nosetests has been run
     pip install codecov
