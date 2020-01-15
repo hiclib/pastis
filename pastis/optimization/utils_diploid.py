@@ -1,7 +1,10 @@
+from __future__ import print_function
+
 import numpy as np
 from sklearn.metrics import euclidean_distances
 from scipy import sparse
 import sys
+
 
 if sys.version_info[0] < 3:
     raise Exception("Must be using Python 3")
