@@ -25,7 +25,7 @@ run_tests() {
     pushd $TEST_DIR
 
     if [[ "$COVERAGE" == "true" ]]; then
-        TEST_CMD="$TEST_CMD --cov=pastis"
+        TEST_CMD="$TEST_CMD --cov=pastis --cov-report=xml"
     fi
     $TEST_CMD pastis
     popd
