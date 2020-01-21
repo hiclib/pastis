@@ -8,9 +8,8 @@ from iced.normalization import ICE_normalization
 
 from iced.io import write_counts
 
-from .utils_diploid import _constraint_dis_indices
-from .utils_diploid import find_beads_to_remove
-from .utils_diploid import find_beads_to_remove
+from .utils_poisson import _constraint_dis_indices
+from .utils_poisson import find_beads_to_remove
 
 from .multiscale_optimization import decrease_lengths_res
 from .multiscale_optimization import decrease_counts_res
@@ -36,7 +35,6 @@ def ambiguate_counts(counts, lengths, ploidy, exclude_zeros=None):
     coo_matrix or ndarray
         Aggregated and ambiguated contact counts matrix.
     """
-
 
     lengths = np.array(lengths)
     n = lengths.sum()
@@ -192,7 +190,6 @@ def _check_counts_matrix(counts, lengths, ploidy, exclude_zeros=True,
                          chrom_subset_index=None):
     """Check counts dimensions, reformat, & excise selected chromosomes.
     """
-
 
     if chrom_subset_index is not None and len(chrom_subset_index) / max(counts.shape) not in (1, 2):
         raise ValueError("chrom_subset_index size (%d) does not fit counts"

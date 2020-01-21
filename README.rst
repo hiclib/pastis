@@ -14,17 +14,21 @@ For Pastis:
 - pandas
 - iced
 
-Additional dependencies for the diploid version:
+Additional dependencies for new features (diploid inference
+multiscale optimization, etc):
 - python (>= 3.6)
 - autograd (>= 1.3)
 
-All of these dependencies can be installed easily using conda:
+Most of these dependencies can be installed at once using conda:
 `http://conda.pydata.org/miniconda.html <http://conda.pydata.org/miniconda.html>`_
 
 Once conda is installed, just type the following::
 
   conda install numpy scipy scikit-learn pandas
 
+Or, to include the new features::
+
+    conda install numpy scipy scikit-learn pandas autograd
 
 `iced` can be installed via::
 
@@ -34,17 +38,26 @@ Install PASTIS
 --------------
 
 This package uses distutils, which is the default way of installing
-python modules. To install in your home directory, use::
+python modules.
 
-  python setup.py install --user
+To install in your home directory, use::
 
-To install for all users on Unix/Linux::
-
-  python setup.py build
-  sudo python setup.py install
-
+    python setup.py install --user
 
 or using pip::
 
     pip install --user pastis
+
+To install for all users on Unix/Linux::
+
+    python setup.py build
+    sudo python setup.py install
+
+or using pip::
+
+  pip install pastis
+
+This will install a python package ``pastis``, and five programs:
+``pastis-mds``, ``pastis-nmds``, ``pastis-pm1``, ``pastis-pm2``, and
+``pastis-poisson``. Calling any of those five programs will display the help.
 

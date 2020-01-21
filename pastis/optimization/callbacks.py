@@ -2,7 +2,7 @@ import numpy as np
 from timeit import default_timer as timer
 from datetime import timedelta
 import os
-from .utils_diploid import find_beads_to_remove
+from .utils_poisson import find_beads_to_remove
 from .multiscale_optimization import decrease_lengths_res, decrease_struct_res
 
 

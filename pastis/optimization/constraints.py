@@ -7,7 +7,7 @@ import numpy as np
 import autograd.numpy as ag_np
 from autograd.builtins import SequenceBox
 from .multiscale_optimization import decrease_struct_res, decrease_lengths_res
-from .utils_diploid import find_beads_to_remove
+from .utils_poisson import find_beads_to_remove
 
 
 class Constraints(object):
@@ -389,7 +389,7 @@ def distance_between_homologs(structures, lengths, ploidy, mixture_coefs=None,
 
     """
 
-    from .utils_diploid import _format_structures
+    from .utils_poisson import _format_structures
 
     structures = _format_structures(
         structures=structures, lengths=lengths, ploidy=ploidy,
