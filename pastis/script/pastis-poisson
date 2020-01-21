@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-from pastis.optimization.pastis_algorithms import pastis_diploid
+from pastis.optimization.pastis_algorithms import pastis_poisson
 import argparse
 
 
@@ -105,4 +105,4 @@ parser.add_argument('--exclude_zeros', default=False,
 parser.add_argument('--null', dest='null', default=False,
                     action='store_true', help=argparse.SUPPRESS)
 
-pastis_diploid(**vars(parser.parse_args()))
+pastis_poisson(**vars(parser.parse_args()))
