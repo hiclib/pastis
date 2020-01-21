@@ -45,7 +45,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
           callback_freq=None, callback_function=None, reorienter=None,
           alpha_true=None, struct_true=None, input_weight=None,
           exclude_zeros=False, null=False, mixture_coefs=None, verbose=True):
-    """Infer 3D structures with PASTIS-diploid.
+    """Infer 3D structures with PASTIS via Poisson model.
 
     Optimize 3D structure from Hi-C contact counts data for diploid
     organisms. Optionally perform multiscale optimization during inference.
@@ -416,21 +416,20 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         return struct_, infer_var
 
 
-def pastis_diploid(counts, lengths, ploidy, outdir='', chromosomes=None,
-           chrom_subset=None,
-           alpha=None, seed=0, normalize=True, filter_threshold=0.04,
-           alpha_init=-3., max_alpha_loop=20, multiscale_rounds=1,
-           use_multiscale_variance=True, max_iter=10000000000, factr=10000000.,
-           pgtol=1e-05, alpha_factr=1000000000000., bcc_lambda=0.,
-           hsc_lambda=0., hsc_r=None, hsc_min_beads=5, callback_function=None,
-           print_freq=100, history_freq=100, save_freq=None, piecewise=False,
-           piecewise_step=None, piecewise_chrom=None, piecewise_min_beads=5,
-           piecewise_fix_homo=False, piecewise_opt_orient=True,
-           alpha_true=None,
-           struct_true=None, init='msd', input_weight=None,
-           exclude_zeros=False,
-           null=False, mixture_coefs=None, verbose=True):
-    """Infer 3D structures with PASTIS.
+def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
+                   chrom_subset=None, alpha=None, seed=0, normalize=True,
+                   filter_threshold=0.04, alpha_init=-3., max_alpha_loop=20,
+                   multiscale_rounds=1, use_multiscale_variance=True,
+                   max_iter=10000000000, factr=10000000., pgtol=1e-05,
+                   alpha_factr=1000000000000., bcc_lambda=0., hsc_lambda=0.,
+                   hsc_r=None, hsc_min_beads=5, callback_function=None,
+                   print_freq=100, history_freq=100, save_freq=None,
+                   piecewise=False, piecewise_step=None, piecewise_chrom=None,
+                   piecewise_min_beads=5, piecewise_fix_homo=False,
+                   piecewise_opt_orient=True, alpha_true=None, struct_true=None,
+                   init='msd', input_weight=None, exclude_zeros=False,
+                   null=False, mixture_coefs=None, verbose=True):
+    """Infer 3D structures with PASTIS via Poisson model.
 
     Infer 3D structure from Hi-C contact counts data for haploid or diploid
     organisms.

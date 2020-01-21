@@ -437,7 +437,7 @@ def get_multiscale_variances_from_struct(structures, lengths, multiscale_factor,
         low-resolution bead.
     """
 
-    from .utils_diploid import _format_structures
+    from .utils_poisson import _format_structures
 
     if multiscale_factor == 1:
         return None

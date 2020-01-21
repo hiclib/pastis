@@ -85,7 +85,7 @@ def setup_package():
                  'pastis/script/pastis-nmds',
                  "pastis/script/pastis-pm1",
                  "pastis/script/pastis-pm2",
-                 "pastis/script/pastis-diploid"],
+                 "pastis/script/pastis-poisson"],
         classifiers=[
             'Intended Audience :: Science/Research',
             'Intended Audience :: Developers',
