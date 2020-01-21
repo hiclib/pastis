@@ -8,11 +8,11 @@
 import os
 import numpy as np
 from scipy import sparse
+import iced
 
 from .config import parse
 from .optimization import MDS, PM1, PM2, NMDS
 from . import fastio
-from .externals import iced
 from .io import writePDB
 
 

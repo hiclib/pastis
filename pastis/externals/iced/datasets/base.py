@@ -4,6 +4,7 @@ from os.path import join, expanduser, exists
 from os.path import dirname
 import shutil
 
+import pandas as pd
 from .. import io
 
 # authors: Nelle Varoquaux <nelle.varoquaux@gmail.com>
@@ -62,3 +63,33 @@ def load_sample_yeast():
     counts = counts.toarray()
     counts = counts.T + counts
     return counts, lengths
+
+
+def load_sample_cancer():
+    """
+    Load and return a sample of a simulated cancer Hi-C data from Servant et
+    al, 2018
+
+    Returns
+    -------
+        counts, lengths:
+            tuple of two elements, the first a contact count matrix, the
+            second an ndarray containing the lengths of the chromosomes.
+    """
+    module_path = dirname(__file__)
+    lengths_filename = os.path.join(
+        module_path, "data/servant2018/simulation_3.bed")
+    lengths = io.load_lengths(
+        lengths_filename)
+    counts = io.load_counts(
+        os.path.join(module_path,
+                     "data/servant2018/simulation_3.mat"),
+        lengths=lengths)
+    counts = counts.toarray()
+    counts = counts.T + counts
+
+    # Load CNVs
+    cnv = pd.read_csv(lengths_filename, usecols=(3, ), comment="#", sep="\t",
+                      header=None)
+    cnv = cnv.as_matrix().flatten()
+    return counts, lengths, cnv
