@@ -161,7 +161,8 @@ def subset_chrom(ploidy, lengths_full, chrom_full, chrom_subset=None,
                          "list of chromosomes (%s)" %
                          (','.join(missing_chrom), ','.join(chrom_full)))
     # Make sure chrom_subset is sorted properly
-    chrom_subset = [chrom for chrom in chrom_full if chrom in chrom_subset]
+    if chrom_subset is not None:
+        chrom_subset = [chrom for chrom in chrom_full if chrom in chrom_subset]
 
     if chrom_subset is None or np.array_equal(chrom_subset, chrom_full):
         chrom_subset = chrom_full.copy()
