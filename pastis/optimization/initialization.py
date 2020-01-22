@@ -9,7 +9,7 @@ def _initialize_struct_mds(counts, lengths, ploidy, alpha, bias, random_state,
     """Initialize structure via multi-dimensional scaling of unambig counts.
     """
 
-    from .utils import find_beads_to_remove
+    from .utils_poisson import find_beads_to_remove
     from .mds import estimate_X
 
     if verbose:
@@ -51,7 +51,7 @@ def _initialize_struct(counts, lengths, ploidy, alpha, bias, random_state,
     """Initialize structure, randomly or via MDS of unambig counts.
     """
 
-    from .utils import _struct_replace_nan, _format_structures
+    from .utils_poisson import _struct_replace_nan, _format_structures
 
     random_state = check_random_state(random_state)
 

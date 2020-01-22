@@ -304,7 +304,7 @@ def stepwise_inference(counts, outdir, lengths, ploidy, chromosomes, alpha, seed
     from .load_data import _load_inferred_struct, _choose_best_seed
     from .counts import subset_chrom
     from .pastis_algorithms import infer, _output_subdir
-    from .utils import _choose_max_multiscale_factor, _print_code_header
+    from .utils_poisson import _choose_max_multiscale_factor, _print_code_header
 
     if piecewise_step is None:
         piecewise_step = [1, 2, 3, 4]

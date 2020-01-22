@@ -1,8 +1,13 @@
+import sys
+
+if sys.version_info[0] < 3:
+    raise Exception("Must be using Python 3")
+
 import os
 import numpy as np
 import pandas as pd
 from sklearn.utils import check_random_state
-from .utils import _print_code_header
+from .utils_poisson import _print_code_header
 from distutils.util import strtobool
 
 
@@ -148,7 +153,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
     from .poisson import PastisPM
     from .estimate_alpha_beta import _estimate_beta
     from .multiscale_optimization import get_multiscale_variances_from_struct, _choose_max_multiscale_factor, decrease_lengths_res
-    from .utils import find_beads_to_remove
+    from .utils_poisson import find_beads_to_remove
 
     if outdir is not None:
         try:
