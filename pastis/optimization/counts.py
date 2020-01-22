@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 from scipy import sparse
+from warnings import warn
 
 from iced.filter import filter_low_counts
 from iced.normalization import ICE_normalization
@@ -223,7 +224,7 @@ def _check_counts_matrix(counts, lengths, ploidy, exclude_zeros=True,
         counts = np.array(counts)
 
     if not np.array_equal(counts, counts.round()):
-        raise ValueError("Counts matrix must only contain integers or NaN")
+        warn("Counts matrix must only contain integers or NaN")
 
     if counts.shape[0] == counts.shape[1]:
         counts[np.tril_indices(counts.shape[0])] = empty_val
