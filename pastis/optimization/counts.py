@@ -153,15 +153,15 @@ def subset_chrom(ploidy, lengths_full, chrom_full, chrom_subset=None,
         the specified chromosomes. Otherwise, return None.
     """
 
-    if isinstance(chrom_subset, str):
-        chrom_subset = np.array([chrom_subset])
-    missing_chrom = [x for x in chrom_subset if x not in chrom_full]
-    if len(missing_chrom) > 0:
-        raise ValueError("Chromosomes to be subsetted (%s) are not in full"
-                         "list of chromosomes (%s)" %
-                         (','.join(missing_chrom), ','.join(chrom_full)))
-    # Make sure chrom_subset is sorted properly
     if chrom_subset is not None:
+        if isinstance(chrom_subset, str):
+            chrom_subset = np.array([chrom_subset])
+        missing_chrom = [x for x in chrom_subset if x not in chrom_full]
+        if len(missing_chrom) > 0:
+            raise ValueError("Chromosomes to be subsetted (%s) are not in full"
+                             "list of chromosomes (%s)" %
+                             (','.join(missing_chrom), ','.join(chrom_full)))
+        # Make sure chrom_subset is sorted properly
         chrom_subset = [chrom for chrom in chrom_full if chrom in chrom_subset]
 
     if chrom_subset is None or np.array_equal(chrom_subset, chrom_full):
