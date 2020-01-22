@@ -523,7 +523,7 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
     """
 
     from .load_data import load_data
-    from .stepwise_whole_genome import stepwise_inference
+    from .piecewise_whole_genome import piecewise_inference
 
     lengths_full = lengths
     chrom_full = chromosomes
@@ -557,7 +557,7 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
             input_weight=input_weight, exclude_zeros=exclude_zeros,
             null=null, mixture_coefs=mixture_coefs, verbose=verbose)
     else:
-        struct_, infer_var = stepwise_inference(
+        struct_, infer_var = piecewise_inference(
             counts=counts, outdir=outdir, lengths=lengths_subset, ploidy=ploidy,
             chromosomes=chrom_subset, alpha=alpha, seed=seed, normalize=normalize,
             filter_threshold=filter_threshold, alpha_init=alpha_init,

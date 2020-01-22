@@ -409,7 +409,7 @@ class PastisPM(object):
                  mixture_coefs=None, verbose=True):
         from .constraints import Constraints
         from .callbacks import Callback
-        from .stepwise_whole_genome import ChromReorienter
+        from .piecewise_whole_genome import ChromReorienter
 
         print('%s\n%s 3D STRUCTURAL INFERENCE' %
               ('=' * 30, {2: 'DIPLOID', 1: 'HAPLOID'}[ploidy]), flush=True)
