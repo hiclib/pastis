@@ -8,7 +8,7 @@ from iced.normalization import ICE_normalization
 
 from iced.io import write_counts
 
-from .utils_poisson import _constraint_dis_indices
+from .constraints import _constraint_dis_indices
 from .utils_poisson import find_beads_to_remove
 
 from .multiscale_optimization import decrease_lengths_res
