@@ -31,7 +31,7 @@ def _initialize_struct_mds(counts, lengths, ploidy, alpha, bias, random_state,
         ua_beta *= multiscale_factor ** 2
 
     struct = estimate_X(
-        ua_counts.counts.tocoo().astype(float),
+        ua_counts._counts.astype(float),
         alpha=-3. if alpha is None else alpha, beta=ua_beta, verbose=False,
         use_zero_entries=False, precompute_distances='auto',
         bias=(np.tile(bias, ploidy) if bias is not None else bias),
