@@ -1,3 +1,5 @@
+import sys
+import pytest
 import numpy as np
 from sklearn.metrics import euclidean_distances
 from numpy.testing import assert_array_almost_equal
@@ -5,6 +7,8 @@ from scipy import sparse
 from pastis.optimization import pastis_algorithms
 
 
+@pytest.mark.skipif(
+    sys.version_info < (3, 6), reason="Requires python3.6 or higher")
 def test_pastis_poisson_diploid_unambig():
     lengths = np.array([25])
     ploidy = 2
@@ -31,6 +35,8 @@ def test_pastis_poisson_diploid_unambig():
         save_freq=None)
 
 
+@pytest.mark.skipif(
+    sys.version_info < (3, 6), reason="Requires python3.6 or higher")
 def test_pastis_poisson_diploid_ambig():
     lengths = np.array([25])
     ploidy = 2
@@ -58,6 +64,8 @@ def test_pastis_poisson_diploid_ambig():
         save_freq=None)
 
 
+@pytest.mark.skipif(
+    sys.version_info < (3, 6), reason="Requires python3.6 or higher")
 def test_pastis_poisson_diploid_partially_ambig():
     lengths = np.array([25])
     ploidy = 2
