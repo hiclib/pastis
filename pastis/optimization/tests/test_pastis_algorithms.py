@@ -8,7 +8,8 @@ from scipy import sparse
 pytestmark = pytest.mark.skipif(
     sys.version_info < (3, 6), reason="Requires python3.6 or higher")
 
-from pastis.optimization import pastis_algorithms
+if sys.version_info[0] >= 3:
+    from pastis.optimization import pastis_algorithms
 
 
 def test_pastis_poisson_diploid_unambig():
