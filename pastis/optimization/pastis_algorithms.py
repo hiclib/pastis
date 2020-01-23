@@ -182,6 +182,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
                 infer_var_file, sep='\t', header=None, squeeze=True,
                 index_col=0))
             infer_var['beta'] = [float(b) for b in infer_var['beta'].split()]
+            infer_var['hsc_r'] = [float(r) for r in infer_var['hsc_r'].split()]
             infer_var['alpha'] = float(infer_var['alpha'])
             infer_var['converged'] = strtobool(infer_var['converged'])
             struct_ = np.loadtxt(out_file)
@@ -376,7 +377,13 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
                      'obj': pm.obj_, 'seed': seed, 'converged': pm.converged_}
 
         if outdir is not None:
-            pd.Series(infer_var).to_csv(infer_var_file, sep='\t', header=False)
+            with open(infer_var_file, 'w') as f:
+                for k, v in infer_var.items():
+                    if isinstance(v, np.ndarray) or isinstance(v, list):
+                        f.write(
+                            '%s\t%s\n' % (k, ' '.join(['%g' % x for x in v])))
+                    else:
+                        f.write('%s\t%g\n' % (k, v))
             if reorienter is not None and reorienter.reorient:
                 np.savetxt(orient_file, pm.orientation_)
             if pm.converged_:
