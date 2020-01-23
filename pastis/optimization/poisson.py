@@ -414,7 +414,7 @@ class PastisPM(object):
         print('%s\n%s 3D STRUCTURAL INFERENCE' %
               ('=' * 30, {2: 'DIPLOID', 1: 'HAPLOID'}[ploidy]), flush=True)
 
-        lengths = np.ndarray(lengths)
+        lengths = np.array(lengths)
 
         if constraints is None:
             constraints = Constraints(
