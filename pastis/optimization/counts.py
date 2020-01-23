@@ -223,7 +223,8 @@ def _check_counts_matrix(counts, lengths, ploidy, exclude_zeros=True,
     if not isinstance(counts, np.ndarray):
         counts = np.array(counts)
 
-    if not np.array_equal(counts, counts.round()):
+    if not np.array_equal(counts[~np.isnan(counts)],
+                          counts[~np.isnan(counts)].round()):
         warn("Counts matrix must only contain integers or NaN")
 
     if counts.shape[0] == counts.shape[1]:
