@@ -11,6 +11,7 @@ import pandas as pd
 from sklearn.utils import check_random_state
 from .utils_poisson import _print_code_header
 from distutils.util import strtobool
+from .bootstrap import boostrap_counts
 
 
 def _test_objective(struct, counts, lengths, ploidy, alpha, bias,
@@ -453,6 +454,7 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
                    alpha_factr=1000000000000., bcc_lambda=0., hsc_lambda=0.,
                    hsc_r=None, hsc_min_beads=5, callback_function=None,
                    print_freq=100, history_freq=100, save_freq=None,
+                   bootstrap=False,
                    piecewise=False, piecewise_step=None, piecewise_chrom=None,
                    piecewise_min_beads=5, piecewise_fix_homo=False,
                    piecewise_opt_orient=True, alpha_true=None, struct_true=None,
@@ -543,6 +545,9 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
         counts=counts, lengths_full=lengths_full, ploidy=ploidy,
         chrom_full=chrom_full, chrom_subset=chrom_subset,
         exclude_zeros=exclude_zeros, struct_true=struct_true)
+
+    if bootstrap:
+        counts = boostrap_counts(counts, random_state=seed)
 
     if len(chrom_subset) == 1:
         piecewise = False
