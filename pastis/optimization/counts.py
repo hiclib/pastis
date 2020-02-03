@@ -2,13 +2,14 @@ import os
 
 import numpy as np
 from scipy import sparse
+from warnings import warn
 
 from iced.filter import filter_low_counts
 from iced.normalization import ICE_normalization
 
 from iced.io import write_counts
 
-from .utils_poisson import _constraint_dis_indices
+from .constraints import _constraint_dis_indices
 from .utils_poisson import find_beads_to_remove
 
 from .multiscale_optimization import decrease_lengths_res
@@ -153,15 +154,16 @@ def subset_chrom(ploidy, lengths_full, chrom_full, chrom_subset=None,
         the specified chromosomes. Otherwise, return None.
     """
 
-    if isinstance(chrom_subset, str):
-        chrom_subset = np.array([chrom_subset])
-    missing_chrom = [x for x in chrom_subset if x not in chrom_full]
-    if len(missing_chrom) > 0:
-        raise ValueError("Chromosomes to be subsetted (%s) are not in full"
-                         "list of chromosomes (%s)" %
-                         (','.join(missing_chrom), ','.join(chrom_full)))
-    # Make sure chrom_subset is sorted properly
-    chrom_subset = [chrom for chrom in chrom_full if chrom in chrom_subset]
+    if chrom_subset is not None:
+        if isinstance(chrom_subset, str):
+            chrom_subset = np.array([chrom_subset])
+        missing_chrom = [x for x in chrom_subset if x not in chrom_full]
+        if len(missing_chrom) > 0:
+            raise ValueError("Chromosomes to be subsetted (%s) are not in full"
+                             "list of chromosomes (%s)" %
+                             (','.join(missing_chrom), ','.join(chrom_full)))
+        # Make sure chrom_subset is sorted properly
+        chrom_subset = [chrom for chrom in chrom_full if chrom in chrom_subset]
 
     if chrom_subset is None or np.array_equal(chrom_subset, chrom_full):
         chrom_subset = chrom_full.copy()
@@ -221,8 +223,9 @@ def _check_counts_matrix(counts, lengths, ploidy, exclude_zeros=True,
     if not isinstance(counts, np.ndarray):
         counts = np.array(counts)
 
-    if not np.array_equal(counts, counts.round()):
-        raise ValueError("Counts matrix must only contain integers or NaN")
+    if not np.array_equal(counts[~np.isnan(counts)],
+                          counts[~np.isnan(counts)].round()):
+        warn("Counts matrix must only contain integers or NaN")
 
     if counts.shape[0] == counts.shape[1]:
         counts[np.tril_indices(counts.shape[0])] = empty_val

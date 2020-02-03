@@ -287,16 +287,16 @@ def _assemble_highres_chrom_via_lowres_genome(outdir, outdir_lowres, outdir_orie
     return X_all_chrom, trans_rot_init
 
 
-def stepwise_inference(counts, outdir, lengths, ploidy, chromosomes, alpha, seed=0, normalize=True,
-                       filter_threshold=0.04, alpha_init=-3., max_alpha_loop=20, multiscale_rounds=1,
-                       use_multiscale_variance=True,
-                       max_iter=1e40, factr=10000000.0, pgtol=1e-05, alpha_factr=1000000000000.,
-                       bcc_lambda=0., hsc_lambda=0., hsc_r=None, hsc_min_beads=5,
-                       callback_function=None, callback_freq=None,
-                       piecewise_step=None, piecewise_chrom=None,
-                       piecewise_min_beads=5, piecewise_fix_homo=False, piecewise_opt_orient=True,
-                       alpha_true=None, struct_true=None, init='msd', input_weight=None,
-                       exclude_zeros=False, null=False, mixture_coefs=None, verbose=True):
+def piecewise_inference(counts, outdir, lengths, ploidy, chromosomes, alpha, seed=0, normalize=True,
+                        filter_threshold=0.04, alpha_init=-3., max_alpha_loop=20, multiscale_rounds=1,
+                        use_multiscale_variance=True,
+                        max_iter=1e40, factr=10000000.0, pgtol=1e-05, alpha_factr=1000000000000.,
+                        bcc_lambda=0., hsc_lambda=0., hsc_r=None, hsc_min_beads=5,
+                        callback_function=None, callback_freq=None,
+                        piecewise_step=None, piecewise_chrom=None,
+                        piecewise_min_beads=5, piecewise_fix_homo=False, piecewise_opt_orient=True,
+                        alpha_true=None, struct_true=None, init='msd', input_weight=None,
+                        exclude_zeros=False, null=False, mixture_coefs=None, verbose=True):
     """
     """
 
@@ -304,7 +304,7 @@ def stepwise_inference(counts, outdir, lengths, ploidy, chromosomes, alpha, seed
     from .load_data import _load_inferred_struct, _choose_best_seed
     from .counts import subset_chrom
     from .pastis_algorithms import infer, _output_subdir
-    from .utils import _choose_max_multiscale_factor, _print_code_header
+    from .utils_poisson import _choose_max_multiscale_factor, _print_code_header
 
     if piecewise_step is None:
         piecewise_step = [1, 2, 3, 4]

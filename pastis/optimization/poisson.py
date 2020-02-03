@@ -409,12 +409,12 @@ class PastisPM(object):
                  mixture_coefs=None, verbose=True):
         from .constraints import Constraints
         from .callbacks import Callback
-        from .stepwise_whole_genome import ChromReorienter
+        from .piecewise_whole_genome import ChromReorienter
 
         print('%s\n%s 3D STRUCTURAL INFERENCE' %
               ('=' * 30, {2: 'DIPLOID', 1: 'HAPLOID'}[ploidy]), flush=True)
 
-        lengths = np.ndarray(lengths)
+        lengths = np.array(lengths)
 
         if constraints is None:
             constraints = Constraints(
@@ -492,7 +492,12 @@ class PastisPM(object):
             mixture_coefs=self.mixture_coefs,
             verbose=self.verbose)
 
-        self.history_.extend(history_)
+        if len(history_) > 1:
+            if self.history_ is None:
+                self.history_ = history_
+            else:
+                for k, v in history_.items():
+                    self.history_[k].extend(v)
 
     def _fit_alpha(self, alpha_loop=None):
         """Fit alpha to counts data, given current structure.
@@ -519,7 +524,12 @@ class PastisPM(object):
             mixture_coefs=self.mixture_coefs,
             verbose=self.verbose)
 
-        self.history_.extend(history_)
+        if len(history_) > 1:
+            if self.history_ is None:
+                self.history_ = history_
+            else:
+                for k, v in history_.items():
+                    self.history_[k].extend(v)
 
     def fit(self):
         """Fit structure to counts data, optionally estimate alpha.
@@ -554,7 +564,7 @@ class PastisPM(object):
                 raise ValueError("Some but not all values in beta are None.")
 
         # Infer structure
-        self.history_ = []
+        self.history_ = None
         time_start = timer()
         if self.alpha is not None or self.multiscale_factor != 1:
             self._fit_structure()
@@ -591,9 +601,6 @@ class PastisPM(object):
         time_current = str(timedelta(seconds=round(timer() - time_start)))
         print("OPTIMIZATION AT %dX RESOLUTION COMPLETE, TOTAL ELAPSED TIME=%s" %
               (self.multiscale_factor, time_current), flush=True)
-
-        if self.callback is None or self.callback.frequency['history'] is None or self.callback.frequency['history'] == 0:
-            self.history_ = None
 
         if self.reorienter.reorient:
             self.orientation_ = self.X_

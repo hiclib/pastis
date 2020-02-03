@@ -47,16 +47,18 @@ def _get_counts(counts, lengths):
     lengths = _get_lengths(lengths)
     output = []
     for f in counts:
-        if isinstance(f, np.ndarray) or isinstance(f, sparse.coo_matrix):
+        if isinstance(f, np.ndarray) or sparse.issparse(f):
             counts_maps = f
-        if f.endswith(".npy"):
+        elif f.endswith(".npy"):
             counts_maps = np.load(f)
-            counts_maps[np.isnan(counts_maps)] = 0
         elif f.endswith(".matrix"):
             counts_maps = load_counts(f, lengths=lengths)
         else:
             raise ValueError("Counts file must end with .npy (for numpy array)"
                              " or .matrix (for hiclib / iced format)")
+        if sparse.issparse(counts_maps):
+            counts_maps = counts_maps.toarray()
+        counts_maps[np.isnan(counts_maps)] = 0
         output.append(sparse.coo_matrix(counts_maps))
     return output
 
