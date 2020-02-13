@@ -11,8 +11,11 @@ def _case_resampling(counts, random_state=None):
     (For A + UA this must be triu or tril to make sure output is symmetric)
     """
 
-    if not sparse.isspmatrix_coo(counts):
-        counts = sparse.coo_matrix(counts)
+    counts = counts.copy()
+    if sparse.isspmatrix_coo(counts):
+        counts = counts.toarray()
+    counts[np.isnan(counts)] = 0
+    counts = sparse.coo_matrix(counts).astype(int)
 
     if random_state is None:
         random_state = np.random.RandomState()
@@ -22,13 +25,11 @@ def _case_resampling(counts, random_state=None):
     # Create a matrix of indices where each entry corresponds to an
     # interacting pair of loci, and where interacting pairs appear the number
     # of time they interact
-    ind = np.repeat(
-        np.arange((~np.isnan(counts.data)).sum()),
-        counts.data[~np.isnan(counts.data)].astype(int), axis=0)
+    ind = np.repeat(np.arange(len(counts.data)), counts.data, axis=0)
 
     # Shuffle the indices and select f*nreads number of interaction
     boot_ind = random_state.choice(
-        ind, size=int(np.nansum(counts.toarray())), replace=True)
+        ind, size=int(counts.sum()), replace=True)
 
     # Recreate the interaction counts matrix.
     c = sparse.coo_matrix(
@@ -38,7 +39,7 @@ def _case_resampling(counts, random_state=None):
     return c
 
 
-def boostrap_counts(counts, random_state=None):
+def bootstrap_counts(counts, random_state=None):
     """
     """
 
