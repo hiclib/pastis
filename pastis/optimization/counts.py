@@ -539,7 +539,10 @@ def _format_counts(counts, beta, input_weight, lengths, ploidy, exclude_zeros,
                              " as there are datasets (%d). It is of length (%d)"
                              % (len(counts), len(beta)))
     else:
-        beta = [1.] * len(counts)
+        # To estimate compatible betas for each counts matrix, assume a
+        # structure with a mean pairwise distance of 1
+        beta = [np.nanmean(c) for c in counts]
+
     if input_weight is not None:
         if len(input_weight) != len(counts):
             raise ValueError("input_weights needs to contain as many weighting"
