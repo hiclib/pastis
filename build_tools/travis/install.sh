@@ -42,6 +42,13 @@ else
 fi
 
 
+if [[ $AUTOGRAD_VERSION != "*" ]]; then
+    pip install --upgrade autograd==$AUTOGRAD_VERSION
+else
+    pip install --upgrade autograd
+fi
+
+
 pip install cython
 
 
