@@ -314,7 +314,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
                 multiscale_factor=multiscale_factor_for_lowres,
                 use_multiscale_variance=use_multiscale_variance,
                 init=init, max_iter=max_iter, factr=factr, pgtol=pgtol,
-                bcc_lambda=bcc_lambda, fullres_torm=fullres_torm_for_lowres,
+                fullres_torm=fullres_torm_for_lowres,
                 struct_draft_fullres=struct_draft_fullres, draft=True,
                 simple_diploid=simple_diploid_for_lowres,
                 simple_diploid_init=struct_init,
@@ -375,8 +375,10 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         struct_ = pm.struct_.reshape(-1, 3)
         struct_[torm] = np.nan
 
-        infer_var = {'alpha': pm.alpha_, 'beta': pm.beta_, 'hsc_r': hsc_r,
-                     'obj': pm.obj_, 'seed': seed, 'converged': pm.converged_}
+        infer_var = {'alpha': pm.alpha_, 'beta': pm.beta_, 'obj': pm.obj_,
+                     'seed': seed, 'converged': pm.converged_}
+        if hsc_lambda > 0:
+            infer_var['hsc_r'] = hsc_r
 
         if outdir is not None:
             with open(infer_var_file, 'w') as f:
