@@ -6,7 +6,8 @@ import warnings
 
 warnings.warn(
     "The module pastis.fastio is deprecated. The packaged iced has identical "
-    "features and should be used instead.")
+    "features and should be used instead. This module will be removed in "
+    "version 0.5")
 
 
 @deprecated("The function load_counts is deprecated. Please use the iced "
