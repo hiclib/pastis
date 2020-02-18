@@ -18,7 +18,7 @@ def test_pastis_poisson_haploid():
     seed = 42
     bcc_lambda = 0
     hsc_lambda = 0
-    hsc_r = 0
+    hsc_r = None
     alpha, beta = -3., 1.
 
     random_state = np.random.RandomState(seed=seed)
@@ -42,15 +42,14 @@ def test_pastis_poisson_diploid_unambig():
     lengths = np.array([25])
     ploidy = 2
     seed = 42
-    bcc_lambda = 1e8
-    hsc_lambda = 1e10
-    hsc_r = 1.
+    bcc_lambda = 0
+    hsc_lambda = 0
+    hsc_r = None
     alpha, beta = -3., 1.
 
     random_state = np.random.RandomState(seed=seed)
     n = lengths.sum()
     X_true = random_state.rand(n * ploidy, 3)
-    X_true[n:, 0] += hsc_r
     dis = euclidean_distances(X_true)
     dis[dis == 0] = np.inf
     counts = beta * dis ** alpha
@@ -69,15 +68,14 @@ def test_pastis_poisson_diploid_ambig():
     lengths = np.array([25])
     ploidy = 2
     seed = 42
-    bcc_lambda = 1e8
-    hsc_lambda = 1e10
-    hsc_r = 1.
+    bcc_lambda = 0
+    hsc_lambda = 0
+    hsc_r = None
     alpha, beta = -3., 1.
 
     random_state = np.random.RandomState(seed=seed)
     n = lengths.sum()
     X_true = random_state.rand(n * ploidy, 3)
-    X_true[n:, 0] += hsc_r
     dis = euclidean_distances(X_true)
     dis[dis == 0] = np.inf
     counts = beta * dis ** alpha
@@ -97,15 +95,14 @@ def test_pastis_poisson_diploid_partially_ambig():
     lengths = np.array([25])
     ploidy = 2
     seed = 42
-    bcc_lambda = 1e8
-    hsc_lambda = 1e10
-    hsc_r = 1.
+    bcc_lambda = 0
+    hsc_lambda = 0
+    hsc_r = None
     alpha, beta = -3., 1.
 
     random_state = np.random.RandomState(seed=seed)
     n = lengths.sum()
     X_true = random_state.rand(n * ploidy, 3)
-    X_true[n:, 0] += hsc_r
     dis = euclidean_distances(X_true)
     dis[dis == 0] = np.inf
     counts = beta * dis ** alpha
@@ -126,16 +123,15 @@ def test_pastis_poisson_diploid_combo():
     lengths = np.array([25])
     ploidy = 2
     seed = 42
-    bcc_lambda = 1e8
-    hsc_lambda = 1e10
-    hsc_r = 1.
+    bcc_lambda = 0
+    hsc_lambda = 0
+    hsc_r = None
     alpha, beta = -3., 1.
     ratio_ambig, ratio_pa, ratio_ua = 0.2, 0.7, 0.1
 
     random_state = np.random.RandomState(seed=seed)
     n = lengths.sum()
     X_true = random_state.rand(n * ploidy, 3)
-    X_true[n:, 0] += hsc_r
     dis = euclidean_distances(X_true)
     dis[dis == 0] = np.inf
     poisson_intensity = dis ** alpha
@@ -171,3 +167,56 @@ def test_pastis_poisson_diploid_combo():
     sim_beta = np.array([ratio_ambig, ratio_pa, ratio_ua])
     assert_array_almost_equal(
         infer_beta / infer_beta.sum(), sim_beta / sim_beta.sum())
+
+
+def test_pastis_poisson_diploid_unambig_bcc_constraint():
+    lengths = np.array([25])
+    ploidy = 2
+    seed = 42
+    bcc_lambda = 1e8
+    hsc_lambda = 0
+    hsc_r = None
+    alpha, beta = -3., 1.
+
+    random_state = np.random.RandomState(seed=seed)
+    n = lengths.sum()
+    X_true = random_state.rand(n * ploidy, 3)
+    dis = euclidean_distances(X_true)
+    dis[dis == 0] = np.inf
+    counts = beta * dis ** alpha
+    counts[np.isnan(counts) | np.isinf(counts)] = 0
+    counts = np.triu(counts, 1)
+    counts = sparse.coo_matrix(counts)
+
+    struct_, infer_var = pastis_algorithms.pastis_poisson(
+        counts, lengths=lengths, ploidy=ploidy, outdir=None, alpha=alpha,
+        seed=seed, normalize=False, filter_threshold=0, bcc_lambda=bcc_lambda,
+        hsc_lambda=hsc_lambda, hsc_r=hsc_r, print_freq=None, history_freq=None,
+        save_freq=None)
+
+
+def test_pastis_poisson_diploid_unambig_hsc_constraint():
+    lengths = np.array([25])
+    ploidy = 2
+    seed = 42
+    bcc_lambda = 0
+    hsc_lambda = 1e10
+    hsc_r = 1.
+    alpha, beta = -3., 1.
+
+    random_state = np.random.RandomState(seed=seed)
+    n = lengths.sum()
+    X_true = random_state.rand(n * ploidy, 3)
+    X_true[n:, 0] += hsc_r
+    dis = euclidean_distances(X_true)
+    dis[dis == 0] = np.inf
+    counts = beta * dis ** alpha
+    counts[np.isnan(counts) | np.isinf(counts)] = 0
+    counts = np.triu(counts, 1)
+    counts = sparse.coo_matrix(counts)
+
+    struct_, infer_var = pastis_algorithms.pastis_poisson(
+        counts, lengths=lengths, ploidy=ploidy, outdir=None, alpha=alpha,
+        seed=seed, normalize=False, filter_threshold=0, bcc_lambda=bcc_lambda,
+        hsc_lambda=hsc_lambda, hsc_r=hsc_r, print_freq=None, history_freq=None,
+        save_freq=None)
