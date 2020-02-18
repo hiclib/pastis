@@ -10,7 +10,7 @@ pytestmark = pytest.mark.skipif(
 
 if sys.version_info[0] >= 3:
     from pastis.optimization import pastis_algorithms
-    from topsy.optimization.constraints import _inter_homolog_dis
+    from pastis.optimization.constraints import _inter_homolog_dis
 
 
 def test_pastis_poisson_haploid():
@@ -38,6 +38,8 @@ def test_pastis_poisson_haploid():
         hsc_lambda=hsc_lambda, hsc_r=hsc_r, print_freq=None, history_freq=None,
         save_freq=None)
 
+    assert infer_var['converged']
+
 
 def test_pastis_poisson_diploid_unambig():
     lengths = np.array([20])
@@ -63,6 +65,8 @@ def test_pastis_poisson_diploid_unambig():
         seed=seed, normalize=False, filter_threshold=0, bcc_lambda=bcc_lambda,
         hsc_lambda=hsc_lambda, hsc_r=hsc_r, print_freq=None, history_freq=None,
         save_freq=None)
+
+    assert infer_var['converged']
 
 
 def test_pastis_poisson_diploid_ambig():
@@ -91,6 +95,8 @@ def test_pastis_poisson_diploid_ambig():
         hsc_lambda=hsc_lambda, hsc_r=hsc_r, print_freq=None, history_freq=None,
         save_freq=None)
 
+    assert infer_var['converged']
+
 
 def test_pastis_poisson_diploid_partially_ambig():
     lengths = np.array([20])
@@ -118,6 +124,8 @@ def test_pastis_poisson_diploid_partially_ambig():
         seed=seed, normalize=False, filter_threshold=0, bcc_lambda=bcc_lambda,
         hsc_lambda=hsc_lambda, hsc_r=hsc_r, print_freq=None, history_freq=None,
         save_freq=None)
+
+    assert infer_var['converged']
 
 
 def test_pastis_poisson_diploid_combo():
@@ -163,6 +171,8 @@ def test_pastis_poisson_diploid_combo():
         hsc_lambda=hsc_lambda, hsc_r=hsc_r, print_freq=None, history_freq=None,
         save_freq=None)
 
+    assert infer_var['converged']
+
     # Make sure estimated betas are appropriate given nreads per counts matrix
     infer_beta = np.array(infer_var['beta'])
     sim_ratio = np.array([ratio_ambig, ratio_pa, ratio_ua])
@@ -195,6 +205,8 @@ def test_pastis_poisson_diploid_unambig_bcc_constraint():
         hsc_lambda=hsc_lambda, hsc_r=hsc_r, print_freq=None, history_freq=None,
         save_freq=None)
 
+    assert infer_var['converged']
+
 
 def test_pastis_poisson_diploid_unambig_hsc_constraint():
     lengths = np.array([20])
@@ -221,6 +233,8 @@ def test_pastis_poisson_diploid_unambig_hsc_constraint():
         seed=seed, normalize=False, filter_threshold=0, bcc_lambda=bcc_lambda,
         hsc_lambda=hsc_lambda, hsc_r=hsc_r, print_freq=None, history_freq=None,
         save_freq=None)
+
+    assert infer_var['converged']
 
     # Make sure inferred homologs are separated
     interhomo_dis = _inter_homolog_dis(struct_, lengths=lengths)
