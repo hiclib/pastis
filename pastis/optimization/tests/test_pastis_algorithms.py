@@ -209,18 +209,19 @@ def test_pastis_poisson_diploid_unambig_bcc_constraint():
 
 
 def test_pastis_poisson_diploid_unambig_hsc_constraint():
-    lengths = np.array([20])
+    lengths = np.array([30])
     ploidy = 2
     seed = 42
     bcc_lambda = 0
     hsc_lambda = 1e10
-    hsc_r = 1.
+    hsc_r_true = 1.
+    hsc_r = None
     alpha, beta = -3., 1.
 
     random_state = np.random.RandomState(seed=seed)
     n = lengths.sum()
     X_true = random_state.rand(n * ploidy, 3)
-    X_true[n:, 0] += hsc_r
+    X_true[n:, 0] += hsc_r_true
     dis = euclidean_distances(X_true)
     dis[dis == 0] = np.inf
     counts = beta * dis ** alpha
@@ -236,6 +237,9 @@ def test_pastis_poisson_diploid_unambig_hsc_constraint():
 
     assert infer_var['converged']
 
-    # Make sure inferred homologs are separated
+    # Make sure inference of hsc_r yields an acceptable result
+    assert_array_almost_equal(hsc_r_true, infer_var['hsc_r'][0], decimal=1)
+
+    # Make sure inferred homologs are separated using inferred hsc_r
     interhomo_dis = _inter_homolog_dis(struct_, lengths=lengths)
-    assert_array_almost_equal(hsc_r, interhomo_dis[0], decimal=3)
+    assert_array_almost_equal(infer_var['hsc_r'], interhomo_dis, decimal=1)
