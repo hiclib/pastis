@@ -10,6 +10,7 @@ pytestmark = pytest.mark.skipif(
 
 if sys.version_info[0] >= 3:
     from pastis.optimization import pastis_algorithms
+    from topsy.optimization.constraints import _inter_homolog_dis
 
 
 def test_pastis_poisson_haploid():
@@ -220,3 +221,7 @@ def test_pastis_poisson_diploid_unambig_hsc_constraint():
         seed=seed, normalize=False, filter_threshold=0, bcc_lambda=bcc_lambda,
         hsc_lambda=hsc_lambda, hsc_r=hsc_r, print_freq=None, history_freq=None,
         save_freq=None)
+
+    # Make sure inferred homologs are separated
+    interhomo_dis = _inter_homolog_dis(struct_, lengths=lengths)
+    assert_array_almost_equal(hsc_r, interhomo_dis[0], decimal=3)
