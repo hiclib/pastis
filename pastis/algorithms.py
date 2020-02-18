@@ -12,7 +12,7 @@ import iced
 
 from .config import parse
 from .optimization import MDS, PM1, PM2, NMDS
-from . import fastio
+from iced.io import load_counts, load_lengths
 from .io import writePDB
 
 
@@ -34,7 +34,7 @@ def run_mds(directory):
 
     # First, compute MDS
     if options["lengths"].endswith(".bed"):
-        lengths = fastio.load_lengths(
+        lengths = load_lengths(
             os.path.join(directory,
                          options["lengths"]))
     else:
@@ -43,7 +43,7 @@ def run_mds(directory):
     if options["counts"].endswith("npy"):
         counts = np.load(os.path.join(directory, options["counts"]))
     elif options["counts"].endswith(".matrix"):
-        counts = fastio.load_counts(
+        counts = load_counts(
             os.path.join(directory,
                          options["counts"]),
             lengths=lengths)
@@ -101,7 +101,7 @@ def run_nmds(directory):
 
     # First, compute MDS
     if options["lengths"].endswith(".bed"):
-        lengths = fastio.load_lengths(
+        lengths = load_lengths(
             os.path.join(directory,
                          options["lengths"]))
     else:
@@ -110,7 +110,7 @@ def run_nmds(directory):
     if options["counts"].endswith("npy"):
         counts = np.load(os.path.join(directory, options["counts"]))
     elif options["counts"].endswith(".matrix"):
-        counts = fastio.load_counts(
+        counts = load_counts(
             os.path.join(directory,
                          options["counts"]),
             lengths=lengths)
@@ -170,7 +170,7 @@ def run_pm1(directory):
     options = parse(config_file)
 
     if options["lengths"].endswith(".bed"):
-        lengths = fastio.load_lengths(
+        lengths = load_lengths(
             os.path.join(directory,
                          options["lengths"]))
     else:
@@ -180,7 +180,7 @@ def run_pm1(directory):
         counts = np.load(os.path.join(directory, options["counts"]))
         counts[np.isnan(counts)] = 0
     elif options["counts"].endswith(".matrix"):
-        counts = fastio.load_counts(
+        counts = load_counts(
             os.path.join(directory,
                          options["counts"]),
             lengths=lengths)
@@ -247,7 +247,7 @@ def run_pm2(directory):
     options = parse(config_file)
 
     if options["lengths"].endswith(".bed"):
-        lengths = fastio.load_lengths(
+        lengths = load_lengths(
             os.path.join(directory,
                          options["lengths"]))
     else:
@@ -257,7 +257,7 @@ def run_pm2(directory):
         counts = np.load(os.path.join(directory, options["counts"]))
         counts[np.arange(len(counts)), np.arange(len(counts))] = 0
     elif options["counts"].endswith(".matrix"):
-        counts = fastio.load_counts(
+        counts = load_counts(
             os.path.join(directory, options["counts"]),
             lengths=lengths)
 
