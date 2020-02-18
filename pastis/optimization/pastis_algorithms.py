@@ -255,11 +255,13 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
     if multiscale_factor == 1 and not draft:
         if struct_draft_fullres is None and ((
                 multiscale_rounds > 1 and use_multiscale_variance) or alpha is None):
+            if outdir is None:
+                fullres_outdir = None
+            else:
+                fullres_outdir = os.path.join(outdir, 'struct_draft_fullres')
             struct_draft_fullres, infer_var_fullres = infer(
-                counts_raw=counts_raw,
-                outdir=os.path.join(outdir, 'struct_draft_fullres'),
-                lengths=lengths, ploidy=ploidy, alpha=alpha,
-                seed=seed, normalize=normalize,
+                counts_raw=counts_raw, outdir=fullres_outdir, lengths=lengths,
+                ploidy=ploidy, alpha=alpha, seed=seed, normalize=normalize,
                 filter_threshold=filter_threshold, alpha_init=alpha_init,
                 max_alpha_loop=max_alpha_loop, init=init, max_iter=max_iter,
                 factr=factr, pgtol=pgtol, alpha_factr=alpha_factr, draft=True,
@@ -285,6 +287,10 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
             if alpha_ is None:
                 raise ValueError("Alpha must be set prior to inferring r from"
                                  " counts data")
+            if outdir is None:
+                lowres_outdir = None
+            else:
+                lowres_outdir = os.path.join(outdir, 'struct_draft_lowres')
             fullres_torm_for_lowres = [find_beads_to_remove(
                 c, nbeads=lengths.sum() * ploidy) for c in counts]
             ua_index = [i for i in range(len(counts)) if counts[
@@ -306,8 +312,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
             multiscale_factor_for_lowres = _choose_max_multiscale_factor(
                 lengths=lengths, min_beads=hsc_min_beads)
             struct_draft_lowres, infer_var_lowres = infer(
-                counts_raw=counts_for_lowres,
-                outdir=os.path.join(outdir, 'struct_draft_lowres'),
+                counts_raw=counts_for_lowres, outdir=lowres_outdir,
                 lengths=lengths, ploidy=ploidy, alpha=alpha_,
                 seed=seed, normalize=normalize,
                 filter_threshold=filter_threshold, beta=beta_,
