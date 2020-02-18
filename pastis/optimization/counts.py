@@ -540,8 +540,17 @@ def _format_counts(counts, beta, input_weight, lengths, ploidy, exclude_zeros,
                              % (len(counts), len(beta)))
     else:
         # To estimate compatible betas for each counts matrix, assume a
-        # structure with a mean pairwise distance of 1
-        beta = [np.nanmean(c) for c in counts]
+        # structure with a mean pairwise distance ** alpha of 1
+        beta = []
+        for counts_maps in counts:
+            if exclude_zeros:
+                beta_maps = counts_maps.data.mean()
+
+            else:
+                beta_maps = np.nanmean(counts_maps)
+            if ploidy == 2 and counts_maps.shape == (lengths.sum(), lengths.sum()):
+                beta_maps /= 4
+            beta.append(beta_maps)
 
     if input_weight is not None:
         if len(input_weight) != len(counts):

@@ -126,7 +126,7 @@ def test_pastis_poisson_diploid_combo():
     bcc_lambda = 0
     hsc_lambda = 0
     hsc_r = None
-    alpha, beta = -3., 10.  # Need larger beta so estimated betas are accurate
+    alpha, beta = -3., 1.
     ratio_ambig, ratio_pa, ratio_ua = 0.2, 0.7, 0.1
 
     random_state = np.random.RandomState(seed=seed)
@@ -142,7 +142,7 @@ def test_pastis_poisson_diploid_combo():
     ambig_counts = np.triu(ambig_counts, 1)
     ambig_counts = sparse.coo_matrix(ambig_counts)
 
-    pa_counts = ratio_pa * beta * poisson_intensity
+    pa_counts = (ratio_pa / 2) * beta * poisson_intensity
     pa_counts[np.isnan(pa_counts) | np.isinf(pa_counts)] = 0
     pa_counts = pa_counts[:, :n] + pa_counts[:, n:]
     np.fill_diagonal(pa_counts[:n, :], 0)
@@ -164,9 +164,9 @@ def test_pastis_poisson_diploid_combo():
 
     # Make sure estimated betas are appropriate given nreads per counts matrix
     infer_beta = np.array(infer_var['beta'])
-    sim_beta = np.array([ratio_ambig, ratio_pa, ratio_ua])
+    sim_ratio = np.array([ratio_ambig, ratio_pa, ratio_ua])
     assert_array_almost_equal(
-        infer_beta / infer_beta.sum(), sim_beta / sim_beta.sum(), decimal=2)
+        infer_beta / infer_beta.sum(), sim_ratio / sim_ratio.sum(), decimal=2)
 
 
 def test_pastis_poisson_diploid_unambig_bcc_constraint():
