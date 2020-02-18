@@ -13,7 +13,7 @@ if sys.version_info[0] >= 3:
 
 
 def test_pastis_poisson_haploid():
-    lengths = np.array([25])
+    lengths = np.array([20])
     ploidy = 1
     seed = 42
     bcc_lambda = 0
@@ -39,7 +39,7 @@ def test_pastis_poisson_haploid():
 
 
 def test_pastis_poisson_diploid_unambig():
-    lengths = np.array([25])
+    lengths = np.array([20])
     ploidy = 2
     seed = 42
     bcc_lambda = 0
@@ -65,7 +65,7 @@ def test_pastis_poisson_diploid_unambig():
 
 
 def test_pastis_poisson_diploid_ambig():
-    lengths = np.array([25])
+    lengths = np.array([20])
     ploidy = 2
     seed = 42
     bcc_lambda = 0
@@ -92,7 +92,7 @@ def test_pastis_poisson_diploid_ambig():
 
 
 def test_pastis_poisson_diploid_partially_ambig():
-    lengths = np.array([25])
+    lengths = np.array([20])
     ploidy = 2
     seed = 42
     bcc_lambda = 0
@@ -120,13 +120,13 @@ def test_pastis_poisson_diploid_partially_ambig():
 
 
 def test_pastis_poisson_diploid_combo():
-    lengths = np.array([25])
+    lengths = np.array([20])
     ploidy = 2
     seed = 42
     bcc_lambda = 0
     hsc_lambda = 0
     hsc_r = None
-    alpha, beta = -3., 1.
+    alpha, beta = -3., 10.  # Need larger beta so estimated betas are accurate
     ratio_ambig, ratio_pa, ratio_ua = 0.2, 0.7, 0.1
 
     random_state = np.random.RandomState(seed=seed)
@@ -166,11 +166,11 @@ def test_pastis_poisson_diploid_combo():
     infer_beta = np.array(infer_var['beta'])
     sim_beta = np.array([ratio_ambig, ratio_pa, ratio_ua])
     assert_array_almost_equal(
-        infer_beta / infer_beta.sum(), sim_beta / sim_beta.sum())
+        infer_beta / infer_beta.sum(), sim_beta / sim_beta.sum(), decimal=2)
 
 
 def test_pastis_poisson_diploid_unambig_bcc_constraint():
-    lengths = np.array([25])
+    lengths = np.array([20])
     ploidy = 2
     seed = 42
     bcc_lambda = 1e8
@@ -196,7 +196,7 @@ def test_pastis_poisson_diploid_unambig_bcc_constraint():
 
 
 def test_pastis_poisson_diploid_unambig_hsc_constraint():
-    lengths = np.array([25])
+    lengths = np.array([20])
     ploidy = 2
     seed = 42
     bcc_lambda = 0
