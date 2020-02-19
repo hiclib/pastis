@@ -383,23 +383,23 @@ def _prep_counts(counts_list, lengths, ploidy=1, multiscale_factor=1,
     """Copy counts, check matrix, reduce resolution, filter, and compute bias.
     """
 
+    # Copy counts
+    counts_list = [c.copy() for c in counts_list]
+
+    # Check counts
+    counts_list = check_counts(
+        counts_list, lengths=lengths, ploidy=ploidy, exclude_zeros=True)
+
+    # Determine ambiguity
     nbeads = lengths.sum() * ploidy
     counts_dict = [('haploid' if ploidy == 1 else {1: 'ambig', 1.5: 'pa', 2: 'ua'}[
                     sum(c.shape) / nbeads], c) for c in counts_list]
     if len(counts_dict) != len(dict(counts_dict)):
         raise ValueError("Can't input multiple counts matrices of the same"
-                         " type. Inputs = %s"
-                         % ', '.join([x[0] for x in counts_dict]))
+                         " type. Inputs (%d) = %s"
+                         % (len(counts_dict),
+                            ', '.join([x[0] for x in counts_dict])))
     counts_dict = dict(counts_dict)
-
-    # Copy counts
-    counts_dict = {counts_type: counts.copy()
-                   for counts_type, counts in counts_dict.items()}
-
-    # Check counts
-    counts_dict = {counts_type: _check_counts_matrix(
-        counts, lengths=lengths, ploidy=ploidy,
-        exclude_zeros=True) for counts_type, counts in counts_dict.items()}
 
     # Reduce resolution
     lengths_lowres = lengths
