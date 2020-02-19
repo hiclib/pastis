@@ -408,7 +408,8 @@ def _prep_counts(counts_list, lengths, ploidy=1, multiscale_factor=1,
     for counts_type, counts in counts_dict.items():
         if multiscale_factor != 1:
             counts, lengths_lowres = decrease_counts_res(
-                counts, multiscale_factor, lengths, ploidy)
+                counts, multiscale_factor=multiscale_factor, lengths=lengths,
+                ploidy=ploidy)
             counts_dict[counts_type] = counts
 
     # Optionally filter counts
@@ -520,7 +521,7 @@ def _prep_counts(counts_list, lengths, ploidy=1, multiscale_factor=1,
                       flush=True)
 
     output_counts = check_counts(
-        list(counts_dict.values()), lengths=lengths, ploidy=ploidy,
+        list(counts_dict.values()), lengths=lengths_lowres, ploidy=ploidy,
         exclude_zeros=exclude_zeros)
     return output_counts, bias
 
