@@ -151,8 +151,10 @@ class Callback(object):
         if directory is None:
             directory = ''
         self.directory = directory
-        self.struct_true = decrease_struct_res(
-            struct_true, multiscale_factor=multiscale_factor, lengths=lengths)
+        if struct_true is not None:
+            self.struct_true = decrease_struct_res(
+                struct_true, multiscale_factor=multiscale_factor,
+                lengths=lengths)
         self.alpha_true = alpha_true
         self.verbose = verbose
 
