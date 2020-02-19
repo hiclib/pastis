@@ -11,6 +11,18 @@ import pandas as pd
 from sklearn.utils import check_random_state
 from .utils_poisson import _print_code_header
 from distutils.util import strtobool
+from .counts import preprocess_counts, ambiguate_counts
+from .counts import _update_betas_in_counts_matrices, check_counts
+from .initialization import initialize
+from .callbacks import Callback
+from .constraints import Constraints, distance_between_homologs
+from .poisson import PastisPM
+from .estimate_alpha_beta import _estimate_beta
+from .multiscale_optimization import get_multiscale_variances_from_struct
+from .multiscale_optimization import _choose_max_multiscale_factor
+from .multiscale_optimization import decrease_lengths_res
+from .utils_poisson import find_beads_to_remove
+from .load_data import load_data
 
 
 def _test_objective(struct, counts, lengths, ploidy, alpha, bias,
@@ -148,15 +160,6 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         Keys: 'alpha', 'beta', 'hsc_r', 'obj', and 'seed'.
     """
 
-    from .counts import preprocess_counts, ambiguate_counts, _update_betas_in_counts_matrices
-    from .initialization import initialize
-    from .callbacks import Callback
-    from .constraints import Constraints, distance_between_homologs
-    from .poisson import PastisPM
-    from .estimate_alpha_beta import _estimate_beta
-    from .multiscale_optimization import get_multiscale_variances_from_struct, _choose_max_multiscale_factor, decrease_lengths_res
-    from .utils_poisson import find_beads_to_remove
-
     if outdir is not None:
         try:
             os.makedirs(outdir)
@@ -194,6 +197,8 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
     random_state = check_random_state(random_state)
 
     # PREPARE COUNTS OBJECTS
+    counts_raw = check_counts(
+        counts_raw, lengths=lengths, ploidy=ploidy, exclude_zeros=exclude_zeros)
     if simple_diploid:
         counts_raw = ambiguate_counts(
             counts=counts_raw, lengths=lengths, ploidy=ploidy)
@@ -538,7 +543,6 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
         Keys: 'alpha', 'beta', 'hsc_r', 'obj', and 'seed'.
     """
 
-    from .load_data import load_data
     from .piecewise_whole_genome import piecewise_inference
 
     lengths_full = lengths

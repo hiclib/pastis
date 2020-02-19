@@ -199,7 +199,9 @@ def _check_counts_matrix(counts, lengths, ploidy, exclude_zeros=True,
                          (len(chrom_subset_index), counts.shape[0],
                              counts.shape[1]))
     if len(counts.shape) != 2:
-        raise ValueError("Counts matrix must be two-dimensional")
+        raise ValueError(
+            "Counts matrix must be two-dimensional, current shape = (%s)"
+            % ', '.join([str(x) for x in counts.shape]))
     if any([x > lengths.sum() * ploidy for x in counts.shape]):
         raise ValueError("Counts matrix shape (%d, %d) is greater than number"
                          " of beads (%d) in %s genome." %
