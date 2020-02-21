@@ -185,9 +185,11 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
                 print('OPTIMIZATION DID NOT CONVERGE', flush=True)
             infer_var = dict(pd.read_csv(
                 infer_var_file, sep='\t', header=None, squeeze=True,
-                index_col=0))
+                index_col=0, dtype=str))
             infer_var['beta'] = [float(b) for b in infer_var['beta'].split()]
-            infer_var['hsc_r'] = [float(r) for r in infer_var['hsc_r'].split()]
+            if 'hsc_r' in infer_var:
+                infer_var['hsc_r'] = [float(
+                    r) for r in infer_var['hsc_r'].split()]
             infer_var['alpha'] = float(infer_var['alpha'])
             infer_var['converged'] = strtobool(infer_var['converged'])
             struct_ = np.loadtxt(out_file)
@@ -339,7 +341,8 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
             hsc_r = distance_between_homologs(
                 structures=struct_draft_lowres,
                 lengths=decrease_lengths_res(
-                    lengths=lengths, factor=multiscale_factor_for_lowres),
+                    lengths=lengths,
+                    multiscale_factor=multiscale_factor_for_lowres),
                 ploidy=ploidy, mixture_coefs=mixture_coefs,
                 simple_diploid=simple_diploid_for_lowres)
             if verbose:

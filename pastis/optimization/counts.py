@@ -349,12 +349,12 @@ def preprocess_counts(counts_raw, lengths, ploidy, multiscale_factor, normalize,
         multiscale_factor=multiscale_factor, normalize=normalize,
         filter_threshold=filter_threshold, exclude_zeros=exclude_zeros,
         verbose=verbose)
-    lengths_lowres = decrease_lengths_res(lengths, multiscale_factor)
     counts = _format_counts(
         counts_prepped, beta=beta, input_weight=input_weight,
-        lengths=lengths_lowres, ploidy=ploidy, exclude_zeros=exclude_zeros,
+        lengths=lengths, ploidy=ploidy, exclude_zeros=exclude_zeros,
         multiscale_factor=multiscale_factor, fullres_torm=fullres_torm)
 
+    lengths_lowres = decrease_lengths_res(lengths, multiscale_factor)
     torm = find_beads_to_remove(counts_prepped,
                                 nbeads=lengths_lowres.sum() * ploidy)
 
@@ -531,9 +531,11 @@ def _format_counts(counts, beta, input_weight, lengths, ploidy, exclude_zeros,
     """Format each counts matrix as a CountsMatrix subclass instance.
     """
 
+    lengths_lowres = decrease_lengths_res(lengths, multiscale_factor)
+
     # Check input
     counts = check_counts(
-        counts, lengths=lengths, ploidy=ploidy, exclude_zeros=exclude_zeros)
+        counts, lengths=lengths_lowres, ploidy=ploidy, exclude_zeros=exclude_zeros)
 
     if beta is not None:
         beta = (beta if isinstance(beta, list) else [beta])
@@ -551,7 +553,8 @@ def _format_counts(counts, beta, input_weight, lengths, ploidy, exclude_zeros,
 
             else:
                 beta_maps = np.nanmean(counts_maps)
-            if ploidy == 2 and counts_maps.shape == (lengths.sum(), lengths.sum()):
+            if ploidy == 2 and counts_maps.shape == (
+                    lengths_lowres.sum(), lengths_lowres.sum()):
                 beta_maps /= 4
             beta.append(beta_maps)
 
@@ -814,6 +817,7 @@ class SparseCountsMatrix(CountsMatrix):
 
     def __init__(self, counts, lengths, ploidy, multiscale_factor=1,
                  beta=1., fullres_torm=None, weight=1.):
+        lengths_lowres = decrease_lengths_res(lengths, multiscale_factor)
         counts = counts.copy()
         if sparse.issparse(counts):
             counts = counts.toarray()
@@ -823,7 +827,7 @@ class SparseCountsMatrix(CountsMatrix):
             sparse.sputils.get_index_dtype(maxval=counts.max()))
         self._counts = sparse.coo_matrix(counts)
         self.ambiguity = {1: 'ambig', 1.5: 'pa', 2: 'ua'}[
-            sum(counts.shape) / (lengths.sum() * ploidy)]
+            sum(counts.shape) / (lengths_lowres.sum() * ploidy)]
         self.name = self.ambiguity
         self.beta = beta
         self.weight = (1. if weight is None else weight)
@@ -831,12 +835,13 @@ class SparseCountsMatrix(CountsMatrix):
 
         if multiscale_factor != 1:
             self.highres_per_lowres_bead = _count_fullres_per_lowres_bead(
-                multiscale_factor, lengths, ploidy, fullres_torm)
+                multiscale_factor=multiscale_factor, lengths=lengths,
+                ploidy=ploidy, fullres_torm=fullres_torm)
         else:
             self.highres_per_lowres_bead = None
 
         self.row3d, self.col3d = _counts_indices_to_3d_indices(
-            self, n=lengths.sum(), ploidy=ploidy)
+            self, n=lengths_lowres.sum(), ploidy=ploidy)
 
     @property
     def row(self):
@@ -962,6 +967,7 @@ class ZeroCountsMatrix(AtypicalCountsMatrix):
 
     def __init__(self, counts, lengths, ploidy, multiscale_factor=1,
                  beta=1., fullres_torm=None, weight=1.):
+        lengths_lowres = decrease_lengths_res(lengths, multiscale_factor)
         counts = counts.copy()
         if sparse.issparse(counts):
             counts = counts.toarray()
@@ -974,7 +980,7 @@ class ZeroCountsMatrix(AtypicalCountsMatrix):
         self._col = dummy_counts.col
         self._shape = dummy_counts.shape
         self.ambiguity = {1: 'ambig', 1.5: 'pa', 2: 'ua'}[
-            sum(counts.shape) / (lengths.sum() * ploidy)]
+            sum(counts.shape) / (lengths_lowres.sum() * ploidy)]
         self.name = '%s0' % self.ambiguity
         self.beta = beta
         self.weight = (1. if weight is None else weight)
@@ -982,12 +988,13 @@ class ZeroCountsMatrix(AtypicalCountsMatrix):
 
         if multiscale_factor != 1:
             self.highres_per_lowres_bead = _count_fullres_per_lowres_bead(
-                multiscale_factor, lengths, ploidy, fullres_torm)
+                multiscale_factor=multiscale_factor, lengths=lengths,
+                ploidy=ploidy, fullres_torm=fullres_torm)
         else:
             self.highres_per_lowres_bead = None
 
         self.row3d, self.col3d = _counts_indices_to_3d_indices(
-            self, n=lengths.sum(), ploidy=ploidy)
+            self, n=lengths_lowres.sum(), ploidy=ploidy)
 
 
 class NullCountsMatrix(AtypicalCountsMatrix):
@@ -1017,9 +1024,10 @@ class NullCountsMatrix(AtypicalCountsMatrix):
 
         if multiscale_factor != 1:
             self.highres_per_lowres_bead = _count_fullres_per_lowres_bead(
-                multiscale_factor, lengths, ploidy, fullres_torm)
+                multiscale_factor=multiscale_factor, lengths=lengths,
+                ploidy=ploidy, fullres_torm=fullres_torm)
         else:
             self.highres_per_lowres_bead = None
 
         self.row3d, self.col3d = _counts_indices_to_3d_indices(
-            self, n=lengths.sum(), ploidy=ploidy)
+            self, n=lengths_lowres.sum(), ploidy=ploidy)
