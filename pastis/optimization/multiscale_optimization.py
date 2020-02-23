@@ -184,11 +184,12 @@ def _convert_indices_to_full_res(rows, cols, rows_max, cols_max,
             np.equal(cols_binned, np.floor(cols_binned.mean(axis=0))))
         row_mask = np.floor(rows_binned.mean(axis=0)) == i
         col_mask = np.floor(cols_binned.mean(axis=0)) == i
-        row_vals = rows[:, row_mask][incorrect_rows[:, row_mask]]
-        col_vals = cols[:, col_mask][incorrect_cols[:, col_mask]]
-        for val in np.flip(np.unique(row_vals)):
+        row_vals = np.unique(rows[:, row_mask][incorrect_rows[:, row_mask]])
+        col_vals = np.unique(cols[:, col_mask][incorrect_cols[:, col_mask]])
+        print(row_vals.shape, col_vals.shape)
+        for val in np.flip(row_vals, axis=0):
             rows[rows > val] -= 1
-        for val in np.flip(np.unique(col_vals)):
+        for val in np.flip(col_vals, axis=0):
             cols[cols > val] -= 1
         # Because if the last low-res bin in this homolog of this chromosome is
         # all zero, that could mess up indices for subsequent
