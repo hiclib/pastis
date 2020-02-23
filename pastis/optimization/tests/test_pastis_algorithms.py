@@ -242,4 +242,4 @@ def test_pastis_poisson_diploid_unambig_hsc_constraint():
 
     # Make sure inferred homologs are separated via inferred hsc_r
     interhomo_dis = _inter_homolog_dis(struct_, lengths=lengths)
-    assert_array_almost_equal(infer_var['hsc_r'], interhomo_dis, decimal=6)
+    assert_array_almost_equal(infer_var['hsc_r'], interhomo_dis, decimal=4)
