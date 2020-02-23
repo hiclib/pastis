@@ -213,7 +213,7 @@ def test_pastis_poisson_diploid_unambig_hsc_constraint():
     ploidy = 2
     seed = 42
     bcc_lambda = 0
-    hsc_lambda = 1e10
+    hsc_lambda = 1e8
     hsc_r_true = 1.
     hsc_r = None
     alpha, beta = -3., 1.
@@ -231,15 +231,15 @@ def test_pastis_poisson_diploid_unambig_hsc_constraint():
 
     struct_, infer_var = pastis_algorithms.pastis_poisson(
         counts, lengths=lengths, ploidy=ploidy, outdir=None, alpha=alpha,
-        seed=seed, normalize=False, filter_threshold=0, bcc_lambda=bcc_lambda,
-        hsc_lambda=hsc_lambda, hsc_r=hsc_r, print_freq=None, history_freq=None,
-        save_freq=None)
+        seed=seed, normalize=False, filter_threshold=0, beta=beta,
+        bcc_lambda=bcc_lambda, hsc_lambda=hsc_lambda, hsc_r=hsc_r,
+        print_freq=None, history_freq=None, save_freq=None)
 
     assert infer_var['converged']
 
     # Make sure inference of hsc_r yields an acceptable result
     assert_array_almost_equal(hsc_r_true, infer_var['hsc_r'][0], decimal=1)
 
-    # Make sure inferred homologs are separated using inferred hsc_r
+    # Make sure inferred homologs are separated via inferred hsc_r
     interhomo_dis = _inter_homolog_dis(struct_, lengths=lengths)
-    assert_array_almost_equal(infer_var['hsc_r'], interhomo_dis, decimal=1)
+    assert_array_almost_equal(infer_var['hsc_r'], interhomo_dis, decimal=6)
