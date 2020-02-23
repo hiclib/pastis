@@ -299,8 +299,10 @@ def _get_struct_indices(ploidy, multiscale_factor, lengths):
         indices_binned = np.digitize(indices, bins)
         incorrect_indices = np.invert(
             np.equal(indices_binned, indices_binned.min(axis=0)))
-        for val in np.flip(np.unique(indices[:, indices_binned.min(axis=0) == i]
-                                     [incorrect_indices[:, indices_binned.min(axis=0) == i]])):
+        index_mask = indices_binned.min(axis=0) == i
+        vals = np.unique(
+            indices[:, index_mask][incorrect_indices[:, index_mask]])
+        for val in np.flip(vals, axis=0):
             indices[indices > val] -= 1
     incorrect_indices += indices >= lengths.sum() * ploidy
 
