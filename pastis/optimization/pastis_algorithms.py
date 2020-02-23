@@ -463,7 +463,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
 def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
                    chrom_subset=None, alpha=None, seed=0, normalize=True,
                    filter_threshold=0.04, alpha_init=-3., max_alpha_loop=20,
-                   multiscale_rounds=1, use_multiscale_variance=True,
+                   beta=None, multiscale_rounds=1, use_multiscale_variance=True,
                    max_iter=10000000000, factr=10000000., pgtol=1e-05,
                    alpha_factr=1000000000000., bcc_lambda=0., hsc_lambda=0.,
                    hsc_r=None, hsc_min_beads=5, callback_function=None,
@@ -511,6 +511,10 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
         For PM2, the initial value of alpha to use.
     max_alpha_loop : int, optional
         For PM2, Number of times alpha and structure are inferred.
+    beta : array_like of float, optional
+        Scaling parameter that determines the size of the structure, relative to
+        each counts matrix. There should be one beta per counts matrix. If None,
+        the optimal beta will be estimated.
     multiscale_rounds : int, optional
         The number of resolutions at which a structure should be inferred
         during multiscale optimization. Values of 1 or 0 disable multiscale
@@ -570,7 +574,8 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
             counts_raw=counts, outdir=outdir, lengths=lengths_subset,
             ploidy=ploidy, alpha=alpha, seed=seed, normalize=normalize,
             filter_threshold=filter_threshold, alpha_init=alpha_init,
-            max_alpha_loop=max_alpha_loop, multiscale_rounds=multiscale_rounds,
+            max_alpha_loop=max_alpha_loop, beta=beta,
+            multiscale_rounds=multiscale_rounds,
             use_multiscale_variance=use_multiscale_variance, init=init,
             max_iter=max_iter, factr=factr, pgtol=pgtol,
             alpha_factr=alpha_factr, bcc_lambda=bcc_lambda,
@@ -584,7 +589,8 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
             counts=counts, outdir=outdir, lengths=lengths_subset, ploidy=ploidy,
             chromosomes=chrom_subset, alpha=alpha, seed=seed, normalize=normalize,
             filter_threshold=filter_threshold, alpha_init=alpha_init,
-            max_alpha_loop=max_alpha_loop, multiscale_rounds=multiscale_rounds,
+            max_alpha_loop=max_alpha_loop, beta=beta,
+            multiscale_rounds=multiscale_rounds,
             use_multiscale_variance=use_multiscale_variance, max_iter=max_iter,
             factr=factr, pgtol=pgtol, alpha_factr=alpha_factr,
             bcc_lambda=bcc_lambda, hsc_lambda=hsc_lambda, hsc_r=hsc_r,
