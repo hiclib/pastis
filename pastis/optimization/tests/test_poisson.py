@@ -218,8 +218,8 @@ def test_poisson_objective_diploid_partially_ambig_biased():
     np.fill_diagonal(counts[n:, :], 0)
 
     bias = 0.1 + random_state.rand(n)
-    counts *= bias.reshape(-1, 1)
-    counts *= np.tile(bias, 2).T.reshape(-1, 1)
+    counts *= np.tile(bias, 2).reshape(-1, 1)
+    counts *= bias.reshape(-1, 1).T
     counts = sparse.coo_matrix(counts)
 
     counts = _format_counts(
