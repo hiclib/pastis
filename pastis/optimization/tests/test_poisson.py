@@ -51,10 +51,10 @@ def test_poisson_objective_haploid_biased():
     counts = beta * dis ** alpha
     counts[np.isnan(counts) | np.isinf(counts)] = 0
     counts = np.triu(counts, 1)
-    counts = sparse.coo_matrix(counts)
 
     bias = 0.1 + random_state.rand(n)
     counts *= bias.reshape(-1, 1) * bias.T.reshape(-1, 1)
+    counts = sparse.coo_matrix(counts)
 
     counts = _format_counts(
         counts=counts, lengths=lengths, ploidy=ploidy, beta=beta)
@@ -104,10 +104,10 @@ def test_poisson_objective_diploid_unambig_biased():
     counts = beta * dis ** alpha
     counts[np.isnan(counts) | np.isinf(counts)] = 0
     counts = np.triu(counts, 1)
-    counts = sparse.coo_matrix(counts)
 
     bias = 0.1 + random_state.rand(n)
     counts *= np.tile(bias, 2).reshape(-1, 1) * np.tile(bias, 2).T.reshape(-1, 1)
+    counts = sparse.coo_matrix(counts)
 
     counts = _format_counts(
         counts=counts, lengths=lengths, ploidy=ploidy, beta=beta)
@@ -159,10 +159,10 @@ def test_poisson_objective_diploid_ambig_biased():
     counts[np.isnan(counts) | np.isinf(counts)] = 0
     counts = counts[:n, :n] + counts[n:, n:] + counts[:n, n:] + counts[n:, :n]
     counts = np.triu(counts, 1)
-    counts = sparse.coo_matrix(counts)
 
     bias = 0.1 + random_state.rand(n)
     counts *= bias.reshape(-1, 1) * bias.T.reshape(-1, 1)
+    counts = sparse.coo_matrix(counts)
 
     counts = _format_counts(
         counts=counts, lengths=lengths, ploidy=ploidy, beta=beta)
@@ -216,10 +216,10 @@ def test_poisson_objective_diploid_partially_ambig_biased():
     counts = counts[:, :n] + counts[:, n:]
     np.fill_diagonal(counts[:n, :], 0)
     np.fill_diagonal(counts[n:, :], 0)
-    counts = sparse.coo_matrix(counts)
 
     bias = 0.1 + random_state.rand(n)
     counts *= bias.reshape(-1, 1) * np.tile(bias, 2).T.reshape(-1, 1)
+    counts = sparse.coo_matrix(counts)
 
     counts = _format_counts(
         counts=counts, lengths=lengths, ploidy=ploidy, beta=beta)
