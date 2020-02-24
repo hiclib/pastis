@@ -308,8 +308,10 @@ def estimate_X(counts, init_X, alpha, lengths, bias=None, constraints=None,
               reorienter, multiscale_factor, multiscale_variances,
               mixture_coefs, callback))
 
+    history = None
     if callback is not None:
         callback.on_training_end()
+        history = callback.history
 
     X, obj, d = results
     converged = d['warnflag'] == 0
@@ -321,7 +323,7 @@ def estimate_X(counts, init_X, alpha, lengths, bias=None, constraints=None,
             print('OPTIMIZATION DID NOT CONVERGE', flush=True)
             print(d['task'].decode('utf8') + '\n\n', flush=True)
 
-    return X, obj, converged, callback.history
+    return X, obj, converged, history
 
 
 def _convergence_criteria(f_k, f_kplus1, factr=10000000.):

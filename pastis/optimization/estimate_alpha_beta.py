@@ -302,8 +302,10 @@ def estimate_alpha(counts, X, alpha_init, lengths, bias=None,
               reorienter, multiscale_factor, multiscale_variances,
               mixture_coefs, callback))
 
+    history = None
     if callback is not None:
         callback.on_training_end()
+        history = callback.history
 
     alpha, obj, d = results
     converged = d['warnflag'] == 0
@@ -317,4 +319,4 @@ def estimate_alpha(counts, X, alpha_init, lengths, bias=None,
         print('INIT ALPHA: %.3g, FINAL ALPHA: %.3g' %
               (alpha_init, alpha), flush=True)
 
-    return float(alpha), obj, converged, callback.history
+    return float(alpha), obj, converged, history
