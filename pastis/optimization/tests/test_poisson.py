@@ -2,7 +2,6 @@ import sys
 import pytest
 import numpy as np
 from sklearn.metrics import euclidean_distances
-from numpy.testing import assert_array_almost_equal
 from scipy import sparse
 
 pytestmark = pytest.mark.skipif(
@@ -13,7 +12,7 @@ if sys.version_info[0] >= 3:
     from pastis.optimization.counts import _format_counts
 
 
-def test_pastis_poisson_haploid():
+def test_poisson_objective_haploid():
     lengths = np.array([20])
     ploidy = 1
     seed = 42
@@ -33,12 +32,12 @@ def test_pastis_poisson_haploid():
         counts=counts, lengths=lengths, ploidy=ploidy, beta=beta)
 
     obj = poisson.objective(
-        X=X_true, counts=counts, alpha=alpha, lengths=lengths, bias=None)
+        X=X_true, counts=counts, alpha=alpha, lengths=lengths)
 
     assert obj < 1e-6
 
 
-def test_pastis_poisson_haploid_biased():
+def test_poisson_objective_haploid_biased():
     lengths = np.array([20])
     ploidy = 1
     seed = 42
@@ -54,9 +53,8 @@ def test_pastis_poisson_haploid_biased():
     counts = np.triu(counts, 1)
     counts = sparse.coo_matrix(counts)
 
-    bias = 0.1 + random_state.rand(n * ploidy)
-    bias = bias.reshape(n * ploidy, 1)
-    counts *= bias * bias.T
+    bias = 0.1 + random_state.rand(n)
+    counts *= bias.reshape(-1, 1) * bias.T.reshape(-1, 1)
 
     counts = _format_counts(
         counts=counts, lengths=lengths, ploidy=ploidy, beta=beta)
@@ -67,7 +65,7 @@ def test_pastis_poisson_haploid_biased():
     assert obj < 1e-6
 
 
-def test_pastis_poisson_diploid_unambig():
+def test_poisson_objective_diploid_unambig():
     lengths = np.array([20])
     ploidy = 2
     seed = 42
@@ -87,12 +85,12 @@ def test_pastis_poisson_diploid_unambig():
         counts=counts, lengths=lengths, ploidy=ploidy, beta=beta)
 
     obj = poisson.objective(
-        X=X_true, counts=counts, alpha=alpha, lengths=lengths, bias=None)
+        X=X_true, counts=counts, alpha=alpha, lengths=lengths)
 
     assert obj < 1e-6
 
 
-def test_pastis_poisson_diploid_unambig_biased():
+def test_poisson_objective_diploid_unambig_biased():
     lengths = np.array([20])
     ploidy = 2
     seed = 42
@@ -108,9 +106,8 @@ def test_pastis_poisson_diploid_unambig_biased():
     counts = np.triu(counts, 1)
     counts = sparse.coo_matrix(counts)
 
-    bias = 0.1 + random_state.rand(n * ploidy)
-    bias = bias.reshape(n * ploidy, 1)
-    counts *= np.tile(bias, 2) * np.tile(bias, 2).T
+    bias = 0.1 + random_state.rand(n)
+    counts *= np.tile(bias, 2).reshape(-1, 1) * np.tile(bias, 2).T.reshape(-1, 1)
 
     counts = _format_counts(
         counts=counts, lengths=lengths, ploidy=ploidy, beta=beta)
@@ -121,7 +118,7 @@ def test_pastis_poisson_diploid_unambig_biased():
     assert obj < 1e-6
 
 
-def test_pastis_poisson_diploid_ambig():
+def test_poisson_objective_diploid_ambig():
     lengths = np.array([20])
     ploidy = 2
     seed = 42
@@ -142,12 +139,12 @@ def test_pastis_poisson_diploid_ambig():
         counts=counts, lengths=lengths, ploidy=ploidy, beta=beta)
 
     obj = poisson.objective(
-        X=X_true, counts=counts, alpha=alpha, lengths=lengths, bias=None)
+        X=X_true, counts=counts, alpha=alpha, lengths=lengths)
 
     assert obj < 1e-6
 
 
-def test_pastis_poisson_diploid_ambig_biased():
+def test_poisson_objective_diploid_ambig_biased():
     lengths = np.array([20])
     ploidy = 2
     seed = 42
@@ -164,9 +161,8 @@ def test_pastis_poisson_diploid_ambig_biased():
     counts = np.triu(counts, 1)
     counts = sparse.coo_matrix(counts)
 
-    bias = 0.1 + random_state.rand(n * ploidy)
-    bias = bias.reshape(n * ploidy, 1)
-    counts *= bias * bias.T
+    bias = 0.1 + random_state.rand(n)
+    counts *= bias.reshape(-1, 1) * bias.T.reshape(-1, 1)
 
     counts = _format_counts(
         counts=counts, lengths=lengths, ploidy=ploidy, beta=beta)
@@ -177,7 +173,7 @@ def test_pastis_poisson_diploid_ambig_biased():
     assert obj < 1e-6
 
 
-def test_pastis_poisson_diploid_partially_ambig():
+def test_poisson_objective_diploid_partially_ambig():
     lengths = np.array([20])
     ploidy = 2
     seed = 42
@@ -199,12 +195,12 @@ def test_pastis_poisson_diploid_partially_ambig():
         counts=counts, lengths=lengths, ploidy=ploidy, beta=beta)
 
     obj = poisson.objective(
-        X=X_true, counts=counts, alpha=alpha, lengths=lengths, bias=None)
+        X=X_true, counts=counts, alpha=alpha, lengths=lengths)
 
     assert obj < 1e-6
 
 
-def test_pastis_poisson_diploid_partially_ambig_biased():
+def test_poisson_objective_diploid_partially_ambig_biased():
     lengths = np.array([20])
     ploidy = 2
     seed = 42
@@ -222,9 +218,8 @@ def test_pastis_poisson_diploid_partially_ambig_biased():
     np.fill_diagonal(counts[n:, :], 0)
     counts = sparse.coo_matrix(counts)
 
-    bias = 0.1 + random_state.rand(n * ploidy)
-    bias = bias.reshape(n * ploidy, 1)
-    counts *= bias * np.tile(bias, 2).T
+    bias = 0.1 + random_state.rand(n)
+    counts *= bias.reshape(-1, 1) * np.tile(bias, 2).T.reshape(-1, 1)
 
     counts = _format_counts(
         counts=counts, lengths=lengths, ploidy=ploidy, beta=beta)
