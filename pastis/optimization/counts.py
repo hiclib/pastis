@@ -298,7 +298,7 @@ def check_counts(counts, lengths, ploidy, exclude_zeros=True,
 
 def preprocess_counts(counts_raw, lengths, ploidy, multiscale_factor, normalize,
                       filter_threshold, beta=None, fullres_torm=None,
-                      output_directory=None, exclude_zeros=None,
+                      output_directory=None, exclude_zeros=False,
                       input_weight=None, verbose=True):
     """Check counts, reformat, reduce resolution, filter, and compute bias.
 
@@ -526,8 +526,8 @@ def _prep_counts(counts_list, lengths, ploidy=1, multiscale_factor=1,
     return output_counts, bias
 
 
-def _format_counts(counts, beta, input_weight, lengths, ploidy, exclude_zeros,
-                   multiscale_factor, fullres_torm=None):
+def _format_counts(counts, lengths, ploidy, beta=None, input_weight=None,
+                   exclude_zeros=False, multiscale_factor=1, fullres_torm=None):
     """Format each counts matrix as a CountsMatrix subclass instance.
     """
 
@@ -559,6 +559,8 @@ def _format_counts(counts, beta, input_weight, lengths, ploidy, exclude_zeros,
             beta.append(beta_maps)
 
     if input_weight is not None:
+        input_weight = (input_weight if isinstance(
+            input_weight, list) else [input_weight])
         if len(input_weight) != len(counts):
             raise ValueError("input_weights needs to contain as many weighting"
                              " factors as there are datasets (%d). It is of"
