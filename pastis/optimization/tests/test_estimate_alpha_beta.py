@@ -49,7 +49,7 @@ def test_estimate_alpha_beta_haploid_biased():
     lengths = np.array([20])
     ploidy = 1
     seed = 42
-    alpha_true, beta_true = -3., 2.
+    alpha_true, beta_true = -3., 3.
 
     random_state = np.random.RandomState(seed=seed)
     n = lengths.sum()
@@ -118,7 +118,7 @@ def test_estimate_alpha_beta_diploid_unambig_biased():
     lengths = np.array([20])
     ploidy = 2
     seed = 42
-    alpha_true, beta_true = -3., 2.
+    alpha_true, beta_true = -3., 3.
 
     random_state = np.random.RandomState(seed=seed)
     n = lengths.sum()
@@ -155,7 +155,7 @@ def test_estimate_alpha_beta_diploid_ambig():
     lengths = np.array([20])
     ploidy = 2
     seed = 42
-    alpha_true, beta_true = -3., 3.
+    alpha_true, beta_true = -3., 4.
 
     random_state = np.random.RandomState(seed=seed)
     n = lengths.sum()
@@ -188,7 +188,7 @@ def test_estimate_alpha_beta_diploid_ambig_biased():
     lengths = np.array([20])
     ploidy = 2
     seed = 42
-    alpha_true, beta_true = -3., 3.
+    alpha_true, beta_true = -3., 4.
 
     random_state = np.random.RandomState(seed=seed)
     n = lengths.sum()
