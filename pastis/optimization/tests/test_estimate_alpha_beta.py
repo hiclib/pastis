@@ -79,7 +79,7 @@ def test_estimate_alpha_beta_haploid_biased():
     assert converged
     assert obj < 1e-6
     assert_array_almost_equal(alpha_true, alpha, decimal=5)
-    assert_array_almost_equal(beta_true, beta, decimal=3)
+    assert_array_almost_equal(beta_true, beta, decimal=2)
 
 
 def test_estimate_alpha_beta_diploid_unambig():
@@ -118,7 +118,7 @@ def test_estimate_alpha_beta_diploid_unambig_biased():
     lengths = np.array([20])
     ploidy = 2
     seed = 42
-    alpha_true, beta_true = -3., 3.
+    alpha_true, beta_true = -3., 4.
 
     random_state = np.random.RandomState(seed=seed)
     n = lengths.sum()
@@ -188,7 +188,7 @@ def test_estimate_alpha_beta_diploid_ambig_biased():
     lengths = np.array([20])
     ploidy = 2
     seed = 42
-    alpha_true, beta_true = -3., 4.
+    alpha_true, beta_true = -3., 5.
 
     random_state = np.random.RandomState(seed=seed)
     n = lengths.sum()
