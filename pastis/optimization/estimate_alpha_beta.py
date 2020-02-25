@@ -38,7 +38,7 @@ def _estimate_beta_single(structures, counts, alpha, lengths, bias=None,
 
 
 def _estimate_beta(X, counts, alpha, lengths, bias=None, reorienter=None,
-                   mixture_coefs=None, verbose=True, simple_diploid=False):
+                   mixture_coefs=None, verbose=False, simple_diploid=False):
     """Estimates beta for all counts matrices.
     """
 
@@ -102,7 +102,7 @@ def _estimate_beta(X, counts, alpha, lengths, bias=None, reorienter=None,
 def objective_alpha(alpha, counts, X, lengths, bias=None, constraints=None,
                     reorienter=None, multiscale_factor=1,
                     multiscale_variances=None, mixture_coefs=None,
-                    return_components=False):
+                    return_extras=False):
     """Computes the objective function.
 
     Computes the negative log likelihood of the poisson model and constraints.
@@ -141,7 +141,7 @@ def objective_alpha(alpha, counts, X, lengths, bias=None, constraints=None,
                      multiscale_factor=multiscale_factor,
                      multiscale_variances=multiscale_variances,
                      mixture_coefs=mixture_coefs,
-                     return_components=return_components)
+                     return_extras=return_extras)
 
 
 gradient_alpha = grad(objective_alpha)
@@ -163,7 +163,7 @@ def objective_wrapper_alpha(alpha, counts, X, lengths, bias=None,
         alpha, counts=counts, X=X, lengths=lengths, bias=bias, constraints=constraints,
         reorienter=reorienter, multiscale_factor=multiscale_factor,
         multiscale_variances=multiscale_variances, mixture_coefs=mixture_coefs,
-        return_components=True)
+        return_extras=True)
 
     if callback is not None:
         callback.on_epoch_end(obj_logs, structures, alpha, X)

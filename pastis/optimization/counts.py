@@ -617,22 +617,20 @@ def _counts_indices_to_3d_indices(counts, n, ploidy):
     if counts.shape[0] != n * ploidy or counts.shape[1] != n * ploidy:
         nnz = len(row)
 
-        map_factor = int(n * ploidy / min(counts.shape))
         map_factor_rows = int(n * ploidy / counts.shape[0])
         map_factor_cols = int(n * ploidy / counts.shape[1])
+        map_factor = map_factor_rows * map_factor_cols
 
-        x, _ = np.indices((map_factor_rows, map_factor_rows))
-        _, y = np.indices((map_factor_cols, map_factor_cols))
+        x, y = np.indices((map_factor_rows, map_factor_cols))
         x = x.flatten()
         y = y.flatten()
-        tile_factor = max(x.shape[0], y.shape[0])
 
         row = np.repeat(
-            x, nnz * int(tile_factor / x.shape[0])) * min(
-                counts.shape) + np.tile(row, map_factor ** 2)
+            x, int(nnz * map_factor / x.shape[0])) * min(
+                counts.shape) + np.tile(row, map_factor)
         col = np.repeat(
-            y, nnz * int(tile_factor / y.shape[0])) * min(
-                counts.shape) + np.tile(col, map_factor ** 2)
+            y, int(nnz * map_factor / y.shape[0])) * min(
+                counts.shape) + np.tile(col, map_factor)
 
     return row, col
 
