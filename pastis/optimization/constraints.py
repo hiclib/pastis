@@ -27,10 +27,10 @@ class Constraints(object):
     multiscale_factor : int, optional
         Factor by which to reduce the resolution. A value of 2 halves the
         resolution. A value of 1 indicates full resolution.
-    constraint_lambdas : dict
+    constraint_lambdas : dict, optional
         Lambdas for each constraint. Keys should match `constraint_params`
         when applicable.
-    constraint_params : dict
+    constraint_params : dict, optional
         Any parameters used for the calculation of each constraint. Keys should
         be in `constraint_lambdas`.
 
@@ -73,12 +73,21 @@ class Constraints(object):
         self.multiscale_factor = multiscale_factor
         if constraint_lambdas is None:
             self.lambdas = {}
-        else:
+        elif isinstance(constraint_lambdas, dict):
             self.lambdas = constraint_lambdas
+        else:
+            raise ValueError("Constraint lambdas must be inputted as dict.")
         if constraint_params is None:
             self.params = {}
-        else:
+        elif isinstance(constraint_params, dict):
+            if 'hsc' in constraint_params and not isinstance(
+                    constraint_params['hsc'], np.ndarray):
+                if not isinstance(constraint_params['hsc'], list):
+                    constraint_params['hsc'] = [constraint_params['hsc']]
+                constraint_params['hsc'] = np.array(constraint_params['hsc'])
             self.params = constraint_params
+        else:
+            raise ValueError("Constraint params must be inputted as dict.")
         torm = find_beads_to_remove(
             counts=counts, nbeads=self.lengths_lowres.sum() * ploidy)
         self.torm_3d = np.repeat(torm.reshape(-1, 1), 3, axis=1)
