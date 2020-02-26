@@ -34,7 +34,7 @@ def test_poisson_objective_haploid():
     obj = poisson.objective(
         X=X_true, counts=counts, alpha=alpha, lengths=lengths)
 
-    assert obj < 1e-6
+    assert obj < -1e4
 
 
 def test_poisson_objective_haploid_biased():
@@ -62,7 +62,7 @@ def test_poisson_objective_haploid_biased():
     obj = poisson.objective(
         X=X_true, counts=counts, alpha=alpha, lengths=lengths, bias=bias)
 
-    assert obj < 1e-6
+    assert obj < -1e3
 
 
 def test_poisson_objective_diploid_unambig():
@@ -87,7 +87,7 @@ def test_poisson_objective_diploid_unambig():
     obj = poisson.objective(
         X=X_true, counts=counts, alpha=alpha, lengths=lengths)
 
-    assert obj < 1e-6
+    assert obj < -1e4
 
 
 def test_poisson_objective_diploid_unambig_biased():
@@ -115,7 +115,7 @@ def test_poisson_objective_diploid_unambig_biased():
     obj = poisson.objective(
         X=X_true, counts=counts, alpha=alpha, lengths=lengths, bias=bias)
 
-    assert obj < 1e-6
+    assert obj < -1e4
 
 
 def test_poisson_objective_diploid_ambig():
@@ -141,7 +141,7 @@ def test_poisson_objective_diploid_ambig():
     obj = poisson.objective(
         X=X_true, counts=counts, alpha=alpha, lengths=lengths)
 
-    assert obj < 1e-6
+    assert obj < -1e4
 
 
 def test_poisson_objective_diploid_ambig_biased():
@@ -170,7 +170,7 @@ def test_poisson_objective_diploid_ambig_biased():
     obj = poisson.objective(
         X=X_true, counts=counts, alpha=alpha, lengths=lengths, bias=bias)
 
-    assert obj < 1e-6
+    assert obj < -1e4
 
 
 def test_poisson_objective_diploid_partially_ambig():
@@ -197,7 +197,7 @@ def test_poisson_objective_diploid_partially_ambig():
     obj = poisson.objective(
         X=X_true, counts=counts, alpha=alpha, lengths=lengths)
 
-    assert obj < 1e-6
+    assert obj < -1e4
 
 
 def test_poisson_objective_diploid_partially_ambig_biased():
@@ -228,4 +228,4 @@ def test_poisson_objective_diploid_partially_ambig_biased():
     obj = poisson.objective(
         X=X_true, counts=counts, alpha=alpha, lengths=lengths, bias=bias)
 
-    assert obj < 1e-6
+    assert obj < -1e4

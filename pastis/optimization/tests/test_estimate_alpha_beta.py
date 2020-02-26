@@ -40,7 +40,7 @@ def test_estimate_alpha_beta_haploid():
     beta = [c.beta for c in counts_updated if c.sum() != 0][0]
 
     assert converged
-    assert obj < 1e-6
+    assert obj < -1e4
     assert_array_almost_equal(alpha_true, alpha, decimal=5)
     assert_array_almost_equal(beta_true, beta, decimal=3)
 
@@ -77,7 +77,7 @@ def test_estimate_alpha_beta_haploid_biased():
     beta = [c.beta for c in counts_updated if c.sum() != 0][0]
 
     assert converged
-    assert obj < 1e-6
+    assert obj < -1e3
     assert_array_almost_equal(alpha_true, alpha, decimal=5)
     assert_array_almost_equal(beta_true, beta, decimal=1)
 
@@ -109,7 +109,7 @@ def test_estimate_alpha_beta_diploid_unambig():
     beta = [c.beta for c in counts_updated if c.sum() != 0][0]
 
     assert converged
-    assert obj < 1e-6
+    assert obj < -1e4
     assert_array_almost_equal(alpha_true, alpha, decimal=5)
     assert_array_almost_equal(beta_true, beta, decimal=3)
 
@@ -146,7 +146,7 @@ def test_estimate_alpha_beta_diploid_unambig_biased():
     beta = [c.beta for c in counts_updated if c.sum() != 0][0]
 
     assert converged
-    assert obj < 1e-6
+    assert obj < -1e4
     assert_array_almost_equal(alpha_true, alpha, decimal=5)
     assert_array_almost_equal(beta_true, beta, decimal=1)
 
@@ -179,7 +179,7 @@ def test_estimate_alpha_beta_diploid_ambig():
     beta = [c.beta for c in counts_updated if c.sum() != 0][0]
 
     assert converged
-    assert obj < 1e-6
+    assert obj < -1e4
     assert_array_almost_equal(alpha_true, alpha, decimal=5)
     assert_array_almost_equal(beta_true, beta, decimal=3)
 
@@ -217,7 +217,7 @@ def test_estimate_alpha_beta_diploid_ambig_biased():
     beta = [c.beta for c in counts_updated if c.sum() != 0][0]
 
     assert converged
-    assert obj < 1e-6
+    assert obj < -1e4
     assert_array_almost_equal(alpha_true, alpha, decimal=5)
     assert_array_almost_equal(beta_true, beta, decimal=3)
 
@@ -251,7 +251,7 @@ def test_estimate_alpha_beta_diploid_partially_ambig():
     beta = [c.beta for c in counts_updated if c.sum() != 0][0]
 
     assert converged
-    assert obj < 1e-6
+    assert obj < -1e4
     assert_array_almost_equal(alpha_true, alpha, decimal=5)
     assert_array_almost_equal(beta_true, beta, decimal=3)
 
@@ -291,6 +291,6 @@ def test_estimate_alpha_beta_diploid_partially_ambig_biased():
     beta = [c.beta for c in counts_updated if c.sum() != 0][0]
 
     assert converged
-    assert obj < 1e-6
+    assert obj < -1e4
     assert_array_almost_equal(alpha_true, alpha, decimal=5)
     assert_array_almost_equal(beta_true, beta, decimal=3)
