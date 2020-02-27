@@ -6,7 +6,8 @@ from scipy import linalg
 from ..io.read import _load_inferred_struct, _choose_best_seed
 from .counts import subset_chrom, _get_chrom_subset_index
 from .pastis_algorithms import infer, _output_subdir
-from .utils_poisson import _choose_max_multiscale_factor, _print_code_header
+from .utils_poisson import _print_code_header
+from .multiscale_optimization import _choose_max_multiscale_factor
 from .multiscale_optimization import decrease_lengths_res, decrease_struct_res
 
 
