@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.metrics import euclidean_distances
 import os
 from scipy import linalg
-from ...io.read import _load_inferred_struct, _choose_best_seed
+from ..io.read import _load_inferred_struct, _choose_best_seed
 from .counts import subset_chrom, _get_chrom_subset_index
 from .pastis_algorithms import infer, _output_subdir
 from .utils_poisson import _choose_max_multiscale_factor, _print_code_header

@@ -7,7 +7,7 @@ from warnings import warn
 from iced.filter import filter_low_counts
 from iced.normalization import ICE_normalization
 
-from ...io.write.hiclib import write_counts
+from ..io.write.hiclib import write_counts
 
 from .constraints import _constraint_dis_indices
 from .utils_poisson import find_beads_to_remove
