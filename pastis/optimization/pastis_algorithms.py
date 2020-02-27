@@ -23,34 +23,7 @@ from .multiscale_optimization import _choose_max_multiscale_factor
 from .multiscale_optimization import decrease_lengths_res
 from .utils_poisson import find_beads_to_remove
 from ..io.read import load_data
-
-
-def _test_objective(struct, counts, lengths, ploidy, alpha, bias,
-                    multiscale_factor, multiscale_variances, constraints,
-                    reorienter=None, mixture_coefs=None, output_file=None):
-    """Computes all components of the objective for a given structure.
-    """
-
-    from .poisson import objective_wrapper
-    from .callbacks import Callback
-
-    callback = Callback(lengths, ploidy, multiscale_factor=multiscale_factor,
-                        frequency={'print': None, 'history': 1, 'save': None})
-    if reorienter is not None and reorienter.reorient:
-        opt_type = 'chrom_reorient'
-    else:
-        opt_type = 'structure'
-    callback.on_training_begin(opt_type=opt_type)
-    objective_wrapper(struct.flatten(), counts, alpha=alpha, bias=bias,
-                      lengths=lengths, constraints=constraints,
-                      reorienter=reorienter,
-                      multiscale_factor=multiscale_factor,
-                      multiscale_variances=multiscale_variances,
-                      mixture_coefs=mixture_coefs, callback=callback)
-    if output_file is not None:
-        pd.Series(callback.obj).to_csv(output_file, sep='\t', header=False)
-
-    return callback.obj
+from .poisson import objective
 
 
 def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
@@ -357,15 +330,16 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
                                                       'hsc': hsc_lambda},
                                   constraint_params={'hsc': hsc_r})
 
-        if struct_true is not None and not null and (reorienter is None or not reorienter.reorient):
-            _test_objective(
-                struct=struct_true, counts=counts, lengths=lengths,
-                ploidy=ploidy, alpha=alpha_, bias=bias,
+        if outdir is not None and struct_true is not None and not null and (
+                reorienter is None or not reorienter.reorient):
+            _, obj_true, _, _ = objective(
+                struct_true, counts=counts, alpha=alpha_, lengths=lengths,
+                bias=bias, constraints=constraints,
                 multiscale_factor=multiscale_factor,
                 multiscale_variances=multiscale_variances,
-                constraints=constraints, reorienter=reorienter,
-                mixture_coefs=mixture_coefs,
-                output_file=os.path.join(outdir, 'struct_true_obj'))
+                mixture_coefs=mixture_coefs, return_extras=True)
+            pd.Series(obj_true).to_csv(
+                os.path.join(outdir, 'struct_true_obj'), sep='\t', header=False)
 
         if callback_freq is None:
             callback_freq = {'print': 100, 'history': 100, 'save': None}
