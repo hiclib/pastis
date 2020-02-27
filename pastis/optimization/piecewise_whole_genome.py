@@ -1,6 +1,13 @@
 import autograd.numpy as ag_np
 import numpy as np
 from sklearn.metrics import euclidean_distances
+import os
+from scipy import linalg
+from ...io.read import _load_inferred_struct, _choose_best_seed
+from .counts import subset_chrom, _get_chrom_subset_index
+from .pastis_algorithms import infer, _output_subdir
+from .utils_poisson import _choose_max_multiscale_factor, _print_code_header
+from .multiscale_optimization import decrease_lengths_res, decrease_struct_res
 
 
 class ChromReorienter(object):
@@ -150,7 +157,6 @@ def _realign_structures(X, Y, rescale=False, copy=True, verbose=False, error_typ
         Realigned 3D, Xstructure
     """
 
-    from scipy import linalg
 
     if copy:
         Y = Y.copy()
@@ -215,8 +221,6 @@ def _realign_structures(X, Y, rescale=False, copy=True, verbose=False, error_typ
 
 
 def _lowres_genome_vs_highres_chrom(X_genome_lowres, X_chrom, ploidy, lengths, chromosomes, chrom, lowres_genome_factor, piecewise_fix_homo):
-    from .counts import _get_chrom_subset_index
-    from .multiscale_optimization import decrease_lengths_res, decrease_struct_res
     import quaternion
 
     # Extract the chromosome from low-res whole-genome structure
@@ -254,9 +258,6 @@ def _lowres_genome_vs_highres_chrom(X_genome_lowres, X_chrom, ploidy, lengths, c
 
 
 def _assemble_highres_chrom_via_lowres_genome(outdir, outdir_lowres, outdir_orient, chromosomes, lengths, alpha, ploidy, lowres_genome_factor, piecewise_fix_homo=True, msv_type=None, struct_true=None, modifications=None):
-    import os
-    from .load_data import _load_inferred_struct
-
     # Load inferred lowres genome
     X_genome_lowres = _load_inferred_struct(outdir_lowres)
 
@@ -299,12 +300,6 @@ def piecewise_inference(counts, outdir, lengths, ploidy, chromosomes, alpha, see
                         exclude_zeros=False, null=False, mixture_coefs=None, verbose=True):
     """
     """
-
-    import os
-    from .load_data import _load_inferred_struct, _choose_best_seed
-    from .counts import subset_chrom
-    from .pastis_algorithms import infer, _output_subdir
-    from .utils_poisson import _choose_max_multiscale_factor, _print_code_header
 
     if piecewise_step is None:
         piecewise_step = [1, 2, 3, 4]

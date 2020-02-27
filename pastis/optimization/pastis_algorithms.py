@@ -22,7 +22,7 @@ from .multiscale_optimization import get_multiscale_variances_from_struct
 from .multiscale_optimization import _choose_max_multiscale_factor
 from .multiscale_optimization import decrease_lengths_res
 from .utils_poisson import find_beads_to_remove
-from .load_data import load_data
+from ...io.read import load_data
 
 
 def _test_objective(struct, counts, lengths, ploidy, alpha, bias,

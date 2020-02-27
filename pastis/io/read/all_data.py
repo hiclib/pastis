@@ -4,9 +4,8 @@ import pandas as pd
 import glob
 import os
 from scipy import sparse
-from iced.io import load_counts, load_lengths
-
-from .counts import subset_chrom
+from .hiclib import load_hiclib_counts, load_hiclib_lengths
+from ...optimization.counts import subset_chrom
 
 
 def _get_lengths(lengths):
@@ -14,10 +13,10 @@ def _get_lengths(lengths):
     """
 
     if isinstance(lengths, str) and os.path.exists(lengths):
-        lengths = load_lengths(lengths)
+        lengths = load_hiclib_lengths(lengths)
     elif lengths is not None and (isinstance(lengths, list) or isinstance(lengths, np.ndarray)):
         if len(lengths) == 1 and isinstance(lengths[0], str) and os.path.exists(lengths[0]):
-            lengths = load_lengths(lengths[0])
+            lengths = load_hiclib_lengths(lengths[0])
     lengths = np.array(lengths).astype(int)
     return lengths
 
@@ -52,7 +51,7 @@ def _get_counts(counts, lengths):
         elif f.endswith(".npy"):
             counts_maps = np.load(f)
         elif f.endswith(".matrix"):
-            counts_maps = load_counts(f, lengths=lengths)
+            counts_maps = load_hiclib_counts(f, lengths=lengths)
         else:
             raise ValueError("Counts file must end with .npy (for numpy array)"
                              " or .matrix (for hiclib / iced format)")
@@ -124,7 +123,6 @@ def load_data(counts, lengths_full, ploidy, chrom_full=None,
 def _choose_best_seed(outdir):
     """Choose seed with the lowest final objective value.
     """
-
 
     infer_var_files = glob.glob(
         '%s*.txt' % os.path.join(outdir, 'inference_variables'))
