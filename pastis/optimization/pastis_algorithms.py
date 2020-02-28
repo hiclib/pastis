@@ -26,7 +26,7 @@ from ..io.read import load_data
 from .poisson import objective
 
 
-def _infer_draft(counts_raw, lengths, ploidy, counts, simple_diploid_init=None,
+def _infer_draft(counts_raw, lengths, ploidy, simple_diploid_init=None,
                  outdir=None, alpha=None, seed=0, normalize=True,
                  filter_threshold=0.04, alpha_init=-3., max_alpha_loop=20,
                  beta=None, multiscale_rounds=1, use_multiscale_variance=True,
@@ -78,17 +78,13 @@ def _infer_draft(counts_raw, lengths, ploidy, counts, simple_diploid_init=None,
             lowres_outdir = None
         else:
             lowres_outdir = os.path.join(outdir, 'struct_draft_lowres')
-        fullres_torm_for_lowres = [find_beads_to_remove(
-            c, nbeads=lengths.sum() * ploidy) for c in counts if counts.sum() > 0]
         ua_index = [i for i in range(len(
             counts_raw)) if counts_raw[i].shape == (lengths.sum() * ploidy,
                                                     lengths.sum() * ploidy)]
-        ua_index = [i for i in range(len(counts)) if counts[
-            i].name == 'ua']
         if len(ua_index) == 1:
             counts_for_lowres = counts_raw[ua_index[0]]
             simple_diploid_for_lowres = False
-            fullres_torm_for_lowres = fullres_torm_for_lowres[ua_index[0]]
+            fullres_torm = fullres_torm[ua_index[0]]
         elif len(ua_index) > 1:
             raise ValueError("Only input one matrix of unambiguous counts."
                              " Please pool unambiguos counts before"
@@ -109,7 +105,7 @@ def _infer_draft(counts_raw, lengths, ploidy, counts, simple_diploid_init=None,
             multiscale_factor=multiscale_factor_for_lowres,
             use_multiscale_variance=use_multiscale_variance,
             init=init, max_iter=max_iter, factr=factr, pgtol=pgtol,
-            fullres_torm=fullres_torm_for_lowres,
+            fullres_torm=fullres_torm,
             struct_draft_fullres=struct_draft_fullres, draft=True,
             simple_diploid=simple_diploid_for_lowres,
             simple_diploid_init=simple_diploid_init,
@@ -305,6 +301,11 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
             simple_diploid_init, counts=counts, alpha=alpha, bias=bias,
             lengths=lengths, reorienter=reorienter, mixture_coefs=mixture_coefs,
             verbose=verbose, simple_diploid=True)
+    if multiscale_factor == 1:
+        fullres_torm_for_multiscale = [find_beads_to_remove(
+            c, nbeads=lengths.sum() * ploidy) for c in counts if c.sum() > 0]
+    else:
+        fullres_torm_for_multiscale = None
 
     # INITIALIZATION
     if isinstance(init, str) and init.lower() == 'true':
@@ -347,7 +348,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
     beta_ = beta
     if multiscale_factor == 1 and not (draft or simple_diploid):
         struct_draft_fullres, alpha_, beta_, hsc_r, draft_converged = _infer_draft(
-            counts_raw, lengths=lengths, ploidy=ploidy, counts=counts,
+            counts_raw, lengths=lengths, ploidy=ploidy,
             simple_diploid_init=struct_init, outdir=outdir, alpha=alpha,
             seed=seed, normalize=normalize, filter_threshold=filter_threshold,
             alpha_init=alpha_init, max_alpha_loop=max_alpha_loop, beta=beta,
@@ -356,7 +357,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
             max_iter=max_iter, factr=factr, pgtol=pgtol,
             alpha_factr=alpha_factr, bcc_lambda=bcc_lambda,
             hsc_lambda=hsc_lambda, hsc_r=hsc_r, hsc_min_beads=hsc_min_beads,
-            fullres_torm=fullres_torm,
+            fullres_torm=fullres_torm_for_multiscale,
             struct_draft_fullres=struct_draft_fullres,
             callback_freq=callback_freq, callback_function=callback_function,
             reorienter=reorienter, alpha_true=alpha_true,
@@ -445,8 +446,6 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         all_multiscale_factors = 2 ** np.flip(
             np.arange(multiscale_rounds), axis=0)
         struct_ = init
-        fullres_torm_for_multiscale = [find_beads_to_remove(
-            c, nbeads=lengths.sum() * ploidy) for c in counts]
 
         for i in all_multiscale_factors:
             if verbose:
