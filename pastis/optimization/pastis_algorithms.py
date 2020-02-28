@@ -20,10 +20,120 @@ from .poisson import PastisPM
 from .estimate_alpha_beta import _estimate_beta
 from .multiscale_optimization import get_multiscale_variances_from_struct
 from .multiscale_optimization import _choose_max_multiscale_factor
-from .multiscale_optimization import decrease_lengths_res
+from .multiscale_optimization import decrease_lengths_res, decrease_struct_res
 from .utils_poisson import find_beads_to_remove
 from ..io.read import load_data
 from .poisson import objective
+
+
+def _infer_draft(counts_raw, lengths, ploidy, counts, simple_diploid_init=None,
+                 outdir=None, alpha=None, seed=0, normalize=True,
+                 filter_threshold=0.04, alpha_init=-3., max_alpha_loop=20,
+                 beta=None, multiscale_rounds=1, use_multiscale_variance=True,
+                 init='mds', max_iter=10000000000,
+                 factr=10000000., pgtol=1e-05, alpha_factr=1000000000000.,
+                 bcc_lambda=0., hsc_lambda=0., hsc_r=None, hsc_min_beads=5,
+                 fullres_torm=None, struct_draft_fullres=None,
+                 callback_freq=None, callback_function=None, reorienter=None,
+                 alpha_true=None, struct_true=None, input_weight=None,
+                 exclude_zeros=False, null=False, mixture_coefs=None,
+                 verbose=True):
+    """Infer draft 3D structures with PASTIS via Poisson model.
+    """
+
+    alpha_ = alpha
+    beta_ = beta
+    if struct_draft_fullres is None and ((
+            multiscale_rounds > 1 and use_multiscale_variance) or alpha is None):
+        if outdir is None:
+            fullres_outdir = None
+        else:
+            fullres_outdir = os.path.join(outdir, 'struct_draft_fullres')
+        struct_draft_fullres, infer_var_fullres = infer(
+            counts_raw=counts_raw, outdir=fullres_outdir, lengths=lengths,
+            ploidy=ploidy, alpha=alpha, seed=seed, normalize=normalize,
+            filter_threshold=filter_threshold, alpha_init=alpha_init,
+            max_alpha_loop=max_alpha_loop, beta=beta, init=init,
+            max_iter=max_iter, factr=factr, pgtol=pgtol,
+            alpha_factr=alpha_factr, draft=True, simple_diploid=(ploidy == 2),
+            simple_diploid_init=simple_diploid_init,
+            callback_function=callback_function, callback_freq=callback_freq,
+            reorienter=reorienter, alpha_true=alpha_true,
+            struct_true=struct_true, input_weight=input_weight,
+            exclude_zeros=exclude_zeros, null=null, mixture_coefs=mixture_coefs,
+            verbose=verbose)
+        if not infer_var_fullres['converged']:
+            return struct_draft_fullres, alpha_, beta_, hsc_r, False
+        alpha_ = infer_var_fullres['alpha']
+        beta_ = infer_var_fullres['beta']
+
+    if hsc_lambda > 0 and hsc_r is None:
+        if ploidy == 1:
+            raise ValueError("Can not apply homolog-separating constraint"
+                             " to haploid data.")
+        if alpha_ is None:
+            raise ValueError("Alpha must be set prior to inferring r from"
+                             " counts data")
+        if outdir is None:
+            lowres_outdir = None
+        else:
+            lowres_outdir = os.path.join(outdir, 'struct_draft_lowres')
+        fullres_torm_for_lowres = [find_beads_to_remove(
+            c, nbeads=lengths.sum() * ploidy) for c in counts if counts.sum() > 0]
+        ua_index = [i for i in range(len(
+            counts_raw)) if counts_raw[i].shape == (lengths.sum() * ploidy,
+                                                    lengths.sum() * ploidy)]
+        ua_index = [i for i in range(len(counts)) if counts[
+            i].name == 'ua']
+        if len(ua_index) == 1:
+            counts_for_lowres = counts_raw[ua_index[0]]
+            simple_diploid_for_lowres = False
+            fullres_torm_for_lowres = fullres_torm_for_lowres[ua_index[0]]
+        elif len(ua_index) > 1:
+            raise ValueError("Only input one matrix of unambiguous counts."
+                             " Please pool unambiguos counts before"
+                             " inputting.")
+        else:
+            if lengths.shape[0] == 1:
+                raise ValueError("Please input more than one chromosome to"
+                                 " estimate hsc_r from ambiguous data.")
+            counts_for_lowres = counts_raw
+            simple_diploid_for_lowres = True
+        multiscale_factor_for_lowres = _choose_max_multiscale_factor(
+            lengths=lengths, min_beads=hsc_min_beads)
+        struct_draft_lowres, infer_var_lowres = infer(
+            counts_raw=counts_for_lowres, outdir=lowres_outdir,
+            lengths=lengths, ploidy=ploidy, alpha=alpha_,
+            seed=seed, normalize=normalize,
+            filter_threshold=filter_threshold, beta=beta_,
+            multiscale_factor=multiscale_factor_for_lowres,
+            use_multiscale_variance=use_multiscale_variance,
+            init=init, max_iter=max_iter, factr=factr, pgtol=pgtol,
+            fullres_torm=fullres_torm_for_lowres,
+            struct_draft_fullres=struct_draft_fullres, draft=True,
+            simple_diploid=simple_diploid_for_lowres,
+            simple_diploid_init=simple_diploid_init,
+            callback_function=callback_function,
+            callback_freq=callback_freq,
+            reorienter=reorienter, alpha_true=alpha_true,
+            struct_true=struct_true, input_weight=input_weight,
+            exclude_zeros=exclude_zeros, null=null,
+            mixture_coefs=mixture_coefs, verbose=verbose)
+        if not infer_var_lowres['converged']:
+            return struct_draft_fullres, alpha_, beta_, hsc_r, False
+        hsc_r = distance_between_homologs(
+            structures=struct_draft_lowres,
+            lengths=decrease_lengths_res(
+                lengths=lengths,
+                multiscale_factor=multiscale_factor_for_lowres),
+            ploidy=ploidy, mixture_coefs=mixture_coefs,
+            simple_diploid=simple_diploid_for_lowres)
+        if verbose:
+            print("Estimated distance between homolog barycenters for each"
+                  " chromosome: %s" % ' '.join(map(str, hsc_r.round(2))),
+                  flush=True)
+
+    return struct_draft_fullres, alpha_, beta_, hsc_r, True
 
 
 def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
@@ -121,7 +231,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         diploid" structure in which homologs are assumed to be identical and
         completely overlapping with one another.
     simple_diploid_init : np.ndarray, optional
-        For diploid organisms: initialization to be used for inference when
+        For diploid organisms: structure to be used for beta estimation when
         `simple_diploid` is True.
 
     Returns
@@ -188,6 +298,9 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
     if simple_diploid:
         if simple_diploid_init is None:
             raise ValueError("Must provide simple_diploid_init.")
+        simple_diploid_init = decrease_struct_res(
+            simple_diploid_init, multiscale_factor=multiscale_factor,
+            lengths=lengths)
         counts = _estimate_beta(
             simple_diploid_init, counts=counts, alpha=alpha, bias=bias,
             lengths=lengths, reorienter=reorienter, mixture_coefs=mixture_coefs,
@@ -232,95 +345,32 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
     # INFER DRAFT STRUCTURES (for estimation of multiscale_variance & hsc_r)
     alpha_ = alpha
     beta_ = beta
-    if multiscale_factor == 1 and not draft:
-        if struct_draft_fullres is None and ((
-                multiscale_rounds > 1 and use_multiscale_variance) or alpha is None):
-            if outdir is None:
-                fullres_outdir = None
-            else:
-                fullres_outdir = os.path.join(outdir, 'struct_draft_fullres')
-            struct_draft_fullres, infer_var_fullres = infer(
-                counts_raw=counts_raw, outdir=fullres_outdir, lengths=lengths,
-                ploidy=ploidy, alpha=alpha, seed=seed, normalize=normalize,
-                filter_threshold=filter_threshold, alpha_init=alpha_init,
-                max_alpha_loop=max_alpha_loop, init=init, max_iter=max_iter,
-                factr=factr, pgtol=pgtol, alpha_factr=alpha_factr, draft=True,
-                simple_diploid=(ploidy == 2), simple_diploid_init=struct_init,
-                callback_function=callback_function,
-                callback_freq=callback_freq, reorienter=reorienter,
-                alpha_true=alpha_true, struct_true=struct_true,
-                input_weight=input_weight, exclude_zeros=exclude_zeros,
-                null=null, mixture_coefs=mixture_coefs, verbose=verbose)
-            if not infer_var_fullres['converged']:
-                return struct_draft_fullres, infer_var_fullres
-            alpha_ = infer_var_fullres['alpha']
-            beta_ = infer_var_fullres['beta']
+    if multiscale_factor == 1 and not (draft or simple_diploid):
+        struct_draft_fullres, alpha_, beta_, hsc_r, draft_converged = _infer_draft(
+            counts_raw, lengths=lengths, ploidy=ploidy, counts=counts,
+            simple_diploid_init=struct_init, outdir=outdir, alpha=alpha,
+            seed=seed, normalize=normalize, filter_threshold=filter_threshold,
+            alpha_init=alpha_init, max_alpha_loop=max_alpha_loop, beta=beta,
+            multiscale_rounds=multiscale_rounds,
+            use_multiscale_variance=use_multiscale_variance, init=init,
+            max_iter=max_iter, factr=factr, pgtol=pgtol,
+            alpha_factr=alpha_factr, bcc_lambda=bcc_lambda,
+            hsc_lambda=hsc_lambda, hsc_r=hsc_r, hsc_min_beads=hsc_min_beads,
+            fullres_torm=fullres_torm,
+            struct_draft_fullres=struct_draft_fullres,
+            callback_freq=callback_freq, callback_function=callback_function,
+            reorienter=reorienter, alpha_true=alpha_true,
+            struct_true=struct_true, input_weight=input_weight,
+            exclude_zeros=exclude_zeros, null=null, mixture_coefs=mixture_coefs,
+            verbose=verbose)
+        if not draft_converged:
+            return None, {'alpha': alpha_, 'beta': beta_, 'seed': seed,
+                          'converged': draft_converged}
+        if beta_ != beta:
             counts = _update_betas_in_counts_matrices(
                 counts=counts,
                 beta={counts[i].ambiguity: np.repeat(
                     beta_, 2)[i] for i in range(len(counts))})
-
-        if hsc_lambda > 0 and hsc_r is None:
-            if ploidy == 1:
-                raise ValueError("Can not apply homolog-separating constraint"
-                                 " to haploid data.")
-            if alpha_ is None:
-                raise ValueError("Alpha must be set prior to inferring r from"
-                                 " counts data")
-            if outdir is None:
-                lowres_outdir = None
-            else:
-                lowres_outdir = os.path.join(outdir, 'struct_draft_lowres')
-            fullres_torm_for_lowres = [find_beads_to_remove(
-                c, nbeads=lengths.sum() * ploidy) for c in counts]
-            ua_index = [i for i in range(len(counts)) if counts[
-                i].name == 'ua']
-            if len(ua_index) == 1:
-                counts_for_lowres = counts_raw[ua_index[0]]
-                simple_diploid_for_lowres = False
-                fullres_torm_for_lowres = fullres_torm_for_lowres[ua_index[0]]
-            elif len(ua_index) > 1:
-                raise ValueError("Only input one matrix of unambiguous counts."
-                                 " Please pool unambiguos counts before"
-                                 " inputting.")
-            else:
-                if lengths.shape[0] == 1:
-                    raise ValueError("Please input more than one chromosome to"
-                                     " estimate hsc_r from ambiguous data.")
-                counts_for_lowres = counts_raw
-                simple_diploid_for_lowres = True
-            multiscale_factor_for_lowres = _choose_max_multiscale_factor(
-                lengths=lengths, min_beads=hsc_min_beads)
-            struct_draft_lowres, infer_var_lowres = infer(
-                counts_raw=counts_for_lowres, outdir=lowres_outdir,
-                lengths=lengths, ploidy=ploidy, alpha=alpha_,
-                seed=seed, normalize=normalize,
-                filter_threshold=filter_threshold, beta=beta_,
-                multiscale_factor=multiscale_factor_for_lowres,
-                use_multiscale_variance=use_multiscale_variance,
-                init=init, max_iter=max_iter, factr=factr, pgtol=pgtol,
-                fullres_torm=fullres_torm_for_lowres,
-                struct_draft_fullres=struct_draft_fullres, draft=True,
-                simple_diploid=simple_diploid_for_lowres,
-                simple_diploid_init=struct_init,
-                callback_function=callback_function,
-                callback_freq=callback_freq,
-                reorienter=reorienter, alpha_true=alpha_true,
-                struct_true=struct_true, input_weight=input_weight,
-                exclude_zeros=exclude_zeros, null=null,
-                mixture_coefs=mixture_coefs, verbose=verbose)
-            if not infer_var_lowres['converged']:
-                return struct_draft_lowres, infer_var_lowres
-            hsc_r = distance_between_homologs(
-                structures=struct_draft_lowres,
-                lengths=decrease_lengths_res(
-                    lengths=lengths,
-                    multiscale_factor=multiscale_factor_for_lowres),
-                ploidy=ploidy, mixture_coefs=mixture_coefs,
-                simple_diploid=simple_diploid_for_lowres)
-            if verbose:
-                print("Estimated distance between homolog barycenters for each"
-                      " chromosome: %s" % ' '.join(map(str, hsc_r.round(2))), flush=True)
 
     if multiscale_rounds <= 1 or multiscale_factor > 1 or final_multiscale_round:
         # INFER STRUCTURE
