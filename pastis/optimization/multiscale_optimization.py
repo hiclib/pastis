@@ -186,7 +186,6 @@ def _convert_indices_to_full_res(rows, cols, rows_max, cols_max,
         col_mask = np.floor(cols_binned.mean(axis=0)) == i
         row_vals = np.unique(rows[:, row_mask][incorrect_rows[:, row_mask]])
         col_vals = np.unique(cols[:, col_mask][incorrect_cols[:, col_mask]])
-        print(row_vals.shape, col_vals.shape)
         for val in np.flip(row_vals, axis=0):
             rows[rows > val] -= 1
         for val in np.flip(col_vals, axis=0):
