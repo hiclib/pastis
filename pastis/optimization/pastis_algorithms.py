@@ -284,13 +284,11 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         counts_raw = ambiguate_counts(
             counts=counts_raw, lengths=lengths, ploidy=ploidy)
         ploidy = 1
-    counts, bias, torm = preprocess_counts(
+    counts, bias, torm, fullres_torm_for_multiscale = preprocess_counts(
         counts_raw=counts_raw, lengths=lengths, ploidy=ploidy, normalize=normalize,
         filter_threshold=filter_threshold, multiscale_factor=multiscale_factor,
         exclude_zeros=exclude_zeros, beta=beta, input_weight=input_weight,
-        verbose=verbose, fullres_torm=fullres_torm, output_directory=None)
-    if mixture_coefs is not None:
-        torm = np.tile(torm, len(mixture_coefs))
+        verbose=verbose, fullres_torm=fullres_torm, mixture_coefs=mixture_coefs)
     if simple_diploid:
         if simple_diploid_init is None:
             raise ValueError("Must provide simple_diploid_init.")
@@ -301,11 +299,6 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
             simple_diploid_init, counts=counts, alpha=alpha, bias=bias,
             lengths=lengths, reorienter=reorienter, mixture_coefs=mixture_coefs,
             verbose=verbose, simple_diploid=True)
-    if multiscale_factor == 1:
-        fullres_torm_for_multiscale = [find_beads_to_remove(
-            c, nbeads=lengths.sum() * ploidy) for c in counts if c.sum() > 0]
-    else:
-        fullres_torm_for_multiscale = None
 
     # INITIALIZATION
     if isinstance(init, str) and init.lower() == 'true':

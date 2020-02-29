@@ -7,8 +7,6 @@ from warnings import warn
 from iced.filter import filter_low_counts
 from iced.normalization import ICE_normalization
 
-from ..io.write.hiclib import write_counts
-
 from .constraints import _constraint_dis_indices
 from .utils_poisson import find_beads_to_remove
 
@@ -298,7 +296,7 @@ def check_counts(counts, lengths, ploidy, exclude_zeros=True,
 
 def preprocess_counts(counts_raw, lengths, ploidy, multiscale_factor, normalize,
                       filter_threshold, beta=None, fullres_torm=None,
-                      output_directory=None, exclude_zeros=False,
+                      mixture_coefs=None, exclude_zeros=False,
                       input_weight=None, verbose=True):
     """Check counts, reformat, reduce resolution, filter, and compute bias.
 
@@ -357,19 +355,16 @@ def preprocess_counts(counts_raw, lengths, ploidy, multiscale_factor, normalize,
     lengths_lowres = decrease_lengths_res(lengths, multiscale_factor)
     torm = find_beads_to_remove(counts_prepped,
                                 nbeads=lengths_lowres.sum() * ploidy)
+    if mixture_coefs is not None:
+        torm = np.tile(torm, len(mixture_coefs))
 
-    if output_directory is not None:
-        try:
-            os.makedirs(output_directory)
-        except OSError:
-            pass
+    if multiscale_factor == 1:
+        fullres_torm_for_multiscale = [find_beads_to_remove(
+            c, nbeads=lengths.sum() * ploidy) for c in counts if c.sum() > 0]
+    else:
+        fullres_torm_for_multiscale = None
 
-        for c in counts:
-            if not c.null and c.sum() > 0:
-                write_counts(os.path.join(output_directory,
-                             '%s_filtered.matrix' % c.name), c.tocoo())
-
-    return counts, bias, torm
+    return counts, bias, torm, fullres_torm_for_multiscale
 
 
 def _percent_nan_beads(counts):
