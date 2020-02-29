@@ -10,7 +10,7 @@ def configuration(parent_package='', top_path=None):
 
     config = Configuration('io', parent_package, top_path)
     config.add_subpackage('read')
-    config.add_subpackage('write')
+    config.add_subpackage('write_struct')
     return config
 
 
