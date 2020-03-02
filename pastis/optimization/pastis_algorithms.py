@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 from sklearn.utils import check_random_state
 from .utils_poisson import _print_code_header, _load_infer_var
+from .utils_poisson import _output_subdir
 from .counts import preprocess_counts, ambiguate_counts
 from .counts import _update_betas_in_counts_matrices, check_counts
 from .initialization import initialize
@@ -566,14 +567,11 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
         chrom_full=chrom_full, chrom_subset=chrom_subset,
         exclude_zeros=exclude_zeros, struct_true=struct_true)
 
-    if len(chrom_subset) == 1:
-        piecewise = False
+    outdir = _output_subdir(
+        outdir=outdir, chrom_full=chrom_full, chrom_subset=chrom_subset,
+        null=null)
 
     if (not piecewise) or len(chrom_subset) == 1:
-        outdir = _output_subdir(
-            outdir=outdir, chrom_full=chrom_full, chrom_subset=chrom_subset,
-            null=null)
-
         struct_, infer_var = infer(
             counts_raw=counts, outdir=outdir, lengths=lengths_subset,
             ploidy=ploidy, alpha=alpha, seed=seed, normalize=normalize,
@@ -612,31 +610,3 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
             mixture_coefs=mixture_coefs, verbose=verbose)
 
     return struct_, infer_var
-
-
-def _output_subdir(outdir, chrom_full, chrom_subset=None, null=False,
-                   piecewise=False, piecewise_step=None,
-                   piecewise_chrom=None):
-    """Returns subdirectory for inference output files.
-    """
-
-    if null:
-        outdir = os.path.join(outdir, 'null')
-
-    if (not piecewise) or (piecewise_step is not None and piecewise_step != 2):
-        if chrom_subset is not None and len(chrom_subset) != len(chrom_full):
-            outdir = os.path.join(outdir, '.'.join(chrom_subset))
-
-    if piecewise:
-        if piecewise_step is None:
-            raise ValueError("piecewise_step may not be None")
-        if piecewise_step == 1:
-            outdir = os.path.join(outdir, 'step1_lowres')
-        elif piecewise_step == 2:
-            if piecewise_chrom is None:
-                raise ValueError("piecewise_chrom may not be None")
-            outdir = os.path.join(outdir, piecewise_chrom)
-        elif piecewise_step == 3:
-            outdir = os.path.join(outdir, 'step3_assembled')
-
-    return outdir

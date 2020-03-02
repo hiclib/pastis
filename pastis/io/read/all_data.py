@@ -154,12 +154,12 @@ def _choose_struct_inferred_file(outdir, seed=None, verbose=True):
     if seed is None or seed == 'None':
         if verbose:
             print('Loading %s' % os.path.basename(outdir))
-        return os.path.join(outdir, 'struct_inferred.txt')
+        return os.path.join(outdir, 'struct_inferred.coords')
     else:
         if verbose:
             print('Loading %s from seed %03d' %
                   (os.path.basename(outdir), int(seed)))
-        return os.path.join(outdir, 'struct_inferred.%03d.txt' % int(seed))
+        return os.path.join(outdir, 'struct_inferred.%03d.coords' % int(seed))
 
 
 def _load_inferred_struct(outdir, seed=None, verbose=True):

@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import numpy as np
 import sys
+import os
 import pandas as pd
 from distutils.util import strtobool
 
@@ -42,6 +43,29 @@ def _load_infer_var(infer_var_file):
     infer_var['alpha'] = float(infer_var['alpha'])
     infer_var['converged'] = strtobool(infer_var['converged'])
     return infer_var
+
+
+def _output_subdir(outdir, chrom_full=None, chrom_subset=None, null=False,
+                   piecewise_step=None):
+    """Returns subdirectory for inference output files.
+    """
+
+    if null:
+        outdir = os.path.join(outdir, 'null')
+
+    if chrom_subset is not None and chrom_full is not None:
+        if len(chrom_subset) != len(chrom_full):
+            outdir = os.path.join(outdir, '.'.join(chrom_subset))
+
+    if piecewise_step is not None:
+        if piecewise_step == 1:
+            outdir = os.path.join(outdir, 'step1_lowres_genome')
+        elif piecewise_step == 2:
+            outdir = os.path.join(outdir, 'step2_fullres_chrom')
+        elif piecewise_step == 3:
+            outdir = os.path.join(outdir, 'step3_reoriented_chrom')
+
+    return outdir
 
 
 def _format_structures(structures, lengths, ploidy, mixture_coefs=None):
