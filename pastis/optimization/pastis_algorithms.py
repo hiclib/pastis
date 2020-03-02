@@ -9,8 +9,7 @@ import os
 import numpy as np
 import pandas as pd
 from sklearn.utils import check_random_state
-from .utils_poisson import _print_code_header
-from distutils.util import strtobool
+from .utils_poisson import _print_code_header, _load_infer_var
 from .counts import preprocess_counts, ambiguate_counts
 from .counts import _update_betas_in_counts_matrices, check_counts
 from .initialization import initialize
@@ -21,7 +20,6 @@ from .estimate_alpha_beta import _estimate_beta
 from .multiscale_optimization import get_multiscale_variances_from_struct
 from .multiscale_optimization import _choose_max_multiscale_factor
 from .multiscale_optimization import decrease_lengths_res, decrease_struct_res
-from .utils_poisson import find_beads_to_remove
 from ..io.read import load_data
 from .poisson import objective
 
@@ -262,15 +260,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
                 print('CONVERGED', flush=True)
             elif os.path.exists(out_fail):
                 print('OPTIMIZATION DID NOT CONVERGE', flush=True)
-            infer_var = dict(pd.read_csv(
-                infer_var_file, sep='\t', header=None, squeeze=True,
-                index_col=0, dtype=str))
-            infer_var['beta'] = [float(b) for b in infer_var['beta'].split()]
-            if 'hsc_r' in infer_var:
-                infer_var['hsc_r'] = [float(
-                    r) for r in infer_var['hsc_r'].split()]
-            infer_var['alpha'] = float(infer_var['alpha'])
-            infer_var['converged'] = strtobool(infer_var['converged'])
+            infer_var = _load_infer_var(infer_var_file)
             struct_ = np.loadtxt(out_file)
             return struct_, infer_var
 

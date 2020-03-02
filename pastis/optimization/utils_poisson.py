@@ -2,6 +2,8 @@ from __future__ import print_function
 
 import numpy as np
 import sys
+import pandas as pd
+from distutils.util import strtobool
 
 
 if sys.version_info[0] < 3:
@@ -24,6 +26,22 @@ def _print_code_header(header, sub_header=None, max_length=80,
         print('=' * max_length, flush=True)
         if blank_lines is not None and blank_lines > 0:
             print('\n' * (blank_lines - 1), flush=True)
+
+
+def _load_infer_var(infer_var_file):
+    """Loads a dictionary of inference variables, including alpha and beta.
+    """
+
+    infer_var = dict(pd.read_csv(
+        infer_var_file, sep='\t', header=None, squeeze=True,
+        index_col=0, dtype=str))
+    infer_var['beta'] = [float(b) for b in infer_var['beta'].split()]
+    if 'hsc_r' in infer_var:
+        infer_var['hsc_r'] = [float(
+            r) for r in infer_var['hsc_r'].split()]
+    infer_var['alpha'] = float(infer_var['alpha'])
+    infer_var['converged'] = strtobool(infer_var['converged'])
+    return infer_var
 
 
 def _format_structures(structures, lengths, ploidy, mixture_coefs=None):
