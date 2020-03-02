@@ -323,8 +323,8 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
                 hsc_r = np.tile(hsc_r, lengths.shape[0])
         if hsc_r is None and reorienter is not None and reorienter.reorient:
             hsc_r = distance_between_homologs(
-                structures=reorienter.init_structures, lengths=lengths, ploidy=ploidy,
-                mixture_coefs=mixture_coefs)
+                structures=reorienter.struct_init, lengths=lengths,
+                ploidy=ploidy, mixture_coefs=mixture_coefs)
 
     # INFER DRAFT STRUCTURES (for estimation of multiscale_variance & hsc_r)
     alpha_ = alpha
@@ -556,8 +556,6 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
         Keys: 'alpha', 'beta', 'hsc_r', 'obj', and 'seed'.
     """
 
-    from .piecewise_whole_genome import piecewise_inference
-
     lengths_full = lengths
     chrom_full = chromosomes
     callback_freq = {'print': print_freq, 'history': history_freq,
@@ -591,7 +589,9 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
             input_weight=input_weight, exclude_zeros=exclude_zeros,
             null=null, mixture_coefs=mixture_coefs, verbose=verbose)
     else:
-        struct_, infer_var = piecewise_inference(
+        from .piecewise_whole_genome import infer_piecewise
+
+        struct_, infer_var = infer_piecewise(
             counts=counts, outdir=outdir, lengths=lengths_subset, ploidy=ploidy,
             chromosomes=chrom_subset, alpha=alpha, seed=seed, normalize=normalize,
             filter_threshold=filter_threshold, alpha_init=alpha_init,

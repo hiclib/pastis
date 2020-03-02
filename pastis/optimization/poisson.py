@@ -151,7 +151,7 @@ def _format_X(X, reorienter=None, mixture_coefs=None):
         mixture_coefs = [1]
 
     if reorienter is not None and reorienter.reorient:
-        reorienter.check_format(X, mixture_coefs)
+        reorienter.check_X(X)
     else:
         try:
             X = X.reshape(-1, 3)
