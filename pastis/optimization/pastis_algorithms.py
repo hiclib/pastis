@@ -280,8 +280,9 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
     counts_raw = check_counts(
         counts_raw, lengths=lengths, ploidy=ploidy, exclude_zeros=exclude_zeros)
     if simple_diploid:
-        counts_raw = ambiguate_counts(
-            counts=counts_raw, lengths=lengths, ploidy=ploidy)
+        counts_raw = [ambiguate_counts(
+            counts=counts_raw, lengths=lengths, ploidy=ploidy,
+            exclude_zeros=exclude_zeros)]
         ploidy = 1
     counts, bias, torm, fullres_torm_for_multiscale = preprocess_counts(
         counts_raw=counts_raw, lengths=lengths, ploidy=ploidy, normalize=normalize,
