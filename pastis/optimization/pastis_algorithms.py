@@ -300,6 +300,11 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
             lengths=lengths, reorienter=reorienter, mixture_coefs=mixture_coefs,
             verbose=verbose, simple_diploid=True)
 
+    # SIMPlE DIPLOID
+    if simple_diploid and struct_true is not None:
+        struct_true = np.mean(
+            [struct_true[:lengths.sum()], struct_true[lengths.sum():]], axis=0)
+
     # INITIALIZATION
     if isinstance(init, str) and init.lower() == 'true':
         if struct_true is None:

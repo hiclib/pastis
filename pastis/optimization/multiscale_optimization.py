@@ -444,7 +444,16 @@ def get_multiscale_variances_from_struct(structures, lengths, multiscale_factor,
     if multiscale_factor == 1:
         return None
 
-    structures = _format_structures(structures, lengths=lengths, ploidy=ploidy,
+    structures = _format_structures(structures, mixture_coefs=mixture_coefs)
+    struct_length = set([s.shape[0] for s in structures])
+    if len(struct_length) > 1:
+        raise ValueError("Structures are of different shapes.")
+    else:
+        struct_length = struct_length.pop()
+    if struct_length / lengths.sum() not in (1, 2):
+        raise ValueError("Structures do not appear to be haploid or diploid.")
+    structures = _format_structures(structures, lengths=lengths,
+                                    ploidy=int(struct_length / lengths.sum()),
                                     mixture_coefs=mixture_coefs)
 
     multiscale_variances = []
