@@ -70,7 +70,7 @@ def _estimate_beta(X, counts, alpha, lengths, bias=None, reorienter=None,
                 K[counts_maps.ambiguity] += _estimate_beta_single(
                     structures_homo, counts_maps, alpha=alpha, lengths=lengths,
                     bias=bias, mixture_coefs=mixture_coefs)
-        K = {k / 2 for k in K}
+        K = {k: v / 2 for k, v in K.items()}
     else:
         for counts_maps in counts:
             K[counts_maps.ambiguity] += _estimate_beta_single(
