@@ -152,7 +152,7 @@ class Constraints(object):
                 if k in self.params and self.params[k] is None:
                     raise ValueError("Lambda for %s is supplied,"
                                      " but constraint is not" % k)
-            elif k in self.params and self.params[k] != params_defaults[k]:
+            elif k in self.params and not np.array_equal(self.params[k], params_defaults[k]):
                 raise ValueError("Constraint for %s is supplied, but lambda is"
                                  " 0" % k)
 
