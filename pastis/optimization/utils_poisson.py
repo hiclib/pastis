@@ -58,6 +58,11 @@ def _output_subdir(outdir, chrom_full=None, chrom_subset=None, null=False,
             outdir = os.path.join(outdir, '.'.join(chrom_subset))
 
     if piecewise_step is not None:
+        if isinstance(piecewise_step, list):
+            if len(piecewise_step) == 1:
+                piecewise_step = piecewise_step[0]
+            else:
+                raise ValueError("`piecewise_step` must be None or int.")
         if piecewise_step == 1:
             outdir = os.path.join(outdir, 'step1_lowres_genome')
         elif piecewise_step == 2:
