@@ -2,15 +2,15 @@ import numpy as np
 from sklearn.utils import check_random_state
 from .multiscale_optimization import increase_struct_res, decrease_lengths_res, decrease_struct_res
 import os
+from .mds import estimate_X
+from .utils_poisson import find_beads_to_remove
+from .utils_poisson import _struct_replace_nan, _format_structures
 
 
 def _initialize_struct_mds(counts, lengths, ploidy, alpha, bias, random_state,
                            multiscale_factor=1, verbose=True):
     """Initialize structure via multi-dimensional scaling of unambig counts.
     """
-
-    from .utils_poisson import find_beads_to_remove
-    from .mds import estimate_X
 
     if verbose:
         print('INITIALIZATION: multi-dimensional scaling', flush=True)
@@ -51,8 +51,6 @@ def _initialize_struct(counts, lengths, ploidy, alpha, bias, random_state,
     """Initialize structure, randomly or via MDS of unambig counts.
     """
 
-    from .utils_poisson import _struct_replace_nan, _format_structures
-
     random_state = check_random_state(random_state)
 
     if mixture_coefs is None:
@@ -62,48 +60,72 @@ def _initialize_struct(counts, lengths, ploidy, alpha, bias, random_state,
         counts = [counts]
     ua_index = [i for i in range(len(counts)) if counts[i].name == 'ua']
 
+    lengths_lowres = decrease_lengths_res(
+        lengths, multiscale_factor=multiscale_factor)
+
     if isinstance(init, np.ndarray) or isinstance(init, list):
         if verbose:
             print('INITIALIZATION: 3D structure', flush=True)
-        structures = _format_structures(init, lengths=lengths, ploidy=ploidy,
-                                        mixture_coefs=mixture_coefs)
+        structures = _format_structures(init, mixture_coefs=mixture_coefs)
     elif isinstance(init, str) and (init.lower() in ("mds", "mds2")) and len(ua_index) != 0:
         struct = _initialize_struct_mds(
-            counts=counts, lengths=lengths, ploidy=ploidy, alpha=alpha,
+            counts=counts, lengths=lengths_lowres, ploidy=ploidy, alpha=alpha,
             bias=bias, random_state=random_state,
             multiscale_factor=multiscale_factor, verbose=verbose)
         structures = [struct] * len(mixture_coefs)
     elif isinstance(init, str) and (init.lower() in ("random", "rand", "mds", "mds2")):
         if verbose:
             print('INITIALIZATION: random points', flush=True)
-        structures = [(1 - 2 * random_state.rand(int(lengths.sum() * ploidy * 3))).reshape(-1, 3) for coef in mixture_coefs]
+        structures = [(1 - 2 * random_state.rand(int(
+            lengths_lowres.sum() * ploidy * 3))).reshape(-1, 3) for coef in mixture_coefs]
     elif isinstance(init, str) and os.path.exists(init):
         if verbose:
             print('INITIALIZATION: 3D structure', flush=True)
-        init = np.loadtxt(init)
-        structures = _format_structures(init, lengths=lengths, ploidy=ploidy,
-                                        mixture_coefs=mixture_coefs)
+        structures = _format_structures(
+            np.loadtxt(init), mixture_coefs=mixture_coefs)
     else:
         raise ValueError("Initialization method not understood.")
 
-    structures = [_struct_replace_nan(
-        struct, lengths, random_state=random_state) for struct in structures]
+    struct_length = set([s.shape[0] for s in structures])
+    if len(struct_length) > 1:
+        raise ValueError("Initial structures are of different shapes")
+    else:
+        struct_length = struct_length.pop()
+    multiscale_factor_init = int(np.ceil(
+        lengths.sum() * ploidy / struct_length))
+    lengths_init = decrease_lengths_res(
+        lengths, multiscale_factor=multiscale_factor_init)
 
-    for struct in structures:
-        if struct.shape[0] < int(lengths.sum() * ploidy):
+    structures = _format_structures(
+        structures, lengths=lengths_init, ploidy=ploidy,
+        mixture_coefs=mixture_coefs)
+    structures = [_struct_replace_nan(
+        struct, lengths_init,
+        random_state=random_state) for struct in structures]
+
+    for i in range(len(structures)):
+        if struct_length < int(lengths_lowres.sum() * ploidy):
+            resize_factor = int(np.ceil(
+                lengths_lowres.sum() * ploidy / struct_length))
             if verbose:
                 print('INITIALIZATION: increasing resolution of structure by'
-                      ' %g' % np.ceil(lengths.sum() * ploidy / struct.shape[0]),
-                      flush=True)
-            struct = increase_struct_res(struct, multiscale_factor=np.ceil(
-                lengths.sum() * ploidy / struct.shape[0]), lengths=lengths)
-        elif struct.shape[0] > int(lengths.sum() * ploidy):
+                      ' %d' % resize_factor, flush=True)
+            structures[i] = increase_struct_res(
+                structures[i], multiscale_factor=resize_factor,
+                lengths=lengths_lowres)
+        elif struct_length > int(lengths_lowres.sum() * ploidy):
+            resize_factor = int(np.ceil(
+                struct_length / lengths_lowres.sum() * ploidy))
             if verbose:
                 print('INITIALIZATION: decreasing resolution of structure by'
-                      ' %g' % np.ceil(lengths.sum() * ploidy / struct.shape[0]),
-                      flush=True)
-            struct = decrease_struct_res(struct, multiscale_factor=np.ceil(
-                lengths.sum() * ploidy / struct.shape[0]), lengths=lengths)
+                      ' %d' % resize_factor, flush=True)
+            structures[i] = decrease_struct_res(
+                structures[i], multiscale_factor=resize_factor,
+                lengths=lengths_lowres)
+
+    structures = _format_structures(
+        structures, lengths=lengths_lowres, ploidy=ploidy,
+        mixture_coefs=mixture_coefs)
 
     return np.concatenate(structures)
 
@@ -150,8 +172,6 @@ def initialize(counts, lengths, init, ploidy, random_state=None, alpha=-3.,
 
     """
 
-    from sklearn.utils import check_random_state
-
     if random_state is None:
         random_state = np.random.RandomState()
     elif isinstance(random_state, int):
@@ -181,7 +201,7 @@ def initialize(counts, lengths, init, ploidy, random_state=None, alpha=-3.,
         return init_reorient
     else:
         struct_init = _initialize_struct(
-            counts=counts, lengths=lengths_lowres, ploidy=ploidy, alpha=alpha,
+            counts=counts, lengths=lengths, ploidy=ploidy, alpha=alpha,
             bias=bias, random_state=random_state, init=init,
             multiscale_factor=multiscale_factor, mixture_coefs=mixture_coefs,
             verbose=verbose)

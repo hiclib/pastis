@@ -73,7 +73,8 @@ def _output_subdir(outdir, chrom_full=None, chrom_subset=None, null=False,
     return outdir
 
 
-def _format_structures(structures, lengths, ploidy, mixture_coefs=None):
+def _format_structures(structures, lengths=None, ploidy=None,
+                       mixture_coefs=None):
     """Reformats and checks shape of structures.
     """
 
@@ -105,12 +106,14 @@ def _format_structures(structures, lengths, ploidy, mixture_coefs=None):
     if len(set([struct.shape[0] for struct in structures])) > 1:
         raise ValueError("Structures are of different shapes.")
 
-    nbeads = lengths.sum() * ploidy
-    for struct in structures:
-        if struct.shape[0] != nbeads:
-            raise ValueError("Structure is of unexpected shape. Expected %d"
-                             "beads, structure is %d by 3."
-                             % (nbeads, struct.shape[0]))
+    if lengths is not None and ploidy is not None:
+        nbeads = lengths.sum() * ploidy
+        for struct in structures:
+            if struct.shape != (nbeads, 3):
+                raise ValueError("Structure is of unexpected shape. Expected"
+                                 " shape of (%d, 3), structure is (%s)."
+                                 % (nbeads,
+                                    ', '.join([str(x) for x in struct.shape])))
 
     return structures
 

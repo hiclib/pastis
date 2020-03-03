@@ -45,7 +45,9 @@ def _infer_draft(counts_raw, lengths, ploidy, simple_diploid_init=None,
     if struct_draft_fullres is None and ((
             multiscale_rounds > 1 and use_multiscale_variance) or alpha is None):
         if verbose:
-            print("Inferring full-res draft structure", flush=True)
+            _print_code_header(
+                "Inferring full-res draft structure",
+                max_length=50, blank_lines=1)
         if outdir is None:
             fullres_outdir = None
         else:
@@ -70,8 +72,9 @@ def _infer_draft(counts_raw, lengths, ploidy, simple_diploid_init=None,
 
     if hsc_lambda > 0 and hsc_r is None:
         if verbose:
-            print("Inferring low-res draft structure for `hsc_r` estimation",
-                  flush=True)
+            _print_code_header(
+                "Inferring low-res draft structure for `hsc_r` estimation",
+                max_length=50, blank_lines=1)
         if ploidy == 1:
             raise ValueError("Can not apply homolog-separating constraint"
                              " to haploid data.")
@@ -440,13 +443,12 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
             if verbose:
                 _print_code_header(
                     'MULTISCALE FACTOR %d' % i, max_length=50, blank_lines=1)
-            if multiscale_factor == 1:
+            if i == 1:
                 multiscale_outdir = outdir
                 final_multiscale_round = True
                 fullres_torm_for_multiscale = None
             else:
-                multiscale_outdir = os.path.join(
-                    outdir, 'multiscale_x%d' % multiscale_factor)
+                multiscale_outdir = os.path.join(outdir, 'multiscale_x%d' % i)
                 final_multiscale_round = False
             struct_, infer_var = infer(
                 counts_raw=counts_raw, outdir=multiscale_outdir,
