@@ -15,7 +15,7 @@ from .multiscale_optimization import decrease_counts_res
 from .multiscale_optimization import _count_fullres_per_lowres_bead
 
 
-def ambiguate_counts(counts, lengths, ploidy, exclude_zeros=None):
+def ambiguate_counts(counts, lengths, ploidy, exclude_zeros=False):
     """Convert diploid counts to ambiguous & aggregate counts across matrices.
 
     If diploid, convert unambiguous and partially ambiguous counts to ambiguous
@@ -65,9 +65,6 @@ def ambiguate_counts(counts, lengths, ploidy, exclude_zeros=None):
             output[~np.isnan(c_ambig)] += c_ambig[~np.isnan(c_ambig)]
 
     output = np.triu(output, 1)
-    if exclude_zeros is None:
-        exclude_zeros = all([isinstance(
-            c, SparseCountsMatrix) or sparse.issparse(c) for c in counts])
     return _check_counts_matrix(
         output, lengths=lengths, ploidy=ploidy, exclude_zeros=exclude_zeros)
 
@@ -116,7 +113,7 @@ def _get_chrom_subset_index(ploidy, lengths_full, chrom_full, chrom_subset):
 
 
 def subset_chrom(ploidy, lengths_full, chrom_full, chrom_subset=None,
-                 counts=None, exclude_zeros=True, struct_true=None):
+                 counts=None, exclude_zeros=False, struct_true=None):
     """Return data for selected chromosomes only.
 
     If `chrom_subset` is None, return original data. Otherwise, only return
@@ -186,7 +183,7 @@ def subset_chrom(ploidy, lengths_full, chrom_full, chrom_subset=None,
         return lengths_subset, chrom_subset, counts, struct_true
 
 
-def _check_counts_matrix(counts, lengths, ploidy, exclude_zeros=True,
+def _check_counts_matrix(counts, lengths, ploidy, exclude_zeros=False,
                          chrom_subset_index=None):
     """Check counts dimensions, reformat, & excise selected chromosomes.
     """
@@ -265,7 +262,7 @@ def _check_counts_matrix(counts, lengths, ploidy, exclude_zeros=True,
     return counts
 
 
-def check_counts(counts, lengths, ploidy, exclude_zeros=True,
+def check_counts(counts, lengths, ploidy, exclude_zeros=False,
                  chrom_subset_index=None):
     """Check counts dimensions and reformat data.
 
@@ -419,7 +416,8 @@ def _prep_counts(counts_list, lengths, ploidy=1, multiscale_factor=1,
             print("FILTERING LOW COUNTS: manually filtering all counts together"
                   " by %g" % filter_threshold, flush=True)
         all_counts_ambiguated = ambiguate_counts(
-            list(counts_dict.values()), lengths=lengths_lowres, ploidy=ploidy)
+            list(counts_dict.values()), lengths=lengths_lowres, ploidy=ploidy,
+            exclude_zeros=True)
         initial_zero_beads = find_beads_to_remove(
             all_counts_ambiguated, lengths_lowres.sum()).sum()
         all_counts_filtered = filter_low_counts(
@@ -492,7 +490,7 @@ def _prep_counts(counts_list, lengths, ploidy=1, multiscale_factor=1,
         bias = ICE_normalization(
             ambiguate_counts(
                 list(counts_dict.values()), lengths=lengths_lowres,
-                ploidy=ploidy),
+                ploidy=ploidy, exclude_zeros=True),
             max_iter=300, output_bias=True)[1].flatten()
         # In each counts matrix, zero out counts for which bias is NaN
         for counts_type, counts in counts_dict.items():
