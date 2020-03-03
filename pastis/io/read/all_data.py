@@ -63,7 +63,7 @@ def _get_counts(counts, lengths):
 
 
 def load_data(counts, lengths_full, ploidy, chrom_full=None,
-              chrom_subset=None, exclude_zeros=True, struct_true=None):
+              chrom_subset=None, exclude_zeros=False, struct_true=None):
     """Load all input data from files, and/or reformat data objects.
 
     If files are provided, load data from files. Also reformats data objects.
