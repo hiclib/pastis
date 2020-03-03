@@ -41,6 +41,11 @@ parser.add_argument("--alpha_init", type=float, default=-3.,
 parser.add_argument("--max_alpha_loop", type=int, default=20,
                     help="For PM2, Number of times alpha and structure are"
                          " inferred.")
+parser.add_argument("--beta", nargs="+", default=None, type=float,
+                    help="Scaling parameter that determines the size of the"
+                         " structure, relative to each counts matrix. There"
+                         " should be one beta per counts matrix. If None, the"
+                         " optimal beta will be estimated.")
 parser.add_argument("--multiscale_rounds", default=1, type=int,
                     help="The number of resolutions at which a structure"
                          " should be inferred during multiscale optimization."
