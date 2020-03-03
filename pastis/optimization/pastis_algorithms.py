@@ -44,6 +44,8 @@ def _infer_draft(counts_raw, lengths, ploidy, simple_diploid_init=None,
     beta_ = beta
     if struct_draft_fullres is None and ((
             multiscale_rounds > 1 and use_multiscale_variance) or alpha is None):
+        if verbose:
+            print("Inferring full-res draft structure", flush=True)
         if outdir is None:
             fullres_outdir = None
         else:
@@ -67,6 +69,9 @@ def _infer_draft(counts_raw, lengths, ploidy, simple_diploid_init=None,
         beta_ = infer_var_fullres['beta']
 
     if hsc_lambda > 0 and hsc_r is None:
+        if verbose:
+            print("Inferring low-res draft structure for `hsc_r` estimation",
+                  flush=True)
         if ploidy == 1:
             raise ValueError("Can not apply homolog-separating constraint"
                              " to haploid data.")
@@ -590,10 +595,10 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
         from .piecewise_whole_genome import infer_piecewise
 
         struct_, infer_var = infer_piecewise(
-            counts=counts, outdir=outdir, lengths=lengths_subset, ploidy=ploidy,
-            chromosomes=chrom_subset, alpha=alpha, seed=seed, normalize=normalize,
-            filter_threshold=filter_threshold, alpha_init=alpha_init,
-            max_alpha_loop=max_alpha_loop, beta=beta,
+            counts_raw=counts, outdir=outdir, lengths=lengths_subset,
+            ploidy=ploidy, chromosomes=chrom_subset, alpha=alpha, seed=seed,
+            normalize=normalize, filter_threshold=filter_threshold,
+            alpha_init=alpha_init, max_alpha_loop=max_alpha_loop, beta=beta,
             multiscale_rounds=multiscale_rounds,
             use_multiscale_variance=use_multiscale_variance, max_iter=max_iter,
             factr=factr, pgtol=pgtol, alpha_factr=alpha_factr,
