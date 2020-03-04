@@ -410,7 +410,8 @@ def _count_fullres_per_lowres_bead(multiscale_factor, lengths, ploidy,
 
 
 def get_multiscale_variances_from_struct(structures, lengths, multiscale_factor,
-                                         ploidy, mixture_coefs=None):
+                                         ploidy, mixture_coefs=None,
+                                         verbose=True):
     """Compute multiscale variances from full-res structure.
 
     Generates multiscale variances at the specified resolution from the
@@ -461,8 +462,15 @@ def get_multiscale_variances_from_struct(structures, lengths, multiscale_factor,
         struct_grouped = _group_highres_struct(
             struct, multiscale_factor, lengths)
         multiscale_variances.append(_var3d(struct_grouped))
+    multiscale_variances = np.mean(multiscale_variances, axis=0)
 
-    return np.mean(multiscale_variances, axis=0)
+    multiscale_variances_median = np.median(multiscale_variances)
+
+    if verbose:
+        print("MULTISCALE VARIANCE: %.3g" % multiscale_variances_median,
+              flush=True)
+
+    return multiscale_variances_median
 
 
 def _var3d(struct_grouped):
