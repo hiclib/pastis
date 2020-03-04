@@ -381,9 +381,12 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
 
         if outdir is not None and struct_true is not None and not null and (
                 reorienter is None or not reorienter.reorient):
+            struct_true_lowres = decrease_struct_res(
+                struct_true, multiscale_factor=multiscale_factor,
+                lengths=lengths)
             _, obj_true, _, _ = objective(
-                struct_true, counts=counts, alpha=alpha_, lengths=lengths,
-                bias=bias, constraints=constraints,
+                struct_true_lowres, counts=counts, alpha=alpha_,
+                lengths=lengths, bias=bias, constraints=constraints,
                 multiscale_factor=multiscale_factor,
                 multiscale_variances=multiscale_variances,
                 mixture_coefs=mixture_coefs, return_extras=True)
