@@ -531,7 +531,8 @@ def _format_counts(counts, lengths, ploidy, beta=None, input_weight=None,
         counts, lengths=lengths_lowres, ploidy=ploidy, exclude_zeros=exclude_zeros)
 
     if beta is not None:
-        beta = (beta if isinstance(beta, list) else [beta])
+        if not (isinstance(beta, list) or isinstance(beta, np.ndarray)):
+            beta = [beta]
         if len(beta) != len(counts):
             raise ValueError("beta needs to contain as many scaling factors"
                              " as there are datasets (%d). It is of length (%d)"
@@ -552,8 +553,8 @@ def _format_counts(counts, lengths, ploidy, beta=None, input_weight=None,
             beta.append(beta_maps)
 
     if input_weight is not None:
-        input_weight = (input_weight if isinstance(
-            input_weight, list) else [input_weight])
+        if not (isinstance(input_weight, list) or isinstance(input_weight, np.ndarray)):
+            input_weight = [input_weight]
         if len(input_weight) != len(counts):
             raise ValueError("input_weights needs to contain as many weighting"
                              " factors as there are datasets (%d). It is of"
@@ -563,6 +564,7 @@ def _format_counts(counts, lengths, ploidy, beta=None, input_weight=None,
             input_weight *= len(input_weight) / input_weight.sum()
     else:
         input_weight = [1.] * len(counts)
+
     if fullres_torm is not None:
         fullres_torm = (fullres_torm if isinstance(
             fullres_torm, list) else [fullres_torm])
