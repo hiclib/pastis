@@ -40,6 +40,9 @@ def _infer_draft(counts_raw, lengths, ploidy, simple_diploid_init=None,
     """Infer draft 3D structures with PASTIS via Poisson model.
     """
 
+    if not (isinstance(beta, list) or isinstance(beta, np.ndarray)):
+        beta = [beta]
+
     alpha_ = alpha
     beta_ = beta
     if struct_draft_fullres is None and ((
@@ -56,7 +59,7 @@ def _infer_draft(counts_raw, lengths, ploidy, simple_diploid_init=None,
             counts_raw=counts_raw, outdir=fullres_outdir, lengths=lengths,
             ploidy=ploidy, alpha=alpha, seed=seed, normalize=normalize,
             filter_threshold=filter_threshold, alpha_init=alpha_init,
-            max_alpha_loop=max_alpha_loop, beta=beta, init=init,
+            max_alpha_loop=max_alpha_loop, beta=sum(beta), init=init,
             max_iter=max_iter, factr=factr, pgtol=pgtol,
             alpha_factr=alpha_factr, draft=True, simple_diploid=(ploidy == 2),
             simple_diploid_init=simple_diploid_init,
@@ -68,7 +71,7 @@ def _infer_draft(counts_raw, lengths, ploidy, simple_diploid_init=None,
         if not infer_var_fullres['converged']:
             return struct_draft_fullres, alpha_, beta_, hsc_r, False
         alpha_ = infer_var_fullres['alpha']
-        beta_ = infer_var_fullres['beta']
+        beta_ = list(infer_var_fullres['beta'] * np.array(beta) / sum(beta))
 
     if hsc_lambda > 0 and hsc_r is None:
         if verbose:
@@ -92,6 +95,7 @@ def _infer_draft(counts_raw, lengths, ploidy, simple_diploid_init=None,
             counts_for_lowres = counts_raw[ua_index[0]]
             simple_diploid_for_lowres = False
             fullres_torm = fullres_torm[ua_index[0]]
+            beta_for_lowres = beta[ua_index[0]]
         elif len(ua_index) > 1:
             raise ValueError("Only input one matrix of unambiguous counts."
                              " Please pool unambiguos counts before"
@@ -102,13 +106,14 @@ def _infer_draft(counts_raw, lengths, ploidy, simple_diploid_init=None,
                                  " estimate hsc_r from ambiguous data.")
             counts_for_lowres = counts_raw
             simple_diploid_for_lowres = True
+            beta_for_lowres = beta
         multiscale_factor_for_lowres = _choose_max_multiscale_factor(
             lengths=lengths, min_beads=hsc_min_beads)
         struct_draft_lowres, infer_var_lowres = infer(
             counts_raw=counts_for_lowres, outdir=lowres_outdir,
             lengths=lengths, ploidy=ploidy, alpha=alpha_,
             seed=seed, normalize=normalize,
-            filter_threshold=filter_threshold, beta=beta_,
+            filter_threshold=filter_threshold, beta=beta_for_lowres,
             multiscale_factor=multiscale_factor_for_lowres,
             use_multiscale_variance=use_multiscale_variance,
             init=init, max_iter=max_iter, factr=factr, pgtol=pgtol,
@@ -290,7 +295,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         exclude_zeros=exclude_zeros, beta=beta, input_weight=input_weight,
         verbose=verbose, fullres_torm=fullres_torm, mixture_coefs=mixture_coefs)
     if simple_diploid:
-        if simple_diploid_init is None:
+        '''if simple_diploid_init is None:
             raise ValueError("Must provide simple_diploid_init.")
         simple_diploid_init = decrease_struct_res(
             simple_diploid_init, multiscale_factor=multiscale_factor,
@@ -298,7 +303,8 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         new_beta = _estimate_beta(
             simple_diploid_init, counts=counts, alpha=alpha, bias=bias,
             lengths=lengths, reorienter=reorienter, mixture_coefs=mixture_coefs,
-            verbose=verbose, simple_diploid=True)
+            verbose=verbose, simple_diploid=True)'''
+        new_beta = {c.ambiguity: c.beta * 2 for c in counts}
         counts = _update_betas_in_counts_matrices(counts=counts, beta=new_beta)
 
     # SIMPlE DIPLOID
@@ -321,10 +327,17 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
 
     # MULTISCALE VARIANCES
     if multiscale_factor != 1 and use_multiscale_variance and struct_draft_fullres is not None:
-        multiscale_variances = np.median(get_multiscale_variances_from_struct(
+        multiscale_variances = get_multiscale_variances_from_struct(
             struct_draft_fullres, lengths=lengths,
             multiscale_factor=multiscale_factor, ploidy=ploidy,
-            mixture_coefs=mixture_coefs))
+            mixture_coefs=mixture_coefs, verbose=verbose)
+        if struct_true is not None and verbose:
+            multiscale_variances_true = get_multiscale_variances_from_struct(
+                struct_true, lengths=lengths,
+                multiscale_factor=multiscale_factor, ploidy=ploidy,
+                mixture_coefs=mixture_coefs, verbose=False)
+            print("True multiscale variance: %.3g" % multiscale_variances_true,
+                  flush=True)
     else:
         multiscale_variances = None
 
