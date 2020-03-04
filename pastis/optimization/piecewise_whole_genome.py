@@ -516,6 +516,10 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
             index, _ = _get_chrom_subset_index(
                 ploidy=ploidy, lengths_full=lengths, chrom_full=chromosomes,
                 chrom_subset=chrom)
+            if ploidy == 2:
+                draft_index = index[:lengths.sum()]
+            else:
+                draft_index = index
 
             struct_, infer_var = infer(
                 counts_raw=chrom_counts,
@@ -529,7 +533,7 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
                 alpha_factr=alpha_factr, bcc_lambda=bcc_lambda,
                 hsc_lambda=hsc_lambda, hsc_r=hsc_r_chrom,
                 fullres_torm=[x[index] for x in fullres_torm_for_multiscale],
-                struct_draft_fullres=struct_draft_fullres[index],
+                struct_draft_fullres=struct_draft_fullres[draft_index],
                 callback_function=callback_function,
                 callback_freq=callback_freq, alpha_true=alpha_true,
                 struct_true=chrom_struct_true, input_weight=input_weight,
