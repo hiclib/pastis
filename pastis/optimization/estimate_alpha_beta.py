@@ -89,14 +89,20 @@ def _estimate_beta(X, counts, alpha, lengths, bias=None, reorienter=None,
             raise ValueError("Beta inferred for %s counts is zero."
                              % ambiguity)
 
-    counts = _update_betas_in_counts_matrices(counts=counts, beta=beta)
+    if simple_diploid:
+        orig_beta = {counts_maps.ambiguity: counts_maps.beta for counts_maps in counts}
+        full_diploid_beta = _estimate_beta(
+            X, counts=counts, alpha=alpha, lengths=lengths, bias=bias,
+            reorienter=reorienter, mixture_coefs=mixture_coefs)
+        for k in beta.keys():
+            beta[k] = orig_beta[k] * beta[k] / full_diploid_beta[k]
 
     if verbose:
         print('INFERRED BETA: %s' % ', '.join(['%s=%.2g' %
-              (counts_maps.name, counts_maps.beta) for counts_maps in counts]),
+              (k, v) for k, v in beta.items()]),
               flush=True)
 
-    return counts
+    return beta
 
 
 def objective_alpha(alpha, counts, X, lengths, bias=None, constraints=None,
@@ -154,8 +160,10 @@ def objective_wrapper_alpha(alpha, counts, X, lengths, bias=None,
     """Objective function wrapper to match scipy.optimize's interface.
     """
 
-    counts = _estimate_beta(X, counts, alpha=alpha, lengths=lengths, bias=bias,
-                            reorienter=reorienter, mixture_coefs=mixture_coefs)
+    new_beta = _estimate_beta(
+        X, counts, alpha=alpha, lengths=lengths, bias=bias,
+        reorienter=reorienter, mixture_coefs=mixture_coefs)
+    counts = _update_betas_in_counts_matrices(counts=counts, beta=new_beta)
 
     X, mixture_coefs = _format_X(X, reorienter, mixture_coefs)
 
@@ -178,8 +186,10 @@ def fprime_wrapper_alpha(alpha, counts, X, lengths, bias=None, constraints=None,
     """Gradient function wrapper to match scipy.optimize's interface.
     """
 
-    counts = _estimate_beta(X, counts, alpha=alpha, lengths=lengths, bias=bias,
-                            reorienter=reorienter, mixture_coefs=mixture_coefs)
+    new_beta = _estimate_beta(
+        X, counts, alpha=alpha, lengths=lengths, bias=bias,
+        reorienter=reorienter, mixture_coefs=mixture_coefs)
+    counts = _update_betas_in_counts_matrices(counts=counts, beta=new_beta)
 
     X, mixture_coefs = _format_X(X, reorienter, mixture_coefs)
 

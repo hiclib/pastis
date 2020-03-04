@@ -295,10 +295,11 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         simple_diploid_init = decrease_struct_res(
             simple_diploid_init, multiscale_factor=multiscale_factor,
             lengths=lengths)
-        counts = _estimate_beta(
+        new_beta = _estimate_beta(
             simple_diploid_init, counts=counts, alpha=alpha, bias=bias,
             lengths=lengths, reorienter=reorienter, mixture_coefs=mixture_coefs,
             verbose=verbose, simple_diploid=True)
+        counts = _update_betas_in_counts_matrices(counts=counts, beta=new_beta)
 
     # SIMPlE DIPLOID
     if simple_diploid and struct_true is not None:

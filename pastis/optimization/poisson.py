@@ -6,10 +6,15 @@ if sys.version_info[0] < 3:
 
 from scipy import optimize
 import warnings
+from timeit import default_timer as timer
+from datetime import timedelta
 import autograd.numpy as ag_np
 from autograd.builtins import SequenceBox
 from autograd import grad
 from .multiscale_optimization import decrease_lengths_res
+from .counts import _update_betas_in_counts_matrices, NullCountsMatrix
+from .constraints import Constraints
+from .callbacks import Callback
 
 
 def _poisson_obj_single(structures, counts, alpha, lengths, bias=None,
@@ -409,8 +414,7 @@ class PastisPM(object):
                  max_iter=10000000000, factr=10000000., pgtol=1e-05,
                  alpha_factr=1000000000000., reorienter=None, null=False,
                  mixture_coefs=None, verbose=True):
-        from .constraints import Constraints
-        from .callbacks import Callback
+
         from .piecewise_whole_genome import ChromReorienter
 
         print('%s\n%s 3D STRUCTURAL INFERENCE' %
@@ -466,11 +470,13 @@ class PastisPM(object):
 
         from .estimate_alpha_beta import _estimate_beta
 
-        self.counts = _estimate_beta(
+        new_beta = _estimate_beta(
             self.X_.flatten(), self.counts, alpha=self.alpha_, bias=self.bias,
             lengths=self.lengths, mixture_coefs=self.mixture_coefs,
             reorienter=self.reorienter, verbose=verbose)
-        return [c.beta for c in self.counts if c.sum() != 0]
+        self.counts = _update_betas_in_counts_matrices(
+            counts=self.counts, beta=new_beta)
+        return new_beta.values()
 
     def _fit_structure(self, alpha_loop=None):
         """Fit structure to counts data, given current alpha.
@@ -540,10 +546,6 @@ class PastisPM(object):
         -------
         self : returns an instance of self.
         """
-
-        from timeit import default_timer as timer
-        from datetime import timedelta
-        from .counts import NullCountsMatrix
 
         if self.null:
             print('GENERATING NULL STRUCTURE', flush=True)

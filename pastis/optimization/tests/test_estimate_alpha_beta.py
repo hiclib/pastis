@@ -35,9 +35,9 @@ def test_estimate_alpha_beta_haploid():
     alpha, obj, converged, _ = estimate_alpha_beta.estimate_alpha(
         X=X_true, counts=counts, alpha_init=alpha_true, lengths=lengths)
 
-    counts_updated = estimate_alpha_beta._estimate_beta(
-        X=X_true, counts=counts, alpha=alpha, lengths=lengths, verbose=False)
-    beta = [c.beta for c in counts_updated if c.sum() != 0][0]
+    beta = list(estimate_alpha_beta._estimate_beta(
+        X=X_true, counts=counts, alpha=alpha, lengths=lengths,
+        verbose=False).values())[0]
 
     assert converged
     assert obj < -1e4
@@ -71,10 +71,9 @@ def test_estimate_alpha_beta_haploid_biased():
         X=X_true, counts=counts, alpha_init=alpha_true, lengths=lengths,
         bias=bias)
 
-    counts_updated = estimate_alpha_beta._estimate_beta(
+    beta = list(estimate_alpha_beta._estimate_beta(
         X=X_true, counts=counts, alpha=alpha, lengths=lengths, bias=bias,
-        verbose=False)
-    beta = [c.beta for c in counts_updated if c.sum() != 0][0]
+        verbose=False).values())[0]
 
     assert converged
     assert obj < -1e3
@@ -104,9 +103,9 @@ def test_estimate_alpha_beta_diploid_unambig():
     alpha, obj, converged, _ = estimate_alpha_beta.estimate_alpha(
         X=X_true, counts=counts, alpha_init=alpha_true, lengths=lengths)
 
-    counts_updated = estimate_alpha_beta._estimate_beta(
-        X=X_true, counts=counts, alpha=alpha, lengths=lengths, verbose=False)
-    beta = [c.beta for c in counts_updated if c.sum() != 0][0]
+    beta = list(estimate_alpha_beta._estimate_beta(
+        X=X_true, counts=counts, alpha=alpha, lengths=lengths,
+        verbose=False).values())[0]
 
     assert converged
     assert obj < -1e4
@@ -140,10 +139,9 @@ def test_estimate_alpha_beta_diploid_unambig_biased():
         X=X_true, counts=counts, alpha_init=alpha_true, lengths=lengths,
         bias=bias)
 
-    counts_updated = estimate_alpha_beta._estimate_beta(
+    beta = list(estimate_alpha_beta._estimate_beta(
         X=X_true, counts=counts, alpha=alpha, lengths=lengths, bias=bias,
-        verbose=False)
-    beta = [c.beta for c in counts_updated if c.sum() != 0][0]
+        verbose=False).values())[0]
 
     #assert converged
     assert obj < -1e4
@@ -174,9 +172,9 @@ def test_estimate_alpha_beta_diploid_ambig():
     alpha, obj, converged, _ = estimate_alpha_beta.estimate_alpha(
         X=X_true, counts=counts, alpha_init=alpha_true, lengths=lengths)
 
-    counts_updated = estimate_alpha_beta._estimate_beta(
-        X=X_true, counts=counts, alpha=alpha, lengths=lengths, verbose=False)
-    beta = [c.beta for c in counts_updated if c.sum() != 0][0]
+    beta = list(estimate_alpha_beta._estimate_beta(
+        X=X_true, counts=counts, alpha=alpha, lengths=lengths,
+        verbose=False).values())[0]
 
     assert converged
     assert obj < -1e4
@@ -211,10 +209,9 @@ def test_estimate_alpha_beta_diploid_ambig_biased():
         X=X_true, counts=counts, alpha_init=alpha_true, lengths=lengths,
         bias=bias)
 
-    counts_updated = estimate_alpha_beta._estimate_beta(
+    beta = list(estimate_alpha_beta._estimate_beta(
         X=X_true, counts=counts, alpha=alpha, lengths=lengths, bias=bias,
-        verbose=False)
-    beta = [c.beta for c in counts_updated if c.sum() != 0][0]
+        verbose=False).values())[0]
 
     assert converged
     assert obj < -1e4
@@ -246,9 +243,9 @@ def test_estimate_alpha_beta_diploid_partially_ambig():
     alpha, obj, converged, _ = estimate_alpha_beta.estimate_alpha(
         X=X_true, counts=counts, alpha_init=alpha_true, lengths=lengths)
 
-    counts_updated = estimate_alpha_beta._estimate_beta(
-        X=X_true, counts=counts, alpha=alpha, lengths=lengths, verbose=False)
-    beta = [c.beta for c in counts_updated if c.sum() != 0][0]
+    beta = list(estimate_alpha_beta._estimate_beta(
+        X=X_true, counts=counts, alpha=alpha, lengths=lengths,
+        verbose=False).values())[0]
 
     assert converged
     assert obj < -1e4
@@ -285,10 +282,9 @@ def test_estimate_alpha_beta_diploid_partially_ambig_biased():
         X=X_true, counts=counts, alpha_init=alpha_true, lengths=lengths,
         bias=bias)
 
-    counts_updated = estimate_alpha_beta._estimate_beta(
+    beta = list(estimate_alpha_beta._estimate_beta(
         X=X_true, counts=counts, alpha=alpha, lengths=lengths, bias=bias,
-        verbose=False)
-    beta = [c.beta for c in counts_updated if c.sum() != 0][0]
+        verbose=False).values())[0]
 
     assert converged
     assert obj < -1e4
