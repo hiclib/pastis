@@ -5,7 +5,7 @@ from autograd import grad
 from autograd.builtins import SequenceBox
 from sklearn.utils import check_random_state
 from .poisson import _format_X, objective
-from .counts import _update_betas_in_counts_matrices
+from .counts import _update_betas_in_counts_matrices, _format_counts
 
 
 def _estimate_beta_single(structures, counts, alpha, lengths, bias=None,
@@ -49,18 +49,18 @@ def _estimate_beta(X, counts, alpha, lengths, bias=None, reorienter=None,
     # Check format of input
     counts = (counts if isinstance(counts, list) else [counts])
     if lengths is None:
-        lengths = np.array([min([min(counts_maps.shape) for counts_maps in counts])])
+        lengths = np.array([min([min(c.shape) for c in counts])])
     lengths = np.array(lengths)
     if bias is None:
-        bias = np.ones((min([min(counts_maps.shape) for counts_maps in counts]),))
+        bias = np.ones((min([min(c.shape) for c in counts]),))
     if not (isinstance(structures, list) or isinstance(structures, SequenceBox)):
         structures = [structures]
     if mixture_coefs is None:
         mixture_coefs = [1.] * len(structures)
 
     # Estimate beta for each type of counts (ambig, pa, ua)
-    counts_sum = {counts_maps.ambiguity: counts_maps.input_sum for counts_maps in counts}
-    K = {counts_maps.ambiguity: 0. for counts_maps in counts}
+    counts_sum = {c.ambiguity: c.input_sum for c in counts}
+    K = {c.ambiguity: 0. for c in counts}
 
     if simple_diploid:
         structures_homo1 = [s[:lengths.sum()] for s in structures]
@@ -70,12 +70,15 @@ def _estimate_beta(X, counts, alpha, lengths, bias=None, reorienter=None,
                 K[counts_maps.ambiguity] += _estimate_beta_single(
                     structures_homo, counts_maps, alpha=alpha, lengths=lengths,
                     bias=bias, mixture_coefs=mixture_coefs)
+        print('simple1', K)
         K = {k: v / 2 for k, v in K.items()}
+        print('simple2', K)
     else:
         for counts_maps in counts:
             K[counts_maps.ambiguity] += _estimate_beta_single(
                 structures, counts_maps, alpha=alpha, lengths=lengths,
                 bias=bias, mixture_coefs=mixture_coefs)
+        print('full', K)
 
     beta = {k: counts_sum[k] / K[k] for k in counts_sum.keys()}
     for ambiguity, beta_maps in beta.items():
@@ -90,12 +93,19 @@ def _estimate_beta(X, counts, alpha, lengths, bias=None, reorienter=None,
                              % ambiguity)
 
     if simple_diploid:
-        orig_beta = {counts_maps.ambiguity: counts_maps.beta for counts_maps in counts}
+        orig_beta = {c.ambiguity: c.beta for c in counts}
+        counts_as_ambig = _format_counts(
+            counts=[c.tocoo().astype(float) for c in counts if c.sum() != 0],
+            lengths=lengths, ploidy=2,
+            exclude_zeros=not any([c.sum() == 0 for c in counts]))
         full_diploid_beta = _estimate_beta(
-            X, counts=counts, alpha=alpha, lengths=lengths, bias=bias,
+            X, counts=counts_as_ambig, alpha=alpha, lengths=lengths, bias=bias,
             reorienter=reorienter, mixture_coefs=mixture_coefs)
-        for k in beta.keys():
-            beta[k] = orig_beta[k] * beta[k] / full_diploid_beta[k]
+        for k, orig_b, simple_b, full_b in zip(beta.keys(), orig_beta.values(),
+                                               beta.values(),
+                                               full_diploid_beta.values()):
+            print(orig_b, simple_b, full_b, orig_b * simple_b / full_b)
+            beta[k] = orig_b * simple_b / full_b
 
     if verbose:
         print('INFERRED BETA: %s' % ', '.join(['%s=%.2g' %
