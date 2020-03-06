@@ -13,11 +13,11 @@ from .utils_poisson import _print_code_header, _load_infer_var
 from .utils_poisson import _output_subdir
 from .counts import preprocess_counts, ambiguate_counts
 from .counts import _update_betas_in_counts_matrices, check_counts
+from .counts import _check_counts_matrix
 from .initialization import initialize
 from .callbacks import Callback
 from .constraints import Constraints, distance_between_homologs
 from .poisson import PastisPM
-from .estimate_alpha_beta import _estimate_beta
 from .multiscale_optimization import get_multiscale_variances_from_struct
 from .multiscale_optimization import _choose_max_multiscale_factor
 from .multiscale_optimization import decrease_lengths_res, decrease_struct_res
@@ -25,23 +25,70 @@ from ..io.read import load_data
 from .poisson import objective
 
 
-def _infer_draft(counts_raw, lengths, ploidy, simple_diploid_init=None,
-                 outdir=None, alpha=None, seed=0, normalize=True,
-                 filter_threshold=0.04, alpha_init=-3., max_alpha_loop=20,
-                 beta=None, multiscale_rounds=1, use_multiscale_variance=True,
-                 init='mds', max_iter=10000000000,
+def _simple_diploid_beta_adjustment(counts, lengths_lowres,
+                                    exclude_zeros=False):
+    """Calculate how much to multiply beta by for simple diploid.
+    """
+
+    nonzero_counts = [c for c in counts if c.sum() != 0]
+    if len(nonzero_counts) != 1:
+        raise ValueError(
+            "Must input one nonzero counts matrix for simple_diploid.")
+    counts_maps = _check_counts_matrix(
+        nonzero_counts[0].toarray().astype(float), lengths=lengths_lowres,
+        ploidy=1, exclude_zeros=exclude_zeros)
+    if counts_maps.shape != (lengths_lowres.sum(), lengths_lowres.sum()):
+        raise ValueError("Counts matrix must be ambigous for simple_diploid.")
+
+    if len(lengths_lowres) == 1:
+        return 2.
+
+    tmp = counts_maps / 4
+    inter = tmp.copy()
+    intra = np.full_like(tmp, np.nan)
+    begin = end = 0
+    for l in lengths_lowres:
+        end += l
+        inter[begin:end, begin:end] = np.nan
+        intra[begin:end, begin:end] = tmp[begin:end, begin:end]
+        begin = end
+
+    perc_inter = np.nanmean(inter) / np.nanmean(intra)
+    inter *= 4
+    intra *= 2 * (1 + perc_inter)
+    simple_diploid_tmp = np.nansum([inter, intra], axis=0)
+    simple_diploid_tmp[np.isnan(counts_maps)] = np.nan
+
+    beta_simple_diploid = np.nanmean(simple_diploid_tmp)
+    beta_ambig = np.nanmean(tmp)
+
+    return beta_simple_diploid / beta_ambig
+
+
+def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
+                 normalize=True, filter_threshold=0.04, alpha_init=-3.,
+                 max_alpha_loop=20, beta=None, multiscale_rounds=1,
+                 use_multiscale_variance=True, init='mds', max_iter=10000000000,
                  factr=10000000., pgtol=1e-05, alpha_factr=1000000000000.,
                  bcc_lambda=0., hsc_lambda=0., hsc_r=None, hsc_min_beads=5,
-                 fullres_torm=None, struct_draft_fullres=None,
-                 callback_freq=None, callback_function=None, reorienter=None,
-                 alpha_true=None, struct_true=None, input_weight=None,
-                 exclude_zeros=False, null=False, mixture_coefs=None,
-                 verbose=True):
+                 struct_draft_fullres=None, callback_freq=None,
+                 callback_function=None, reorienter=None, alpha_true=None,
+                 struct_true=None, input_weight=None, exclude_zeros=False,
+                 null=False, mixture_coefs=None, verbose=True):
     """Infer draft 3D structures with PASTIS via Poisson model.
     """
 
-    if not (isinstance(beta, list) or isinstance(beta, np.ndarray)):
-        beta = [beta]
+    if verbose:
+        _print_code_header(
+            'INFERRING DRAFT STRUCTURES', max_length=80, blank_lines=2)
+
+    counts, _, _, fullres_torm = preprocess_counts(
+        counts_raw=counts_raw, lengths=lengths, ploidy=ploidy,
+        normalize=normalize, filter_threshold=filter_threshold,
+        multiscale_factor=1, exclude_zeros=exclude_zeros, beta=beta,
+        input_weight=input_weight, verbose=False,
+        mixture_coefs=mixture_coefs)
+    beta = [c.beta for c in counts if c.sum() != 0]
 
     alpha_ = alpha
     beta_ = beta
@@ -59,10 +106,9 @@ def _infer_draft(counts_raw, lengths, ploidy, simple_diploid_init=None,
             counts_raw=counts_raw, outdir=fullres_outdir, lengths=lengths,
             ploidy=ploidy, alpha=alpha, seed=seed, normalize=normalize,
             filter_threshold=filter_threshold, alpha_init=alpha_init,
-            max_alpha_loop=max_alpha_loop, beta=sum(beta), init=init,
+            max_alpha_loop=max_alpha_loop, beta=beta, init=init,
             max_iter=max_iter, factr=factr, pgtol=pgtol,
             alpha_factr=alpha_factr, draft=True, simple_diploid=(ploidy == 2),
-            simple_diploid_init=simple_diploid_init,
             callback_function=callback_function, callback_freq=callback_freq,
             reorienter=reorienter, alpha_true=alpha_true,
             struct_true=struct_true, input_weight=input_weight,
@@ -71,12 +117,18 @@ def _infer_draft(counts_raw, lengths, ploidy, simple_diploid_init=None,
         if not infer_var_fullres['converged']:
             return struct_draft_fullres, alpha_, beta_, hsc_r, False
         alpha_ = infer_var_fullres['alpha']
-        beta_ = list(infer_var_fullres['beta'] * np.array(beta) / sum(beta))
+        beta_adjust = _simple_diploid_beta_adjustment(
+            counts, lengths_lowres=lengths, exclude_zeros=exclude_zeros)
+        beta_ = list(infer_var_fullres['beta'] * np.array(
+            beta) / sum(beta) / beta_adjust)
 
     if hsc_lambda > 0 and hsc_r is None:
+        multiscale_factor_for_lowres = _choose_max_multiscale_factor(
+            lengths=lengths, min_beads=hsc_min_beads)
         if verbose:
             _print_code_header(
-                "Inferring low-res draft structure for `hsc_r` estimation",
+                "Inferring low-res draft structure for `hsc_r` estimation"
+                " (%dx)" % multiscale_factor_for_lowres,
                 max_length=50, blank_lines=1)
         if ploidy == 1:
             raise ValueError("Can not apply homolog-separating constraint"
@@ -107,8 +159,6 @@ def _infer_draft(counts_raw, lengths, ploidy, simple_diploid_init=None,
             counts_for_lowres = counts_raw
             simple_diploid_for_lowres = True
             beta_for_lowres = beta
-        multiscale_factor_for_lowres = _choose_max_multiscale_factor(
-            lengths=lengths, min_beads=hsc_min_beads)
         struct_draft_lowres, infer_var_lowres = infer(
             counts_raw=counts_for_lowres, outdir=lowres_outdir,
             lengths=lengths, ploidy=ploidy, alpha=alpha_,
@@ -120,7 +170,6 @@ def _infer_draft(counts_raw, lengths, ploidy, simple_diploid_init=None,
             fullres_torm=fullres_torm,
             struct_draft_fullres=struct_draft_fullres, draft=True,
             simple_diploid=simple_diploid_for_lowres,
-            simple_diploid_init=simple_diploid_init,
             callback_function=callback_function,
             callback_freq=callback_freq,
             reorienter=reorienter, alpha_true=alpha_true,
@@ -282,13 +331,15 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
     random_state = check_random_state(random_state)
 
     # PREPARE COUNTS OBJECTS
-    counts_raw = check_counts(
-        counts_raw, lengths=lengths, ploidy=ploidy, exclude_zeros=exclude_zeros)
     if simple_diploid:
+        counts_raw = check_counts(
+            counts_raw, lengths=lengths, ploidy=ploidy,
+            exclude_zeros=exclude_zeros)
         counts_raw = [ambiguate_counts(
             counts=counts_raw, lengths=lengths, ploidy=ploidy,
             exclude_zeros=exclude_zeros)]
         ploidy = 1
+        beta = sum(beta)
     counts, bias, torm, fullres_torm_for_multiscale = preprocess_counts(
         counts_raw=counts_raw, lengths=lengths, ploidy=ploidy, normalize=normalize,
         filter_threshold=filter_threshold, multiscale_factor=multiscale_factor,
@@ -304,8 +355,17 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
             simple_diploid_init, counts=counts, alpha=alpha, bias=bias,
             lengths=lengths, reorienter=reorienter, mixture_coefs=mixture_coefs,
             verbose=verbose, simple_diploid=True)'''
-        new_beta = {c.ambiguity: c.beta * 2 for c in counts}
+        beta_adjust = _simple_diploid_beta_adjustment(
+            counts, lengths_lowres=lengths, exclude_zeros=exclude_zeros)
+        if verbose:
+            print("BETA: adjusted by %.3g for simple diploid" % beta_adjust,
+                  flush=True)
+        new_beta = {c.ambiguity: c.beta * beta_adjust for c in counts}
         counts = _update_betas_in_counts_matrices(counts=counts, beta=new_beta)
+    if verbose:
+        print('BETA: %s' % ', '.join(
+            ['%s=%.3g' % (c.ambiguity, c.beta) for c in counts if c.sum() != 0]),
+            flush=True)
 
     # SIMPlE DIPLOID
     if simple_diploid and struct_true is not None:
@@ -360,16 +420,15 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
     beta_ = beta
     if multiscale_factor == 1 and not (draft or simple_diploid):
         struct_draft_fullres, alpha_, beta_, hsc_r, draft_converged = _infer_draft(
-            counts_raw, lengths=lengths, ploidy=ploidy,
-            simple_diploid_init=struct_init, outdir=outdir, alpha=alpha,
-            seed=seed, normalize=normalize, filter_threshold=filter_threshold,
-            alpha_init=alpha_init, max_alpha_loop=max_alpha_loop, beta=beta,
+            counts_raw, lengths=lengths, ploidy=ploidy, outdir=outdir,
+            alpha=alpha, seed=seed, normalize=normalize,
+            filter_threshold=filter_threshold, alpha_init=alpha_init,
+            max_alpha_loop=max_alpha_loop, beta=beta,
             multiscale_rounds=multiscale_rounds,
             use_multiscale_variance=use_multiscale_variance, init=init,
             max_iter=max_iter, factr=factr, pgtol=pgtol,
             alpha_factr=alpha_factr, bcc_lambda=bcc_lambda,
             hsc_lambda=hsc_lambda, hsc_r=hsc_r, hsc_min_beads=hsc_min_beads,
-            fullres_torm=fullres_torm_for_multiscale,
             struct_draft_fullres=struct_draft_fullres,
             callback_freq=callback_freq, callback_function=callback_function,
             reorienter=reorienter, alpha_true=alpha_true,
@@ -586,6 +645,15 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
         A few of the variables used in inference or generated by inference.
         Keys: 'alpha', 'beta', 'hsc_r', 'obj', and 'seed'.
     """
+
+    if not isinstance(counts, list):
+        counts = [counts]
+    if verbose:
+        if all([isinstance(c, str) for c in counts]):
+            print("Inferring structure for %s with seed %03d"
+                  % (', '.join(counts), seed), flush=True)
+        else:
+            print("Inferring structure with seed %03d" % seed)
 
     lengths_full = lengths
     chrom_full = chromosomes
