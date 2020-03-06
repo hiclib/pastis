@@ -346,15 +346,6 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         exclude_zeros=exclude_zeros, beta=beta, input_weight=input_weight,
         verbose=verbose, fullres_torm=fullres_torm, mixture_coefs=mixture_coefs)
     if simple_diploid:
-        '''if simple_diploid_init is None:
-            raise ValueError("Must provide simple_diploid_init.")
-        simple_diploid_init = decrease_struct_res(
-            simple_diploid_init, multiscale_factor=multiscale_factor,
-            lengths=lengths)
-        new_beta = _estimate_beta(
-            simple_diploid_init, counts=counts, alpha=alpha, bias=bias,
-            lengths=lengths, reorienter=reorienter, mixture_coefs=mixture_coefs,
-            verbose=verbose, simple_diploid=True)'''
         beta_adjust = _simple_diploid_beta_adjustment(
             counts, lengths_lowres=lengths, exclude_zeros=exclude_zeros)
         if verbose:
