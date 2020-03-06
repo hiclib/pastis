@@ -13,7 +13,6 @@ from .utils_poisson import _print_code_header, _load_infer_var
 from .utils_poisson import _output_subdir
 from .counts import preprocess_counts, ambiguate_counts
 from .counts import _update_betas_in_counts_matrices, check_counts
-from .counts import _check_counts_matrix
 from .initialization import initialize
 from .callbacks import Callback
 from .constraints import Constraints, distance_between_homologs
@@ -23,46 +22,6 @@ from .multiscale_optimization import _choose_max_multiscale_factor
 from .multiscale_optimization import decrease_lengths_res, decrease_struct_res
 from ..io.read import load_data
 from .poisson import objective
-
-
-def _simple_diploid_beta_adjustment(counts, lengths_lowres,
-                                    exclude_zeros=False):
-    """Calculate how much to multiply beta by for simple diploid.
-    """
-
-    nonzero_counts = [c for c in counts if c.sum() != 0]
-    if len(nonzero_counts) != 1:
-        raise ValueError(
-            "Must input one nonzero counts matrix for simple_diploid.")
-    counts_maps = _check_counts_matrix(
-        nonzero_counts[0].toarray().astype(float), lengths=lengths_lowres,
-        ploidy=1, exclude_zeros=exclude_zeros)
-    if counts_maps.shape != (lengths_lowres.sum(), lengths_lowres.sum()):
-        raise ValueError("Counts matrix must be ambigous for simple_diploid.")
-
-    if len(lengths_lowres) == 1:
-        return 2.
-
-    tmp = counts_maps / 4
-    inter = tmp.copy()
-    intra = np.full_like(tmp, np.nan)
-    begin = end = 0
-    for l in lengths_lowres:
-        end += l
-        inter[begin:end, begin:end] = np.nan
-        intra[begin:end, begin:end] = tmp[begin:end, begin:end]
-        begin = end
-
-    perc_inter = np.nanmean(inter) / np.nanmean(intra)
-    inter *= 4
-    intra *= 2 * (1 + perc_inter)
-    simple_diploid_tmp = np.nansum([inter, intra], axis=0)
-    simple_diploid_tmp[np.isnan(counts_maps)] = np.nan
-
-    beta_simple_diploid = np.nanmean(simple_diploid_tmp)
-    beta_ambig = np.nanmean(tmp)
-
-    return beta_simple_diploid / beta_ambig
 
 
 def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
@@ -86,8 +45,7 @@ def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
         counts_raw=counts_raw, lengths=lengths, ploidy=ploidy,
         normalize=normalize, filter_threshold=filter_threshold,
         multiscale_factor=1, exclude_zeros=exclude_zeros, beta=beta,
-        input_weight=input_weight, verbose=False,
-        mixture_coefs=mixture_coefs)
+        input_weight=input_weight, verbose=False, mixture_coefs=mixture_coefs)
     beta = [c.beta for c in counts if c.sum() != 0]
 
     alpha_ = alpha
@@ -117,8 +75,7 @@ def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
         if not infer_var_fullres['converged']:
             return struct_draft_fullres, alpha_, beta_, hsc_r, False
         alpha_ = infer_var_fullres['alpha']
-        beta_adjust = _simple_diploid_beta_adjustment(
-            counts, lengths_lowres=lengths, exclude_zeros=exclude_zeros)
+        beta_adjust = 2
         beta_ = list(infer_var_fullres['beta'] * np.array(
             beta) / sum(beta) / beta_adjust)
 
@@ -346,11 +303,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         exclude_zeros=exclude_zeros, beta=beta, input_weight=input_weight,
         verbose=verbose, fullres_torm=fullres_torm, mixture_coefs=mixture_coefs)
     if simple_diploid:
-        beta_adjust = _simple_diploid_beta_adjustment(
-            counts, lengths_lowres=lengths, exclude_zeros=exclude_zeros)
-        if verbose:
-            print("BETA: adjusted by %.3g for simple diploid" % beta_adjust,
-                  flush=True)
+        beta_adjust = 2
         new_beta = {c.ambiguity: c.beta * beta_adjust for c in counts}
         counts = _update_betas_in_counts_matrices(counts=counts, beta=new_beta)
     if verbose:
@@ -641,10 +594,10 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
         counts = [counts]
     if verbose:
         if all([isinstance(c, str) for c in counts]):
-            print("Inferring structure for %s with seed %03d"
+            print("\nInferring structure for %s with seed %03d\n"
                   % (', '.join(counts), seed), flush=True)
         else:
-            print("Inferring structure with seed %03d" % seed)
+            print("\nInferring structure with seed %03d\n" % seed)
 
     lengths_full = lengths
     chrom_full = chromosomes
