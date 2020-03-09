@@ -4,13 +4,12 @@ from sklearn.metrics import euclidean_distances
 import os
 from scipy import linalg
 #from ..io.read import _load_inferred_struct
-from .counts import subset_chrom, _get_chrom_subset_index, preprocess_counts
+from .counts import subset_chrom, _get_chrom_subset_index
 from .pastis_algorithms import infer, _infer_draft
 from .utils_poisson import _print_code_header, _load_infer_var
 from .utils_poisson import _format_structures, _output_subdir
 from .multiscale_optimization import _choose_max_multiscale_factor
 from .multiscale_optimization import decrease_lengths_res, decrease_struct_res
-from .initialization import initialize
 
 
 class ChromReorienter(object):
