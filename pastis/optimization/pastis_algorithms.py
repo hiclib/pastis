@@ -37,7 +37,11 @@ def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
     """Infer draft 3D structures with PASTIS via Poisson model.
     """
 
-    if verbose:
+    infer_struct_draft_fullres = struct_draft_fullres is None and ((
+        multiscale_rounds > 1 and use_multiscale_variance) or alpha is None)
+    infer_struct_draft_lowres = hsc_lambda > 0 and hsc_r is None
+
+    if verbose and (infer_struct_draft_fullres or infer_struct_draft_lowres):
         _print_code_header(
             'INFERRING DRAFT STRUCTURES', max_length=80, blank_lines=2)
 
@@ -50,8 +54,7 @@ def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
 
     alpha_ = alpha
     beta_ = beta
-    if struct_draft_fullres is None and ((
-            multiscale_rounds > 1 and use_multiscale_variance) or alpha is None):
+    if infer_struct_draft_fullres:
         if verbose:
             _print_code_header(
                 "Inferring full-res draft structure",
@@ -79,7 +82,7 @@ def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
         beta_ = list(infer_var_fullres['beta'] * np.array(
             beta) / sum(beta) / beta_adjust)
 
-    if hsc_lambda > 0 and hsc_r is None:
+    if infer_struct_draft_lowres:
         multiscale_factor_for_lowres = _choose_max_multiscale_factor(
             lengths=lengths, min_beads=hsc_min_beads)
         if verbose:
