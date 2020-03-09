@@ -85,12 +85,41 @@ class Constraints(object):
                 if not isinstance(constraint_params['hsc'], list):
                     constraint_params['hsc'] = [constraint_params['hsc']]
                 constraint_params['hsc'] = np.array(constraint_params['hsc'])
+            if 'hsc' in constraint_params:
+                constraint_params['hsc'] = constraint_params['hsc'].astype(float)
             self.params = constraint_params
         else:
             raise ValueError("Constraint params must be inputted as dict.")
-        torm = find_beads_to_remove(
-            counts=counts, nbeads=self.lengths_lowres.sum() * ploidy)
-        self.torm_3d = np.repeat(torm.reshape(-1, 1), 3, axis=1)
+
+        self.mask1 = self.mask2 = None
+        self.bead_weights1 = self.bead_weights2 = None
+        if 'hsc' in self.lambdas and self.lambdas['hsc']:
+            n = self.lengths_lowres.sum()
+            mask = ~find_beads_to_remove(
+                counts=counts, nbeads=self.lengths_lowres.sum() * ploidy)
+            self.mask1 = mask[:n]
+            self.mask2 = mask[n:]
+            if multiscale_factor != 1:
+                highres_per_lowres_bead = np.max(
+                    [c.highres_per_lowres_bead for c in counts], axis=0)
+                bead_weights = highres_per_lowres_bead / multiscale_factor
+                bead_weights = np.repeat(bead_weights.reshape(-1, 1), 3, axis=1)
+                bead_weights1 = bead_weights[:n]
+                bead_weights2 = bead_weights[n:]
+                if np.unique(bead_weights1).shape[0] > 1 or np.unique(
+                        bead_weights2).shape[0] > 1:
+                    self.bead_weights1 = []
+                    self.bead_weights2 = []
+                    begin = end = 0
+                    for i in range(len(self.lengths_lowres)):
+                        end = end + self.lengths_lowres[i] 
+                        mask1 = self.mask1[begin:end]
+                        mask2 = self.mask2[begin:end]
+                        self.bead_weights1.append(
+                            bead_weights1[begin:end][mask1])
+                        self.bead_weights2.append(
+                            bead_weights2[begin:end][mask2])
+                        begin = end
 
         self.row, self.col = _constraint_dis_indices(
             counts=counts, n=self.lengths_lowres.sum(),
@@ -105,6 +134,7 @@ class Constraints(object):
             lengths, ploidy).cumsum()) == ag_np.digitize(
             row_adj + 1, np.tile(lengths, ploidy).cumsum())]
         self.col_adj = self.row_adj + 1
+
         self.check()
 
     def check(self, verbose=True):
@@ -120,7 +150,7 @@ class Constraints(object):
         """
 
         # Set defaults
-        lambda_defaults = {'bcc': 0., 'struct': 0., 'hsc': 0.}
+        lambda_defaults = {'bcc': 0., 'hsc': 0.}
         lambda_all = lambda_defaults
         if self.lambdas is not None:
             for k, v in self.lambdas.items():
@@ -131,7 +161,7 @@ class Constraints(object):
                     lambda_all[k] = float(v)
         self.lambdas = lambda_all
 
-        params_defaults = {'struct': None, 'hsc': None}
+        params_defaults = {'hsc': None}
         params_all = params_defaults
         if self.params is not None:
             for k, v in self.params.items():
@@ -223,30 +253,42 @@ class Constraints(object):
                     (n_edges * ag_np.square(neighbor_dis).sum() / ag_np.square(
                         neighbor_dis.sum()) - 1.)
             if 'hsc' in self.lambdas and self.lambdas['hsc']:
-                nbeads_per_homo = self.lengths_lowres.sum()
-                struct_masked = ag_np.where(self.torm_3d, np.nan, struct)
-                homo1 = struct_masked[:nbeads_per_homo, :]
-                homo2 = struct_masked[nbeads_per_homo:, :]
+                n = self.lengths_lowres.sum()
+                homo1 = struct[:n, :]
+                homo2 = struct[n:, :]
+                hsc_diff = 0.
                 begin = end = 0
                 for i in range(len(self.lengths_lowres)):
                     end = end + self.lengths_lowres[i]
-                    homo_dis = ag_np.sqrt(ag_np.square(np.nanmean(
-                        homo1[begin:end, :], axis=0) - np.nanmean(
-                        homo2[begin:end, :], axis=0)).sum())
-                    obj['hsc'] = obj['hsc'] + gamma * self.lambdas['hsc'] * \
-                        ag_np.square(ag_np.array([float(
-                            self.params['hsc'][i]) - homo_dis, 0]).max())
+                    homo1_chrom = homo1[begin:end, :][self.mask1[begin:end]]
+                    homo2_chrom = homo2[begin:end, :][self.mask2[begin:end]]
+                    if self.bead_weights1 is None or self.bead_weights2 is None:
+                        homo1_chrom_mean = ag_np.mean(homo1_chrom, axis=0)
+                        homo2_chrom_mean = ag_np.mean(homo2_chrom, axis=0)
+                    else:
+                        homo1_chrom = homo1_chrom * self.bead_weights1[i]
+                        homo2_chrom = homo2_chrom * self.bead_weights2[i]
+                        homo1_chrom_mean = ag_np.sum(homo1_chrom, axis=0) / \
+                            ag_np.sum(self.bead_weights1[i])
+                        homo2_chrom_mean = ag_np.sum(homo2_chrom, axis=0) / \
+                            ag_np.sum(self.bead_weights2[i])
+                    homo_dis = ag_np.sqrt(ag_np.sum(ag_np.square(
+                        homo1_chrom_mean - homo2_chrom_mean)))
+
+                    #rtol = 1e-5
+                    #atol = 1e-8
+                    #tol = atol + rtol * ag_np.abs(self.params['hsc'][i])
+                    #print({True: 'grad', False: 'obj'}[isinstance(structures, SequenceBox)], self.params['hsc'][i] - homo_dis > -tol, (self.params['hsc'][i] - homo_dis).round(6), tol.round(6))
+                    #if self.params['hsc'][i] - homo_dis > -tol:
+                    #if self.params['hsc'][i] * 1.01 > homo_dis:
+                    #if True:
+                    # np.finfo(np.float).eps
+                    if self.params['hsc'][i] - homo_dis > 0:
+                        hsc_diff = hsc_diff + ag_np.square(
+                            self.params['hsc'][i] - homo_dis)
                     begin = end
-            if 'struct' in self.lambdas and self.lambdas['struct']:
-                struct_myres = decrease_struct_res(
-                    struct,
-                    multiscale_factor=struct.shape[
-                        0] / self.params['struct'].shape[0],
-                    lengths_prev=self.lengths).reshape(-1, 3)
-                obj['struct'] = obj['struct'] + gamma * \
-                    self.lambdas['struct'] * ag_np.sqrt(np.nanmean(ag_np.square(
-                        self.params['struct'] - struct_myres))) / (
-                        self.params['struct'].max() - self.params['struct'].min())
+                obj['hsc'] = obj['hsc'] + gamma * self.lambdas['hsc'] * hsc_diff  #/ self.lengths_lowres.shape[0]
+                #print({True: 'grad', False: 'obj'}[isinstance(structures, SequenceBox)], obj['hsc'].round(10))
 
         # Check constraints objective
         for k, v in obj.items():
@@ -323,9 +365,9 @@ def _inter_homolog_dis(struct, lengths):
 
     struct = struct.copy().reshape(-1, 3)
 
-    nbeads_per_homo = int(struct.shape[0] / 2)
-    homo1 = struct[:nbeads_per_homo, :]
-    homo2 = struct[nbeads_per_homo:, :]
+    n = int(struct.shape[0] / 2)
+    homo1 = struct[:n, :]
+    homo2 = struct[n:, :]
 
     homo_dis = []
     begin = end = 0
