@@ -482,7 +482,7 @@ def _var3d(struct_grouped):
         struct_group = struct_grouped[:, i, :]
         mean_coords = np.nanmean(struct_group, axis=0)
         # Euclidian distance formula = ((A - B) ** 2).sum(axis=1) ** 0.5
-        var = (1 / np.invert(np.isnan(struct_group)).sum()) * \
+        var = (1 / np.invert(np.isnan(struct_group[:, 0])).sum()) * \
             np.nansum((struct_group - mean_coords) ** 2)
         multiscale_variances[i] = var
     return multiscale_variances
