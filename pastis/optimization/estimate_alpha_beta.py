@@ -5,7 +5,7 @@ from autograd import grad
 from autograd.builtins import SequenceBox
 from sklearn.utils import check_random_state
 from .poisson import _format_X, objective
-from .counts import _update_betas_in_counts_matrices, _format_counts
+from .counts import _update_betas_in_counts_matrices
 
 
 def _estimate_beta_single(structures, counts, alpha, lengths, bias=None,

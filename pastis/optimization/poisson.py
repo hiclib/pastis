@@ -278,9 +278,9 @@ def estimate_X(counts, init_X, alpha, lengths, bias=None, constraints=None,
     # Check format of input
     counts = (counts if isinstance(counts, list) else [counts])
     lengths = np.array(lengths)
+    lengths_lowres = decrease_lengths_res(lengths, multiscale_factor)
     if bias is None:
-        bias = np.ones((min([min(counts_maps.shape)
-                             for counts_maps in counts]),))
+        bias = np.ones((lengths_lowres.sum(),))
     bias = np.array(bias)
 
     if verbose:
