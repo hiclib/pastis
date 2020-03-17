@@ -6,8 +6,10 @@ if sys.version_info[0] < 3:
 import numpy as np
 import autograd.numpy as ag_np
 from autograd.builtins import SequenceBox
-from .multiscale_optimization import decrease_struct_res, decrease_lengths_res
-from .utils_poisson import find_beads_to_remove
+from .multiscale_optimization import decrease_lengths_res
+from .multiscale_optimization import _count_fullres_per_lowres_bead
+from .multiscale_optimization import get_multiscale_variances_from_struct
+from .utils_poisson import find_beads_to_remove, _inter_counts
 
 
 class Constraints(object):
@@ -65,7 +67,8 @@ class Constraints(object):
     """
 
     def __init__(self, counts, lengths, ploidy, multiscale_factor=1,
-                 constraint_lambdas=None, constraint_params=None):
+                 constraint_lambdas=None, constraint_params=None,
+                 struct_draft_fullres=None):
 
         self.lengths = np.array(lengths)
         self.lengths_lowres = decrease_lengths_res(lengths, multiscale_factor)
@@ -80,20 +83,30 @@ class Constraints(object):
         if constraint_params is None:
             self.params = {}
         elif isinstance(constraint_params, dict):
-            if 'hsc' in constraint_params and not isinstance(
-                    constraint_params['hsc'], np.ndarray):
-                if not isinstance(constraint_params['hsc'], list):
-                    constraint_params['hsc'] = [constraint_params['hsc']]
-                constraint_params['hsc'] = np.array(constraint_params['hsc'])
-            if 'hsc' in constraint_params:
-                constraint_params['hsc'] = constraint_params['hsc'].astype(float)
+            for hsc in ("hsc", "mhs"):
+                if hsc in constraint_params and constraint_params[hsc] is not None:
+                    constraint_params[hsc] = np.array(
+                        constraint_params[hsc]).flatten().astype(float)
             self.params = constraint_params
         else:
             raise ValueError("Constraint params must be inputted as dict.")
 
+        self.mhs_var2 = None
+        if self.lambdas["mhs"]:
+            if struct_draft_fullres is None:
+                raise ValueError(
+                    "Must input `struct_draft_fullres` when using multiscale "
+                    "homolog-separating constraint.")
+            multiscale_variances = get_multiscale_variances_from_struct(
+                struct_draft_fullres, lengths=lengths,
+                multiscale_factor=lengths.max(), ploidy=ploidy, verbose=False)
+            self.mhs_var2 = multiscale_variances * 2
+
+        self.check()
+
         self.mask1 = self.mask2 = None
         self.bead_weights1 = self.bead_weights2 = None
-        if 'hsc' in self.lambdas and self.lambdas['hsc']:
+        if self.lambdas["hsc"] or self.lambdas["mhs"]:
             n = self.lengths_lowres.sum()
             mask = ~find_beads_to_remove(
                 counts=counts, nbeads=self.lengths_lowres.sum() * ploidy)
@@ -112,7 +125,7 @@ class Constraints(object):
                     self.bead_weights2 = []
                     begin = end = 0
                     for i in range(len(self.lengths_lowres)):
-                        end = end + self.lengths_lowres[i] 
+                        end = end + self.lengths_lowres[i]
                         mask1 = self.mask1[begin:end]
                         mask2 = self.mask2[begin:end]
                         self.bead_weights1.append(
@@ -121,21 +134,45 @@ class Constraints(object):
                             bead_weights2[begin:end][mask2])
                         begin = end
 
-        self.row, self.col = _constraint_dis_indices(
-            counts=counts, n=self.lengths_lowres.sum(),
-            lengths=self.lengths_lowres, ploidy=ploidy)
-        # Calculating distances for neighbors, which are on the off diagonal
-        # line - i & j where j = i + 1
-        row_adj = ag_np.unique(self.row).astype(int)
-        row_adj = row_adj[ag_np.isin(row_adj + 1, self.col)]
-        # Remove if "neighbor" beads are actually on different chromosomes or
-        # homologs
-        self.row_adj = row_adj[ag_np.digitize(row_adj, np.tile(
-            lengths, ploidy).cumsum()) == ag_np.digitize(
-            row_adj + 1, np.tile(lengths, ploidy).cumsum())]
-        self.col_adj = self.row_adj + 1
+        self.bead_weights = None
+        if self.lambdas["hsc"] or self.lambdas["mhs"]:
+            n = self.lengths_lowres.sum()
+            torm = find_beads_to_remove(
+                counts=counts, nbeads=self.lengths_lowres.sum() * ploidy)
+            if multiscale_factor != 1:
+                highres_per_lowres_bead = np.max(
+                    [c.highres_per_lowres_bead for c in counts], axis=0)
+                bead_weights = highres_per_lowres_bead / multiscale_factor
+            else:
+                bead_weights = np.ones((self.lengths_lowres.sum() * ploidy,))
+            bead_weights[torm] = 0.
+            begin = end = 0
+            for i in range(len(self.lengths_lowres)):
+                end = end + self.lengths_lowres[i]
+                bead_weights[:n][begin:end] /= np.sum(
+                    bead_weights[:n][begin:end])
+                bead_weights[n:][begin:end] /= np.sum(
+                    bead_weights[n:][begin:end])
+                begin = end
+            self.bead_weights = np.repeat(
+                bead_weights.reshape(-1, 1), 3, axis=1)
 
-        self.check()
+        self.row = self.col = None
+        self.row_adj = self.col_adj = None
+        if self.lambdas["bcc"]:
+            self.row, self.col = _constraint_dis_indices(
+                counts=counts, n=self.lengths_lowres.sum(),
+                lengths=self.lengths_lowres, ploidy=ploidy)
+            # Calculating distances for neighbors, which are on the off diagonal
+            # line - i & j where j = i + 1
+            row_adj = np.unique(self.row).astype(int)
+            row_adj = row_adj[np.isin(row_adj + 1, self.col)]
+            # Remove if "neighbor" beads are actually on different chromosomes or
+            # homologs
+            self.row_adj = row_adj[np.digitize(row_adj, np.tile(
+                lengths, ploidy).cumsum()) == np.digitize(
+                row_adj + 1, np.tile(lengths, ploidy).cumsum())]
+            self.col_adj = self.row_adj + 1
 
     def check(self, verbose=True):
         """Check constraints object.
@@ -150,7 +187,7 @@ class Constraints(object):
         """
 
         # Set defaults
-        lambda_defaults = {'bcc': 0., 'hsc': 0.}
+        lambda_defaults = {"bcc": 0., "hsc": 0., "mhs": 0.}
         lambda_all = lambda_defaults
         if self.lambdas is not None:
             for k, v in self.lambdas.items():
@@ -161,7 +198,7 @@ class Constraints(object):
                     lambda_all[k] = float(v)
         self.lambdas = lambda_all
 
-        params_defaults = {'hsc': None}
+        params_defaults = {"hsc": None, "mhs": None}
         params_all = params_defaults
         if self.params is not None:
             for k, v in self.params.items():
@@ -177,42 +214,49 @@ class Constraints(object):
         for k, v in self.lambdas.items():
             if v != lambda_defaults[k]:
                 if v < 0:
-                    raise ValueError("Lambdas must be >= 0."
-                                     " constraint_lambdas[%s] is %g" % (k, v))
+                    raise ValueError("Lambdas must be >= 0. Lambda for"
+                                     " %s is %g" % (k, v))
                 if k in self.params and self.params[k] is None:
                     raise ValueError("Lambda for %s is supplied,"
                                      " but constraint is not" % k)
-            elif k in self.params and not np.array_equal(self.params[k], params_defaults[k]):
+            elif k in self.params and not np.array_equal(self.params[k],
+                                                         params_defaults[k]):
+                print(self.params[k], type(self.params[k]))
                 raise ValueError("Constraint for %s is supplied, but lambda is"
                                  " 0" % k)
 
-        if 'hsc' in self.lambdas and self.lambdas['hsc'] and self.ploidy == 1:
+        if (self.lambdas["hsc"] or self.lambdas["mhs"]) and self.ploidy == 1:
             raise ValueError("Homolog-separating constraint can not be"
                              " applied to haploid genome.")
 
-        if verbose and sum(self.lambdas.values()) != 0:
-            lambda_to_print = {k: 'lambda = %.2g' %
-                               v for k, v in self.lambdas.items() if v != 0}
-            if 'bcc' in lambda_to_print:
-                print("CONSTRAINTS: bead chain connectivity %s" %
-                      lambda_to_print.pop('bcc'), flush=True)
-            if 'hsc' in lambda_to_print:
-                to_print = self.params['hsc']
-                if self.params['hsc'] is None:
-                    to_print = 'inferred'
-                elif isinstance(self.params['hsc'], np.ndarray):
-                    to_print = ' '.join(map(str, self.params['hsc'].round(3)))
-                else:
-                    to_print = self.params['hsc'].round(3)
-                print("CONSTRAINTS: homolog-separating %s,    r = %s" %
-                      (lambda_to_print.pop('hsc'), to_print), flush=True)
-            if len(lambda_to_print) > 0:
-                to_print = [str(k) + ' ' + str(
-                    self.params[k]) + ': %.1g'
-                    % v for k, v in lambda_to_print.items() if v != 0]
-                print("CONSTRAINTS:  %s" % (',  '.join(to_print)), flush=True)
+        # Print constraints
+        constraint_names = {"bcc": "bead chain connectivity",
+                            "hsc": "homolog-separating",
+                            "mhs": "multiscale homolog-separating"}
+        lambda_to_print = {k: v for k, v in self.lambdas.items() if v != 0}
+        if verbose and len(lambda_to_print) > 0:
+            for constraint, lambda_val in lambda_to_print.items():
+                print("CONSTRAINT: %s lambda = %.2g" % (
+                    constraint_names[constraint], lambda_val), flush=True)
+                if constraint in self.params and constraint in ("hsc", "mhs"):
+                    if self.params[constraint] is None:
+                        print("            param = inferred", flush=True)
+                    elif isinstance(self.params[constraint], np.ndarray):
+                        print("            param = " + np.array2string(
+                            self.params[constraint],
+                            formatter={'float_kind': lambda x: "%.3g" % x},
+                            prefix="                ", separator=", "))
+                    elif isinstance(self.params[constraint], float):
+                        print("            param = %.3g" % self.params[constraint],
+                              flush=True)
+                    else:
+                        print("            %s" % self.params[constraint],
+                              flush=True)
+                if constraint == "mhs":
+                    print("            var = %.3g" % (self.mhs_var2 / 2),
+                          flush=True)
 
-    def apply(self, structures, mixture_coefs=None):
+    def apply(self, structures, mixture_coefs=None, alpha=None):
         """Apply constraints using given structure(s).
 
         Compute negative log likelhood for each constraint using the given
@@ -242,53 +286,50 @@ class Constraints(object):
                 "The number of structures (%d) and of mixture coefficents (%d)"
                 " should be identical." % (len(structures), len(mixture_coefs)))
 
-        obj = {k: ag_np.float64(0.) for k, v in self.lambdas.items() if v != 0}
+        obj = {k: 0. for k, v in self.lambdas.items() if v != 0}
 
-        for struct, gamma in zip(structures, mixture_coefs):
-            if 'bcc' in self.lambdas and self.lambdas['bcc']:
+        if self.lambdas["bcc"]:
+            for struct, gamma in zip(structures, mixture_coefs):
                 neighbor_dis = ag_np.sqrt((ag_np.square(
                     struct[self.row_adj] - struct[self.col_adj])).sum(axis=1))
                 n_edges = neighbor_dis.shape[0]
                 obj['bcc'] = obj['bcc'] + gamma * self.lambdas['bcc'] * \
                     (n_edges * ag_np.square(neighbor_dis).sum() / ag_np.square(
                         neighbor_dis.sum()) - 1.)
-            if 'hsc' in self.lambdas and self.lambdas['hsc']:
-                n = self.lengths_lowres.sum()
-                homo1 = struct[:n, :]
-                homo2 = struct[n:, :]
-                hsc_diff = 0.
-                begin = end = 0
-                for i in range(len(self.lengths_lowres)):
-                    end = end + self.lengths_lowres[i]
-                    homo1_chrom = homo1[begin:end, :][self.mask1[begin:end]]
-                    homo2_chrom = homo2[begin:end, :][self.mask2[begin:end]]
-                    if self.bead_weights1 is None or self.bead_weights2 is None:
-                        homo1_chrom_mean = ag_np.mean(homo1_chrom, axis=0)
-                        homo2_chrom_mean = ag_np.mean(homo2_chrom, axis=0)
-                    else:
-                        homo1_chrom = homo1_chrom * self.bead_weights1[i]
-                        homo2_chrom = homo2_chrom * self.bead_weights2[i]
-                        homo1_chrom_mean = ag_np.sum(homo1_chrom, axis=0) / \
-                            ag_np.sum(self.bead_weights1[i])
-                        homo2_chrom_mean = ag_np.sum(homo2_chrom, axis=0) / \
-                            ag_np.sum(self.bead_weights2[i])
-                    homo_dis = ag_np.sqrt(ag_np.sum(ag_np.square(
-                        homo1_chrom_mean - homo2_chrom_mean)))
+        if self.lambdas["hsc"]:
+            for struct, gamma in zip(structures, mixture_coefs):
+                homo_sep = self._homolog_separation(struct)
 
-                    #rtol = 1e-5
-                    #atol = 1e-8
-                    #tol = atol + rtol * ag_np.abs(self.params['hsc'][i])
-                    #print({True: 'grad', False: 'obj'}[isinstance(structures, SequenceBox)], self.params['hsc'][i] - homo_dis > -tol, (self.params['hsc'][i] - homo_dis).round(6), tol.round(6))
-                    #if self.params['hsc'][i] - homo_dis > -tol:
-                    #if self.params['hsc'][i] * 1.01 > homo_dis:
-                    #if True:
-                    # np.finfo(np.float).eps
-                    if self.params['hsc'][i] - homo_dis > 0:
-                        hsc_diff = hsc_diff + ag_np.square(
-                            self.params['hsc'][i] - homo_dis)
-                    begin = end
-                obj['hsc'] = obj['hsc'] + gamma * self.lambdas['hsc'] * hsc_diff  #/ self.lengths_lowres.shape[0]
-                #print({True: 'grad', False: 'obj'}[isinstance(structures, SequenceBox)], obj['hsc'].round(10))
+                homo_sep2 = self._homolog_separation2(struct)
+                if not ag_np.allclose(homo_sep, homo_sep2):
+                    print(homo_sep); print(homo_sep2); print('')
+                    exit(0)
+
+                import timeit
+                start1 = timeit.default_timer()
+                [self._homolog_separation(struct) for i in range(200)]
+                total1 = timeit.default_timer() - start1
+                start2 = timeit.default_timer()
+                [self._homolog_separation2(struct) for i in range(200)]
+                total2 = timeit.default_timer() - start2
+                print("%s\t%.3g\t%s\t%.3g\t\t(%.3g)" % ({True: 'grad', False: 'obj'}[isinstance(structures, SequenceBox)], total1, {True: ">", False: "<"}[total1 > total2], total2, total1/total2))
+
+                hsc_diff = 0.
+                for i in range(len(self.lengths_lowres)):
+                    hsc_diff = hsc_diff + ag_np.square(
+                        ag_np.max([self.params["hsc"][i] - homo_sep[i], 0]))
+                obj["hsc"] = obj["hsc"] + gamma * self.lambdas["hsc"] * hsc_diff
+        if self.lambdas["mhs"]:
+            if alpha is None:
+                raise ValueError("Must input alpha for multiscale-based homolog"
+                                 " separating constraint.")
+            homo_sep = ag_np.zeros(self.lengths_lowres.shape[0])
+            for struct, gamma in zip(structures, mixture_coefs):
+                homo_sep = homo_sep + gamma * self._homolog_separation(struct)
+            lambda_intensity = ag_np.power(
+                ag_np.square(homo_sep) + self.mhs_var2, alpha / 2)
+            obj["mhs"] = self.lambdas["mhs"] * lambda_intensity.sum() - (
+                self.params["mhs"] * ag_np.log(lambda_intensity)).sum()
 
         # Check constraints objective
         for k, v in obj.items():
@@ -298,6 +339,115 @@ class Constraints(object):
                 raise ValueError("Constraint %s is infinite" % k)
 
         return {'obj_' + k: v for k, v in obj.items()}
+
+    def _homolog_separation(self, struct):
+        """Compute distance between homolog centers of mass per chromosome.
+        """
+
+        n = self.lengths_lowres.sum()
+        homo1 = struct[:n, :]
+        homo2 = struct[n:, :]
+
+        homo_sep = []
+        begin = end = 0
+        for i in range(len(self.lengths_lowres)):
+            end = end + self.lengths_lowres[i]
+            homo1_chrom = homo1[begin:end, :][self.mask1[begin:end]]
+            homo2_chrom = homo2[begin:end, :][self.mask2[begin:end]]
+            if self.bead_weights1 is None or self.bead_weights2 is None:
+                homo1_chrom_mean = ag_np.mean(homo1_chrom, axis=0)
+                homo2_chrom_mean = ag_np.mean(homo2_chrom, axis=0)
+            else:
+                homo1_chrom = homo1_chrom * self.bead_weights1[i]
+                homo2_chrom = homo2_chrom * self.bead_weights2[i]
+                homo1_chrom_mean = ag_np.sum(homo1_chrom, axis=0) / \
+                    ag_np.sum(self.bead_weights1[i][:, 0])
+                homo2_chrom_mean = ag_np.sum(homo2_chrom, axis=0) / \
+                    ag_np.sum(self.bead_weights2[i][:, 0])
+            homo_sep.append(ag_np.sqrt(ag_np.sum(ag_np.square(
+                homo1_chrom_mean - homo2_chrom_mean))))
+            begin = end
+
+        return ag_np.array(homo_sep)
+
+    def _homolog_separation2(self, struct):
+        """Compute distance between homolog centers of mass per chromosome.
+        """
+
+        struct_bw = struct * self.bead_weights
+        n = self.lengths_lowres.sum()
+
+        homo_sep = []
+        begin = end = 0
+        for l in self.lengths_lowres:
+            end = end + l
+            chrom1_mean = ag_np.sum(struct_bw[begin:end], axis=0)
+            chrom2_mean = ag_np.sum(struct_bw[(n + begin):(n + end)], axis=0)
+            homo_sep.append(ag_np.sqrt(ag_np.sum(ag_np.square(
+                chrom1_mean - chrom2_mean))))
+            begin = end
+
+        return ag_np.array(homo_sep)
+
+
+def _mean_interhomolog_counts(counts, lengths, bias=None):
+    """
+    """
+
+    from .counts import ambiguate_counts
+
+    n = lengths.sum()
+    torm = find_beads_to_remove(counts=counts, nbeads=n * 2)
+    beads_per_homolog = _count_fullres_per_lowres_bead(
+        multiscale_factor=lengths.max(), lengths=lengths, ploidy=2,
+        fullres_torm=torm)
+    bins_per_interhomolog = beads_per_homolog[:lengths.shape[0]] * \
+        beads_per_homolog[lengths.shape[0]:]
+
+    counts_non0 = [c for c in counts if c.sum() != 0]
+    ua_index = [i for i in range(len(
+        counts_non0)) if counts_non0[i].name == "ua"]
+    if len(ua_index) != 0:
+        if len(ua_index) > 1:
+            raise ValueError(
+                "Only input one matrix of unambiguous counts. Please pool "
+                "unambiguos counts before inputting.")
+        ua_counts = counts_non0[ua_index[0]]
+        mhs_beta = ua_counts.beta
+        if bias is not None:
+            ua_bias = counts.bias_per_bin(bias=bias, ploidy=2).reshape(-1, 1)
+            ua_counts *= ua_bias * ua_bias.T
+        mhs_counts = ua_counts.toarray()[:n, n:].astype(float)
+        mhs_counts[torm[:n], :] = np.nan
+        mhs_counts[:, torm[n:]] = np.nan
+        mean_interhomo_counts = []
+        begin = end = 0
+        #print(bins_per_interhomolog)
+        for l in lengths:
+            end += l
+            mean_interhomo_counts.append(np.nanmean(
+                mhs_counts[begin:end, begin:end]))
+            #print((~np.isnan(mhs_counts[begin:end, begin:end])).sum())
+            begin = end
+        mean_interhomo_counts = np.array(mean_interhomo_counts)
+    else:
+        if lengths.shape[0] == 1:
+            raise ValueError(
+                "Estimating mean inter-homolog counts from ambiguous"
+                " inter-chromosomal counts requires data for  more than one"
+                " chromosome.")
+        mhs_beta = sum([c.beta for c in counts_non0])
+        if bias is not None:
+            pass
+        #BIAS BIAS BIAS
+        mhs_counts = ambiguate_counts(
+            counts=counts_non0, lengths=lengths, ploidy=2, exclude_zeros=True)
+        mhs_counts = _inter_counts(
+            mhs_counts, lengths=lengths, ploidy=2, exclude_zeros=False)
+        mean_interhomo_counts = np.nanmean(mhs_counts) / 2
+
+    #print(mean_interhomo_counts, mhs_beta, mean_interhomo_counts / mhs_beta)
+    return mean_interhomo_counts / mhs_beta
 
 
 def _constraint_dis_indices(counts, n, lengths, ploidy, mask=None,
@@ -410,10 +560,10 @@ def _inter_homolog_dis_via_simple_diploid(struct, lengths):
     homo_dis = euclidean_distances(chrom_barycenters)
     homo_dis[np.tril_indices(homo_dis.shape[0])] = np.nan
 
-    return np.full_like(lengths, np.mean(homo_dis))
+    return np.full(lengths.shape, np.nanmean(homo_dis))
 
 
-def distance_between_homologs(structures, lengths, ploidy, mixture_coefs=None,
+def distance_between_homologs(structures, lengths, mixture_coefs=None,
                               simple_diploid=False):
     """Computes distances between homologs for a given structure.
 
@@ -426,8 +576,6 @@ def distance_between_homologs(structures, lengths, ploidy, mixture_coefs=None,
         3D chromatin structure(s) for which to assess inter-homolog distances.
     lengths : array_like of int
         Number of beads per homolog of each chromosome.
-    ploidy : {1, 2}
-        Ploidy, 1 indicates haploid, 2 indicates diploid.
     simple_diploid: bool, optional
         For diploid organisms: whether the structure is an inferred "simple
         diploid" structure in which homologs are assumed to be identical and
@@ -443,7 +591,8 @@ def distance_between_homologs(structures, lengths, ploidy, mixture_coefs=None,
     from .utils_poisson import _format_structures
 
     structures = _format_structures(
-        structures=structures, lengths=lengths, ploidy=ploidy,
+        structures=structures, lengths=lengths,
+        ploidy=(1 if simple_diploid else 2),
         mixture_coefs=mixture_coefs)
 
     homo_dis = []
