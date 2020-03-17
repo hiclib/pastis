@@ -104,36 +104,6 @@ class Constraints(object):
 
         self.check()
 
-        self.mask1 = self.mask2 = None
-        self.bead_weights1 = self.bead_weights2 = None
-        if self.lambdas["hsc"] or self.lambdas["mhs"]:
-            n = self.lengths_lowres.sum()
-            mask = ~find_beads_to_remove(
-                counts=counts, nbeads=self.lengths_lowres.sum() * ploidy)
-            self.mask1 = mask[:n]
-            self.mask2 = mask[n:]
-            if multiscale_factor != 1:
-                highres_per_lowres_bead = np.max(
-                    [c.highres_per_lowres_bead for c in counts], axis=0)
-                bead_weights = highres_per_lowres_bead / multiscale_factor
-                bead_weights = np.repeat(bead_weights.reshape(-1, 1), 3, axis=1)
-                bead_weights1 = bead_weights[:n]
-                bead_weights2 = bead_weights[n:]
-                if np.unique(bead_weights1).shape[0] > 1 or np.unique(
-                        bead_weights2).shape[0] > 1:
-                    self.bead_weights1 = []
-                    self.bead_weights2 = []
-                    begin = end = 0
-                    for i in range(len(self.lengths_lowres)):
-                        end = end + self.lengths_lowres[i]
-                        mask1 = self.mask1[begin:end]
-                        mask2 = self.mask2[begin:end]
-                        self.bead_weights1.append(
-                            bead_weights1[begin:end][mask1])
-                        self.bead_weights2.append(
-                            bead_weights2[begin:end][mask2])
-                        begin = end
-
         self.bead_weights = None
         if self.lambdas["hsc"] or self.lambdas["mhs"]:
             n = self.lengths_lowres.sum()
@@ -299,21 +269,6 @@ class Constraints(object):
         if self.lambdas["hsc"]:
             for struct, gamma in zip(structures, mixture_coefs):
                 homo_sep = self._homolog_separation(struct)
-
-                homo_sep2 = self._homolog_separation2(struct)
-                if not ag_np.allclose(homo_sep, homo_sep2):
-                    print(homo_sep); print(homo_sep2); print('')
-                    exit(0)
-
-                import timeit
-                start1 = timeit.default_timer()
-                [self._homolog_separation(struct) for i in range(200)]
-                total1 = timeit.default_timer() - start1
-                start2 = timeit.default_timer()
-                [self._homolog_separation2(struct) for i in range(200)]
-                total2 = timeit.default_timer() - start2
-                print("%s\t%.3g\t%s\t%.3g\t\t(%.3g)" % ({True: 'grad', False: 'obj'}[isinstance(structures, SequenceBox)], total1, {True: ">", False: "<"}[total1 > total2], total2, total1/total2))
-
                 hsc_diff = 0.
                 for i in range(len(self.lengths_lowres)):
                     hsc_diff = hsc_diff + ag_np.square(
@@ -341,36 +296,6 @@ class Constraints(object):
         return {'obj_' + k: v for k, v in obj.items()}
 
     def _homolog_separation(self, struct):
-        """Compute distance between homolog centers of mass per chromosome.
-        """
-
-        n = self.lengths_lowres.sum()
-        homo1 = struct[:n, :]
-        homo2 = struct[n:, :]
-
-        homo_sep = []
-        begin = end = 0
-        for i in range(len(self.lengths_lowres)):
-            end = end + self.lengths_lowres[i]
-            homo1_chrom = homo1[begin:end, :][self.mask1[begin:end]]
-            homo2_chrom = homo2[begin:end, :][self.mask2[begin:end]]
-            if self.bead_weights1 is None or self.bead_weights2 is None:
-                homo1_chrom_mean = ag_np.mean(homo1_chrom, axis=0)
-                homo2_chrom_mean = ag_np.mean(homo2_chrom, axis=0)
-            else:
-                homo1_chrom = homo1_chrom * self.bead_weights1[i]
-                homo2_chrom = homo2_chrom * self.bead_weights2[i]
-                homo1_chrom_mean = ag_np.sum(homo1_chrom, axis=0) / \
-                    ag_np.sum(self.bead_weights1[i][:, 0])
-                homo2_chrom_mean = ag_np.sum(homo2_chrom, axis=0) / \
-                    ag_np.sum(self.bead_weights2[i][:, 0])
-            homo_sep.append(ag_np.sqrt(ag_np.sum(ag_np.square(
-                homo1_chrom_mean - homo2_chrom_mean))))
-            begin = end
-
-        return ag_np.array(homo_sep)
-
-    def _homolog_separation2(self, struct):
         """Compute distance between homolog centers of mass per chromosome.
         """
 
