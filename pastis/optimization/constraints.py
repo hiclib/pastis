@@ -68,7 +68,8 @@ class Constraints(object):
 
     def __init__(self, counts, lengths, ploidy, multiscale_factor=1,
                  constraint_lambdas=None, constraint_params=None,
-                 struct_draft_fullres=None):
+                 struct_draft_fullres=None, struct_true=None,
+                 use_multiscale_variance=True, verbose=True):
 
         self.lengths = np.array(lengths)
         self.lengths_lowres = decrease_lengths_res(lengths, multiscale_factor)
@@ -91,18 +92,18 @@ class Constraints(object):
         else:
             raise ValueError("Constraint params must be inputted as dict.")
 
-        self.mhs_var2 = None
+        self.mhs_v = self.mhs_v2 = None
+        self.mhs_v_true = self.mhs_v2_true = None
         if self.lambdas["mhs"]:
-            if struct_draft_fullres is None:
-                raise ValueError(
-                    "Must input `struct_draft_fullres` when using multiscale "
-                    "homolog-separating constraint.")
-            multiscale_variances = get_multiscale_variances_from_struct(
-                struct_draft_fullres, lengths=lengths,
-                multiscale_factor=lengths.max(), ploidy=ploidy, verbose=False)
-            self.mhs_var2 = multiscale_variances * 2
+            self.mhs_v, self.mhs_v2 = _mhs_variances(
+                lengths=lengths, struct=struct_draft_fullres,
+                use_multiscale_variance=use_multiscale_variance)
+            if struct_true is not None:
+                self.mhs_v_true, self.mhs_v2_true = _mhs_variances(
+                    lengths=lengths, struct=struct_true,
+                    use_multiscale_variance=use_multiscale_variance)
 
-        self.check()
+        self.check(verbose=verbose)
 
         self.bead_weights = None
         if self.lambdas["hsc"] or self.lambdas["mhs"]:
@@ -212,10 +213,11 @@ class Constraints(object):
                     if self.params[constraint] is None:
                         print("            param = inferred", flush=True)
                     elif isinstance(self.params[constraint], np.ndarray):
-                        print("            param = " + np.array2string(
+                        label = "            param = "
+                        print(label + np.array2string(
                             self.params[constraint],
                             formatter={'float_kind': lambda x: "%.3g" % x},
-                            prefix="                ", separator=", "))
+                            prefix=" " * len(label), separator=", "))
                     elif isinstance(self.params[constraint], float):
                         print("            param = %.3g" % self.params[constraint],
                               flush=True)
@@ -223,10 +225,30 @@ class Constraints(object):
                         print("            %s" % self.params[constraint],
                               flush=True)
                 if constraint == "mhs":
-                    print("            var = %.3g" % (self.mhs_var2 / 2),
-                          flush=True)
+                    label = "            mhs_v = "
+                    print(label + np.array2string(
+                        (self.mhs_v),
+                        formatter={'float_kind': lambda x: "%.3g" % x},
+                        prefix=" " * len(label), separator=", "))
+                    if self.mhs_v_true is not None:
+                        label = "            true mhs_v = "
+                        print(label + np.array2string(
+                            (self.mhs_v_true),
+                            formatter={'float_kind': lambda x: "%.3g" % x},
+                            prefix=" " * len(label), separator=", "))
+                    label = "            mhs_v2 = "
+                    print(label + np.array2string(
+                        self.mhs_v2,
+                        formatter={'float_kind': lambda x: "%.3g" % x},
+                        prefix=" " * len(label), separator=", "))
+                    if self.mhs_v2_true is not None:
+                        label = "            true mhs_v2 = "
+                        print(label + np.array2string(
+                            self.mhs_v2_true,
+                            formatter={'float_kind': lambda x: "%.3g" % x},
+                            prefix=" " * len(label), separator=", "))
 
-    def apply(self, structures, mixture_coefs=None, alpha=None):
+    def apply(self, structures, mixture_coefs=None, alpha=None, hsc_max0=True):
         """Apply constraints using given structure(s).
 
         Compute negative log likelhood for each constraint using the given
@@ -271,20 +293,39 @@ class Constraints(object):
                 homo_sep = self._homolog_separation(struct)
                 hsc_diff = 0.
                 for i in range(len(self.lengths_lowres)):
-                    hsc_diff = hsc_diff + ag_np.square(
-                        ag_np.max([self.params["hsc"][i] - homo_sep[i], 0]))
+                    if hsc_max0:
+                        hsc_diff = hsc_diff + ag_np.square(
+                            ag_np.max([self.params["hsc"][i] - homo_sep[i], 0]))
+                    else:
+                        hsc_diff = hsc_diff + ag_np.square(
+                            self.params["hsc"][i] - homo_sep[i])
                 obj["hsc"] = obj["hsc"] + gamma * self.lambdas["hsc"] * hsc_diff
         if self.lambdas["mhs"]:
             if alpha is None:
                 raise ValueError("Must input alpha for multiscale-based homolog"
                                  " separating constraint.")
-            homo_sep = ag_np.zeros(self.lengths_lowres.shape[0])
-            for struct, gamma in zip(structures, mixture_coefs):
-                homo_sep = homo_sep + gamma * self._homolog_separation(struct)
-            lambda_intensity = ag_np.power(
-                ag_np.square(homo_sep) + self.mhs_var2, alpha / 2)
-            obj["mhs"] = self.lambdas["mhs"] * lambda_intensity.sum() - (
-                self.params["mhs"] * ag_np.log(lambda_intensity)).sum()
+            if False:
+                lambda_intensity = ag_np.zeros(self.lengths_lowres.shape[0])
+                for struct, gamma in zip(structures, mixture_coefs):
+                    homo_sep_sq = ag_np.square(self._homolog_separation(struct))
+                    taylor_approx = ag_np.power(homo_sep_sq + self.mhs_v, alpha / 2)
+                    if False:
+                        est_sq_var_dij = self._estimate_squared_variance_of_dij(
+                            struct=structures[0])
+                        taylor_approx = taylor_approx + ((alpha ** 2) / 2 - alpha) * ag_np.power(
+                            homo_sep_sq + self.mhs_v, alpha / 2 - 2) * est_sq_var_dij
+                    lambda_intensity = lambda_intensity + gamma * taylor_approx
+                poisson_mhs = lambda_intensity.sum() - (
+                    self.params["mhs"] * ag_np.log(lambda_intensity)).sum()
+            else:
+                lambda_intensity = ag_np.zeros(self.lengths_lowres.shape[0])
+                for struct, gamma in zip(structures, mixture_coefs):
+                    homo_sep = self._homolog_separation(struct)
+                    lambda_intensity = lambda_intensity + gamma * homo_sep
+                lambda_intensity = lambda_intensity / (self.params["mhs"] ** (1 / alpha))
+                poisson_mhs = lambda_intensity.sum() - \
+                    ag_np.log(lambda_intensity).sum()
+            obj["mhs"] = self.lambdas["mhs"] * poisson_mhs
 
         # Check constraints objective
         for k, v in obj.items():
@@ -314,9 +355,83 @@ class Constraints(object):
 
         return ag_np.array(homo_sep)
 
+    def _estimate_squared_variance_of_dij(self, struct):
+        """Compute distance between homolog centers of mass per chromosome.
+        """
+
+        struct_bw = struct * self.bead_weights
+        n = self.lengths_lowres.sum()
+
+        est_sq_var = []
+        begin = end = 0
+        for i in range(len(self.lengths_lowres)):
+            end = end + self.lengths_lowres[i]
+            chrom1_mean = ag_np.sum(struct_bw[begin:end], axis=0)
+            chrom2_mean = ag_np.sum(struct_bw[(n + begin):(n + end)], axis=0)
+            homo_sep = ag_np.square(chrom1_mean - chrom2_mean)
+            est_sq_var.append(ag_np.sum(homo_sep * self.mhs_v2[i]))
+            begin = end
+
+        return ag_np.array(est_sq_var)
+
+
+def _mhs_variances(lengths, struct=None, use_multiscale_variance=True):
+    """TODO
+    """
+
+    if not use_multiscale_variance:
+        chrom_var = 0.
+        mhs_v2 = 0.
+    else:
+        if struct is None:
+            raise ValueError(
+                "Must input `struct` when using multiscale-based "
+                "homolog-separating constraint.")
+        chrom_var = get_multiscale_variances_from_struct(
+            struct, lengths=lengths,
+            multiscale_factor=lengths.max(), verbose=False)
+        mhs_v2 = _mhs_v2(struct, lengths=lengths)
+
+    if not isinstance(chrom_var, np.ndarray):
+        mhs_v = np.full((lengths.shape[0],), float(chrom_var) * 2)
+    elif chrom_var.shape[0] == lengths.shape[0] * 2:
+        nchrom = lengths.shape[0]
+        mhs_v = chrom_var[:nchrom] + chrom_var[nchrom:]
+    elif chrom_var.shape[0] == lengths.shape[0]:
+        mhs_v = chrom_var * 2
+    else:
+        raise ValueError("`chrom_var` is of unexpected length.")
+
+    return mhs_v, mhs_v2
+
+
+def _mhs_v2(struct, lengths):
+    """TODO
+    """
+
+    n = lengths.sum()
+    if struct.shape[0] == n:
+        homo1 = homo2 = struct
+    else:
+        homo1 = struct[:n]
+        homo2 = struct[n:]
+
+    est_vsq = []
+    begin = end = 0
+    for l in lengths:
+        end += l
+        est_vsq_chrom = []
+        for i in range(3):
+            homo1_i = homo1[begin:end, i]
+            homo2_i = homo2[begin:end, i]
+            est_vsq_chrom.append((np.var(homo1_i) + np.var(homo2_i)))
+        begin = end
+        est_vsq.append(np.array(est_vsq_chrom).reshape(1, 3))
+    return np.concatenate(est_vsq)
+
 
 def _mean_interhomolog_counts(counts, lengths, bias=None):
-    """
+    """TODO
     """
 
     from .counts import ambiguate_counts
@@ -339,10 +454,11 @@ def _mean_interhomolog_counts(counts, lengths, bias=None):
                 "unambiguos counts before inputting.")
         ua_counts = counts_non0[ua_index[0]]
         mhs_beta = ua_counts.beta
+        mhs_counts = ua_counts.toarray()
         if bias is not None:
             ua_bias = counts.bias_per_bin(bias=bias, ploidy=2).reshape(-1, 1)
-            ua_counts *= ua_bias * ua_bias.T
-        mhs_counts = ua_counts.toarray()[:n, n:].astype(float)
+            mhs_counts *= ua_bias * ua_bias.T
+        mhs_counts = mhs_counts[:n, n:].astype(float)
         mhs_counts[torm[:n], :] = np.nan
         mhs_counts[:, torm[n:]] = np.nan
         mean_interhomo_counts = []
@@ -362,16 +478,21 @@ def _mean_interhomolog_counts(counts, lengths, bias=None):
                 " inter-chromosomal counts requires data for  more than one"
                 " chromosome.")
         mhs_beta = sum([c.beta for c in counts_non0])
-        if bias is not None:
-            pass
-        #BIAS BIAS BIAS
+        if bias is None:
+            counts_norm = counts_non0
+        else:
+            counts_norm = []
+            for counts_maps in counts_non0:
+                bias_maps = counts_maps.bias_per_bin(
+                    bias=bias, ploidy=2).reshape(-1, 1)
+                counts_norm.append(
+                    counts_maps.toarray() * bias_maps * bias_maps.T)
         mhs_counts = ambiguate_counts(
-            counts=counts_non0, lengths=lengths, ploidy=2, exclude_zeros=True)
+            counts=counts_norm, lengths=lengths, ploidy=2, exclude_zeros=True)
         mhs_counts = _inter_counts(
             mhs_counts, lengths=lengths, ploidy=2, exclude_zeros=False)
         mean_interhomo_counts = np.nanmean(mhs_counts) / 2
 
-    #print(mean_interhomo_counts, mhs_beta, mean_interhomo_counts / mhs_beta)
     return mean_interhomo_counts / mhs_beta
 
 

@@ -4,7 +4,7 @@ from sklearn.metrics import euclidean_distances
 import os
 from scipy import linalg
 #from ..io.read import _load_inferred_struct
-from .counts import subset_chrom, _get_chrom_subset_index
+from .counts import subset_chrom, _get_chrom_subset_index, preprocess_counts
 from .pastis_algorithms import infer, _infer_draft
 from .utils_poisson import _print_code_header, _load_infer_var
 from .utils_poisson import _format_structures, _output_subdir
@@ -387,13 +387,14 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
                     multiscale_rounds=1, use_multiscale_variance=True,
                     max_iter=1e40, factr=10000000., pgtol=1e-05,
                     alpha_factr=1000000000000., bcc_lambda=0., hsc_lambda=0.,
-                    hsc_r=None, hsc_min_beads=5, callback_function=None,
-                    callback_freq=None, piecewise_step=None,
-                    piecewise_chrom=None, piecewise_min_beads=5,
-                    piecewise_fix_homo=False, piecewise_opt_orient=True,
-                    alpha_true=None, struct_true=None, init='msd',
-                    input_weight=None, exclude_zeros=False, null=False,
-                    mixture_coefs=None, verbose=True):
+                    hsc_r=None, hsc_min_beads=5, mhs_lambda=0., mhs_k=None,
+                    callback_function=None, callback_freq=None,
+                    piecewise_step=None, piecewise_chrom=None,
+                    piecewise_min_beads=5, piecewise_fix_homo=False,
+                    piecewise_opt_orient=True, alpha_true=None,
+                    struct_true=None, init='msd', input_weight=None,
+                    exclude_zeros=False, null=False, mixture_coefs=None,
+                    verbose=True):
     """Infer whole genome 3D structures piecewise, first inferring chromosomes.
     """
 
@@ -416,6 +417,7 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
     outdir_chrom = _output_subdir(outdir=outdir, piecewise_step=2)
     outdir_orient = _output_subdir(outdir=outdir, piecewise_step=3)
 
+    # Infer draft structure
     if 1 in piecewise_step or 2 in piecewise_step:
         struct_draft_fullres, alpha_, beta_, hsc_r, draft_converged = _infer_draft(
             counts_raw, lengths=lengths, ploidy=ploidy, outdir=outdir,
@@ -424,8 +426,8 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
             max_alpha_loop=max_alpha_loop, beta=beta, multiscale_rounds=2,
             use_multiscale_variance=use_multiscale_variance, init=init,
             max_iter=max_iter, factr=factr, pgtol=pgtol,
-            alpha_factr=alpha_factr, bcc_lambda=bcc_lambda,
-            hsc_lambda=hsc_lambda, hsc_r=hsc_r, hsc_min_beads=hsc_min_beads,
+            alpha_factr=alpha_factr, hsc_lambda=hsc_lambda, hsc_r=hsc_r,
+            hsc_min_beads=hsc_min_beads, mhs_lambda=mhs_lambda, mhs_k=mhs_k,
             callback_freq=callback_freq, callback_function=callback_function,
             reorienter=None, alpha_true=alpha_true,
             struct_true=struct_true, input_weight=input_weight,
@@ -434,24 +436,22 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
         if not draft_converged:
             return None, {'alpha': alpha_, 'beta': beta_, 'seed': seed,
                           'converged': draft_converged}
-    else:
-        # Load alpha and beta for subsequent steps
-        infer_var_file = os.path.join(
-            outdir_lowres, 'inference_variables.%03d' % seed)
-        infer_var = _load_infer_var(infer_var_file)
-        if not infer_var['converged']:
-            return None, infer_var
-        alpha_ = infer_var['alpha']
-        beta_ = infer_var['beta']
-        if 'hsc_r' in infer_var:
-            hsc_r = infer_var['hsc_r']
+
+    # Prepare multiscale optimization
+    if 1 in piecewise_step or (2 in piecewise_step and multiscale_rounds > 1):
+        _, _, _, fullres_torm_for_multiscale = preprocess_counts(
+            counts_raw=counts_raw, lengths=lengths, ploidy=ploidy,
+            normalize=normalize, filter_threshold=filter_threshold,
+            multiscale_factor=1, exclude_zeros=exclude_zeros, beta=beta,
+            input_weight=input_weight, verbose=verbose,
+            mixture_coefs=mixture_coefs)
 
     # Infer entire genome at low res
     if 1 in piecewise_step:
         _print_code_header(
-            'PIECEWISE WHOLE GENOME: STEP 1',
-            sub_header='Inferring low-res whole-genome structure'
-                       ' (%dx)' % piecewise_factor,
+            ['PIECEWISE WHOLE GENOME: STEP 1',
+                'Inferring low-res whole-genome structure'
+                ' (%dx)' % piecewise_factor],
             max_length=80, blank_lines=2)
 
         struct_, infer_var = infer(
@@ -463,8 +463,8 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
             use_multiscale_variance=use_multiscale_variance,
             init=init, max_iter=max_iter, factr=factr, pgtol=pgtol,
             alpha_factr=alpha_factr, bcc_lambda=bcc_lambda,
-            hsc_lambda=hsc_lambda, hsc_r=hsc_r,
-            fullres_torm=fullres_torm_for_multiscale,
+            hsc_lambda=hsc_lambda, hsc_r=hsc_r, mhs_lambda=mhs_lambda,
+            mhs_k=mhs_k, fullres_torm=fullres_torm_for_multiscale,
             struct_draft_fullres=struct_draft_fullres,
             callback_function=callback_function,
             callback_freq=callback_freq,
@@ -474,11 +474,24 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
         if not infer_var['converged']:
             return struct_, infer_var
 
+    # Load variables for subsequent steps
+    infer_var_file = os.path.join(
+        outdir_lowres, 'inference_variables.%03d' % seed)
+    infer_var = _load_infer_var(infer_var_file)
+    if not infer_var['converged']:
+        return None, infer_var
+    alpha_ = infer_var['alpha']
+    beta_ = infer_var['beta']
+    if 'hsc_r' in infer_var:
+        hsc_r = infer_var['hsc_r']
+    if 'mhs_k' in infer_var:
+        mhs_k = infer_var['mhs_k']
+
     # Infer each chromosome individually
     if 2 in piecewise_step:
         _print_code_header(
-            'PIECEWISE WHOLE GENOME: STEP 2',
-            sub_header='Inferring full-res structure per chromosome',
+            ['PIECEWISE WHOLE GENOME: STEP 2',
+                'Inferring full-res structure per chromosome'],
             max_length=80, blank_lines=2)
 
         if piecewise_chrom is None:
@@ -490,6 +503,10 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
                 hsc_r_chrom = hsc_r[i]
             else:
                 hsc_r_chrom = None
+            if mhs_k is not None and isinstance(mhs_k, np.ndarray):
+                mhs_k_chrom = mhs_k[i]
+            else:
+                mhs_k_chrom = mhs_k
 
             _print_code_header(
                 'CHROMOSOME %s' % chrom, max_length=70, blank_lines=1)
@@ -517,6 +534,7 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
                 init=init, max_iter=max_iter, factr=factr, pgtol=pgtol,
                 alpha_factr=alpha_factr, bcc_lambda=bcc_lambda,
                 hsc_lambda=hsc_lambda, hsc_r=hsc_r_chrom,
+                mhs_lambda=mhs_lambda, mhs_k=mhs_k_chrom,
                 fullres_torm=[x[index] for x in fullres_torm_for_multiscale],
                 struct_draft_fullres=struct_draft_fullres[draft_index],
                 callback_function=callback_function,
@@ -530,8 +548,7 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
     # Assemble 3D structure for entire genome
     if 3 in piecewise_step:
         _print_code_header(
-            'PIECEWISE WHOLE GENOME: STEP 3',
-            sub_header='Orienting full-res chromosomes',
+            ['PIECEWISE WHOLE GENOME: STEP 3', 'Orienting full-res chromosomes'],
             max_length=80, blank_lines=2)
 
         struct_fullres_genome_init, reorient_init = _orient_fullres_chroms_via_lowres_genome(
@@ -555,7 +572,8 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
                 alpha_init=alpha_init, max_alpha_loop=max_alpha_loop,
                 beta=beta_, init=reorient_init, max_iter=max_iter, factr=factr,
                 pgtol=pgtol, alpha_factr=alpha_factr, bcc_lambda=0.,
-                hsc_lambda=0., hsc_r=None, callback_function=callback_function,
+                hsc_lambda=0., hsc_r=None, mhs_lambda=0., mhs_k=None,
+                callback_function=callback_function,
                 callback_freq=callback_freq, reorienter=reorienter,
                 alpha_true=alpha_true, struct_true=struct_true,
                 input_weight=input_weight, exclude_zeros=exclude_zeros,
@@ -566,8 +584,8 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
     # Infer once more, letting all bead positions vary
     if 4 in piecewise_step:
         _print_code_header(
-            'PIECEWISE WHOLE GENOME: STEP 4',
-            sub_header='Final whole-genome inference, allow all beads to vary',
+            ['PIECEWISE WHOLE GENOME: STEP 4',
+                'Final whole-genome inference, allow all beads to vary'],
             max_length=80, blank_lines=2)
 
         if piecewise_opt_orient:
@@ -585,6 +603,7 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
             init=X_all_chrom_oriented, max_iter=max_iter, factr=factr,
             pgtol=pgtol, alpha_factr=alpha_factr, bcc_lambda=bcc_lambda,
             hsc_lambda=hsc_lambda, hsc_r=hsc_r,
+            mhs_lambda=mhs_lambda, mhs_k=mhs_k,
             callback_function=callback_function, callback_freq=callback_freq,
             alpha_true=alpha_true, struct_true=struct_true,
             input_weight=input_weight, exclude_zeros=exclude_zeros,
