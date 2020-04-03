@@ -214,8 +214,9 @@ def _check_counts_matrix(counts, lengths, ploidy, exclude_zeros=False,
     if not exclude_zeros:
         empty_val = np.nan
         torm = find_beads_to_remove(counts, max(counts.shape))
+        counts = counts.astype(float)
 
-    if sparse.isspmatrix_coo(counts) or sparse.issparse(counts):
+    if sparse.issparse(counts) or isinstance(counts, CountsMatrix):
         counts = counts.toarray()
     if not isinstance(counts, np.ndarray):
         counts = np.array(counts)
@@ -818,8 +819,10 @@ class SparseCountsMatrix(CountsMatrix):
             counts = counts.toarray()
         self.input_sum = np.nansum(counts)
         counts[np.isnan(counts)] = 0
-        counts = counts.astype(
-            sparse.sputils.get_index_dtype(maxval=counts.max()))
+        if np.array_equal(counts[~np.isnan(counts)],
+                          counts[~np.isnan(counts)].round()):
+            counts = counts.astype(
+                sparse.sputils.get_index_dtype(maxval=counts.max()))
         self._counts = sparse.coo_matrix(counts)
         self.ambiguity = {1: 'ambig', 1.5: 'pa', 2: 'ua'}[
             sum(counts.shape) / (lengths_lowres.sum() * ploidy)]
