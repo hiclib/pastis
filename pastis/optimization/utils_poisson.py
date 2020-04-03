@@ -4,6 +4,7 @@ import numpy as np
 import sys
 import os
 import pandas as pd
+from scipy import sparse
 from distutils.util import strtobool
 
 
@@ -11,22 +12,20 @@ if sys.version_info[0] < 3:
     raise Exception("Must be using Python 3")
 
 
-def _print_code_header(header, sub_header=None, max_length=80,
-                       blank_lines=None,
-                       verbose=True):
+def _print_code_header(header, max_length=80, blank_lines=None, verbose=True):
     """Prints a header, for demarcation of output.
     """
 
     if verbose:
-        print('=' * max_length, flush=True)
-        print(('=' * int(np.ceil((max_length - len(header) - 2) / 2))) + ' %s ' %
-              header + ('=' * int(np.floor((max_length - len(header) - 2) / 2))), flush=True)
-        if sub_header is not None and len(sub_header) != 0:
-            print(('=' * int(np.ceil((max_length - len(sub_header) - 2) / 2))) + ' %s ' %
-                  sub_header + ('=' * int(np.floor((max_length - len(sub_header) - 2) / 2))), flush=True)
-        print('=' * max_length, flush=True)
+        if not isinstance(header, list):
+            header = [header]
         if blank_lines is not None and blank_lines > 0:
             print('\n' * (blank_lines - 1), flush=True)
+        print('=' * max_length, flush=True)
+        for line in header:
+            print(('=' * int(np.ceil((max_length - len(line) - 2) / 2))) + ' %s ' %
+                  line + ('=' * int(np.floor((max_length - len(line) - 2) / 2))), flush=True)
+        print('=' * max_length, flush=True)
 
 
 def _load_infer_var(infer_var_file):
@@ -238,3 +237,61 @@ def _struct_replace_nan(struct, lengths, kind='linear', random_state=None):
             warn('The following chromosomes were all NaN: ' + ' '.join(nan_chroms))
 
         return(interpolated_struct)
+
+
+def _intra_counts_mask(counts, lengths):
+    """Return mask of sparse COO data for intra-chromosomal counts.
+    """
+
+    if isinstance(counts, np.ndarray):
+        counts = sparse.coo_matrix(counts)
+    elif not sparse.issparse(counts):
+        counts = counts.tocoo()
+    bins_for_row = np.tile(
+        lengths, int(counts.shape[0] / lengths.sum())).cumsum()
+    bins_for_col = np.tile(
+        lengths, int(counts.shape[1] / lengths.sum())).cumsum()
+    row_binned = np.digitize(counts.row, bins_for_row)
+    col_binned = np.digitize(counts.col, bins_for_col)
+
+    return np.equal(row_binned, col_binned)
+
+
+def _intra_counts(counts, lengths, ploidy, exclude_zeros=False):
+    """Return intra-chromosomal counts.
+    """
+
+    from .counts import _check_counts_matrix
+
+    if isinstance(counts, np.ndarray):
+        counts = sparse.coo_matrix(counts)
+    elif not sparse.issparse(counts):
+        counts = counts.tocoo()
+
+    mask = _intra_counts_mask(counts=counts, lengths=lengths)
+    counts = sparse.coo_matrix(
+        (counts.data[mask], (counts.row[mask], counts.col[mask])),
+        shape=counts.shape)
+
+    return _check_counts_matrix(
+        counts, lengths=lengths, ploidy=ploidy, exclude_zeros=exclude_zeros)
+
+
+def _inter_counts(counts, lengths, ploidy, exclude_zeros=False):
+    """Return intra-chromosomal counts.
+    """
+
+    from .counts import _check_counts_matrix
+
+    if isinstance(counts, np.ndarray):
+        counts = sparse.coo_matrix(counts)
+    elif not sparse.issparse(counts):
+        counts = counts.tocoo()
+
+    mask = ~_intra_counts_mask(counts=counts, lengths=lengths)
+    counts = sparse.coo_matrix(
+        (counts.data[mask], (counts.row[mask], counts.col[mask])),
+        shape=counts.shape)
+
+    return _check_counts_matrix(
+        counts, lengths=lengths, ploidy=ploidy, exclude_zeros=exclude_zeros)
