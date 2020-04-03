@@ -404,14 +404,13 @@ def _count_fullres_per_lowres_bead(multiscale_factor, lengths, ploidy,
         lengths=lengths).reshape(multiscale_factor, -1)
 
     if fullres_torm is not None and fullres_torm.sum() != 0:
-        fullres_indices[fullres_indices == np.where(fullres_torm)[0]] = np.nan()
+        fullres_indices[fullres_indices == np.where(fullres_torm)[0]] = np.nan
 
     return (~ np.isnan(fullres_indices)).sum(axis=0)
 
 
 def get_multiscale_variances_from_struct(structures, lengths, multiscale_factor,
-                                         ploidy, mixture_coefs=None,
-                                         verbose=True):
+                                         mixture_coefs=None, verbose=True):
     """Compute multiscale variances from full-res structure.
 
     Generates multiscale variances at the specified resolution from the
@@ -429,8 +428,6 @@ def get_multiscale_variances_from_struct(structures, lengths, multiscale_factor,
     multiscale_factor : int, optional
         Factor by which to reduce the resolution. A value of 2 halves the
         resolution. A value of 1 does not change the resolution.
-    ploidy : {1, 2}
-        Ploidy, 1 indicates haploid, 2 indicates diploid.
 
     Returns
     -------
@@ -464,13 +461,11 @@ def get_multiscale_variances_from_struct(structures, lengths, multiscale_factor,
         multiscale_variances.append(_var3d(struct_grouped))
     multiscale_variances = np.mean(multiscale_variances, axis=0)
 
-    multiscale_variances_median = np.median(multiscale_variances)
-
     if verbose:
-        print("MULTISCALE VARIANCE: %.3g" % multiscale_variances_median,
+        print("MULTISCALE VARIANCE: %.3g" % np.median(multiscale_variances),
               flush=True)
 
-    return multiscale_variances_median
+    return multiscale_variances
 
 
 def _var3d(struct_grouped):
