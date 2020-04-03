@@ -130,7 +130,8 @@ def objective(X, counts, alpha, lengths, bias=None, constraints=None,
     if constraints is None:
         obj_constraints = {}
     else:
-        obj_constraints = constraints.apply(structures, mixture_coefs)
+        obj_constraints = constraints.apply(
+            structures, mixture_coefs=mixture_coefs, alpha=alpha)
     obj_poisson = {}
     for counts_maps in counts:
         obj_poisson['obj_' + counts_maps.name] = _poisson_obj_single(
@@ -323,10 +324,10 @@ def estimate_X(counts, init_X, alpha, lengths, bias=None, constraints=None,
 
     if verbose:
         if converged:
-            print('CONVERGED\n\n', flush=True)
+            print('CONVERGED\n', flush=True)
         else:
             print('OPTIMIZATION DID NOT CONVERGE', flush=True)
-            print(d['task'].decode('utf8') + '\n\n', flush=True)
+            print(d['task'].decode('utf8') + '\n', flush=True)
 
     return X, obj, converged, history
 
