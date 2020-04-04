@@ -128,6 +128,12 @@ class Constraints(object):
             self.bead_weights = np.repeat(
                 bead_weights.reshape(-1, 1), 3, axis=1)
 
+        '''self.subtracted = None
+        if self.lambdas["mhs"]:
+            lambda_intensity = np.ones((self.lengths.shape[0],))
+            self.subtracted = (lambda_intensity.sum() - (
+                1 * np.log(lambda_intensity)).sum())'''
+
         self.row = self.col = None
         self.row_adj = self.col_adj = None
         if self.lambdas["bcc"]:
@@ -248,7 +254,7 @@ class Constraints(object):
                             formatter={'float_kind': lambda x: "%.3g" % x},
                             prefix=" " * len(label), separator=", "))
 
-    def apply(self, structures, mixture_coefs=None, alpha=None, hsc_max0=True):
+    def apply(self, structures, mixture_coefs=None, alpha=None):
         """Apply constraints using given structure(s).
 
         Compute negative log likelhood for each constraint using the given
@@ -293,39 +299,22 @@ class Constraints(object):
                 homo_sep = self._homolog_separation(struct)
                 hsc_diff = 0.
                 for i in range(len(self.lengths_lowres)):
-                    if hsc_max0:
-                        hsc_diff = hsc_diff + ag_np.square(
-                            ag_np.max([self.params["hsc"][i] - homo_sep[i], 0]))
-                    else:
-                        hsc_diff = hsc_diff + ag_np.square(
-                            self.params["hsc"][i] - homo_sep[i])
+                    hsc_diff = hsc_diff + ag_np.square(
+                        ag_np.max([self.params["hsc"][i] - homo_sep[i], 0]))
                 obj["hsc"] = obj["hsc"] + gamma * self.lambdas["hsc"] * hsc_diff
         if self.lambdas["mhs"]:
             if alpha is None:
                 raise ValueError("Must input alpha for multiscale-based homolog"
                                  " separating constraint.")
-            if False:
-                lambda_intensity = ag_np.zeros(self.lengths_lowres.shape[0])
-                for struct, gamma in zip(structures, mixture_coefs):
-                    homo_sep_sq = ag_np.square(self._homolog_separation(struct))
-                    taylor_approx = ag_np.power(homo_sep_sq + self.mhs_v, alpha / 2)
-                    if False:
-                        est_sq_var_dij = self._estimate_squared_variance_of_dij(
-                            struct=structures[0])
-                        taylor_approx = taylor_approx + ((alpha ** 2) / 2 - alpha) * ag_np.power(
-                            homo_sep_sq + self.mhs_v, alpha / 2 - 2) * est_sq_var_dij
-                    lambda_intensity = lambda_intensity + gamma * taylor_approx
-                poisson_mhs = lambda_intensity.sum() - (
-                    self.params["mhs"] * ag_np.log(lambda_intensity)).sum()
-            else:
-                lambda_intensity = ag_np.zeros(self.lengths_lowres.shape[0])
-                for struct, gamma in zip(structures, mixture_coefs):
-                    homo_sep = self._homolog_separation(struct)
-                    lambda_intensity = lambda_intensity + gamma * homo_sep
-                lambda_intensity = lambda_intensity / (self.params["mhs"] ** (1 / alpha))
-                poisson_mhs = lambda_intensity.sum() - \
-                    ag_np.log(lambda_intensity).sum()
+            lambda_intensity = ag_np.zeros(self.lengths_lowres.shape[0])
+            for struct, gamma in zip(structures, mixture_coefs):
+                homo_sep = self._homolog_separation(struct)
+                lambda_intensity = lambda_intensity + gamma * homo_sep
+            lambda_intensity = lambda_intensity / (self.params["mhs"] ** (1 / alpha))
+            poisson_mhs = lambda_intensity.sum() - \
+                ag_np.log(lambda_intensity).sum()
             obj["mhs"] = self.lambdas["mhs"] * poisson_mhs
+            #obj["mhs"] = self.lambdas["mhs"] * (poisson_mhs - self.subtracted)
 
         # Check constraints objective
         for k, v in obj.items():
