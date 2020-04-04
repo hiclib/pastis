@@ -301,6 +301,8 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
             infer_var = _load_infer_var(infer_var_file)
             struct_ = np.loadtxt(out_file)
             return struct_, infer_var
+    else:
+        out_file = orient_file = history_file = infer_var_file = out_fail = None
 
     # INFER DRAFT STRUCTURES (for estimation of multiscale_variance & hsc_r)
     alpha_ = alpha
@@ -332,6 +334,8 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
 
     random_state = np.random.RandomState(seed)
     random_state = check_random_state(random_state)
+    if verbose and outdir is not None:
+        print('OUTPUT: %s' % out_file, flush=True)
 
     # PREPARE COUNTS OBJECTS
     if simple_diploid:
