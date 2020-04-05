@@ -220,7 +220,7 @@ def fprime_wrapper(X, counts, alpha, lengths, bias=None, constraints=None,
 
 def estimate_X(counts, init_X, alpha, lengths, bias=None, constraints=None,
                multiscale_factor=1, multiscale_variances=None,
-               max_iter=10000000000, factr=10000000., pgtol=1e-05,
+               max_iter=30000, max_fun=None, factr=10000000., pgtol=1e-05,
                callback=None, alpha_loop=None, reorienter=None,
                mixture_coefs=None, verbose=True):
     """Estimates a 3D structure, given current alpha.
@@ -253,6 +253,9 @@ def estimate_X(counts, init_X, alpha, lengths, bias=None, constraints=None,
         bead.
     max_iter : int, optional
         Maximum number of iterations per optimization.
+    max_fun : int, optional
+        Maximum number of function evaluations per optimization. If not
+        supplied, defaults to same value as `max_iter`.
     factr : float, optional
         factr for scipy's L-BFGS-B, alters convergence criteria.
     pgtol : float, optional
@@ -302,12 +305,15 @@ def estimate_X(counts, init_X, alpha, lengths, bias=None, constraints=None,
             multiscale_variances=multiscale_variances,
             mixture_coefs=mixture_coefs, callback=callback)
 
+    if max_fun is None:
+        max_fun = max_iter
     results = optimize.fmin_l_bfgs_b(
         objective_wrapper,
         x0=init_X.flatten(),
         fprime=fprime_wrapper,
         iprint=0,
         maxiter=max_iter,
+        maxfun=max_fun,
         pgtol=pgtol,
         factr=factr,
         args=(counts, alpha, lengths, bias, constraints,
@@ -412,7 +418,7 @@ class PastisPM(object):
     def __init__(self, counts, lengths, ploidy, alpha, init, bias=None,
                  constraints=None, callback=None, multiscale_factor=1,
                  multiscale_variances=None, alpha_init=-3., max_alpha_loop=20,
-                 max_iter=10000000000, factr=10000000., pgtol=1e-05,
+                 max_iter=30000, factr=10000000., pgtol=1e-05,
                  alpha_factr=1000000000000., reorienter=None, null=False,
                  mixture_coefs=None, verbose=True):
 

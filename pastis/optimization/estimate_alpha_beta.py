@@ -192,7 +192,7 @@ def fprime_wrapper_alpha(alpha, counts, X, lengths, bias=None, constraints=None,
 def estimate_alpha(counts, X, alpha_init, lengths, bias=None,
                    constraints=None, multiscale_factor=1,
                    multiscale_variances=None, random_state=None,
-                   max_iter=10000000000, factr=10000000., pgtol=1e-05,
+                   max_iter=30000, max_fun=None, factr=10000000., pgtol=1e-05,
                    callback=None, alpha_loop=None, reorienter=None,
                    mixture_coefs=None, verbose=True):
     """Estimates alpha, given current structure.
@@ -226,6 +226,9 @@ def estimate_alpha(counts, X, alpha_init, lengths, bias=None,
         bead.
     max_iter : int, optional
         Maximum number of iterations per optimization.
+    max_fun : int, optional
+        Maximum number of function evaluations per optimization. If not
+        supplied, defaults to same value as `max_iter`.
     factr : float, optional
         factr for scipy's L-BFGS-B, alters convergence criteria.
     pgtol : float, optional
@@ -281,12 +284,15 @@ def estimate_alpha(counts, X, alpha_init, lengths, bias=None,
             multiscale_variances=multiscale_variances,
             mixture_coefs=mixture_coefs, callback=callback)
 
+    if max_fun is None:
+        max_fun = max_iter
     results = optimize.fmin_l_bfgs_b(
         objective_wrapper_alpha,
         x0=np.float64(alpha_init),
         fprime=fprime_wrapper_alpha,
         iprint=0,
         maxiter=max_iter,
+        max_fun=max_fun,
         pgtol=pgtol,
         factr=factr,
         bounds=np.array([[-100, 1e-2]]),

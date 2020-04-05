@@ -53,7 +53,7 @@ parser.add_argument("--multiscale_rounds", default=1, type=int,
                          " optimization.")
 
 # Optimization convergence
-parser.add_argument("--max_iter", default=1e15, type=float,
+parser.add_argument("--max_iter", default=30000, type=int,
                     help="Maximum number of iterations per optimization.")
 parser.add_argument("--factr", default=10000000.0, type=float,
                     help="factr for scipy's L-BFGS-B, alters convergence"
