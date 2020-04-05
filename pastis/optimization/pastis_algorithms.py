@@ -332,8 +332,6 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
                 ['Draft inference complete', 'INFERRING STRUCTURE'],
                 max_length=80, blank_lines=2)
 
-    random_state = np.random.RandomState(seed)
-    random_state = check_random_state(random_state)
     if verbose and outdir is not None:
         print('OUTPUT: %s' % out_file, flush=True)
 
@@ -367,6 +365,8 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
             [struct_true[:lengths.sum()], struct_true[lengths.sum():]], axis=0)
 
     # INITIALIZATION
+    random_state = np.random.RandomState(seed)
+    random_state = check_random_state(random_state)
     if isinstance(init, str) and init.lower() == 'true':
         if struct_true is None:
             raise ValueError("Attempting to initialize with struct_true but"
