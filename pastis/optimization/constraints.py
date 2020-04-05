@@ -276,8 +276,8 @@ class Constraints(object):
             lambda_intensity = lambda_intensity / (self.params["mhs"] ** (1 / alpha))
             poisson_mhs = lambda_intensity.sum() - \
                 ag_np.log(lambda_intensity).sum()
-            obj["mhs"] = self.lambdas["mhs"] * poisson_mhs
-            #obj["mhs"] = self.lambdas["mhs"] * (poisson_mhs - self.subtracted)
+            #obj["mhs"] = self.lambdas["mhs"] * poisson_mhs
+            obj["mhs"] = self.lambdas["mhs"] * (poisson_mhs - self.subtracted)
 
         # Check constraints objective
         for k, v in obj.items():
