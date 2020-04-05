@@ -422,9 +422,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
                                                       'mhs': mhs_lambda},
                                   constraint_params={'hsc': hsc_r,
                                                      'mhs': mhs_k},
-                                  struct_draft_fullres=struct_draft_fullres,
-                                  struct_true=struct_true,
-                                  use_multiscale_variance=use_multiscale_variance)
+                                  verbose=verbose)
 
         # COMPUTE OBJECTIVE ON TRUE STRUCTURE
         if outdir is not None and struct_true is not None and not null and (

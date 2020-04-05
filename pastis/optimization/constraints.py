@@ -8,7 +8,6 @@ import autograd.numpy as ag_np
 from autograd.builtins import SequenceBox
 from .multiscale_optimization import decrease_lengths_res
 from .multiscale_optimization import _count_fullres_per_lowres_bead
-from .multiscale_optimization import get_multiscale_variances_from_struct
 from .utils_poisson import find_beads_to_remove, _inter_counts
 
 
@@ -67,9 +66,7 @@ class Constraints(object):
     """
 
     def __init__(self, counts, lengths, ploidy, multiscale_factor=1,
-                 constraint_lambdas=None, constraint_params=None,
-                 struct_draft_fullres=None, struct_true=None,
-                 use_multiscale_variance=True, verbose=True):
+                 constraint_lambdas=None, constraint_params=None, verbose=True):
 
         self.lengths = np.array(lengths)
         self.lengths_lowres = decrease_lengths_res(lengths, multiscale_factor)
@@ -91,17 +88,6 @@ class Constraints(object):
             self.params = constraint_params
         else:
             raise ValueError("Constraint params must be inputted as dict.")
-
-        self.mhs_v = self.mhs_v2 = None
-        self.mhs_v_true = self.mhs_v2_true = None
-        if self.lambdas["mhs"]:
-            self.mhs_v, self.mhs_v2 = _mhs_variances(
-                lengths=lengths, struct=struct_draft_fullres,
-                use_multiscale_variance=use_multiscale_variance)
-            if struct_true is not None:
-                self.mhs_v_true, self.mhs_v2_true = _mhs_variances(
-                    lengths=lengths, struct=struct_true,
-                    use_multiscale_variance=use_multiscale_variance)
 
         self.check(verbose=verbose)
 
@@ -128,11 +114,11 @@ class Constraints(object):
             self.bead_weights = np.repeat(
                 bead_weights.reshape(-1, 1), 3, axis=1)
 
-        '''self.subtracted = None
+        self.subtracted = None
         if self.lambdas["mhs"]:
             lambda_intensity = np.ones((self.lengths.shape[0],))
             self.subtracted = (lambda_intensity.sum() - (
-                1 * np.log(lambda_intensity)).sum())'''
+                1 * np.log(lambda_intensity)).sum())
 
         self.row = self.col = None
         self.row_adj = self.col_adj = None
@@ -230,29 +216,6 @@ class Constraints(object):
                     else:
                         print("            %s" % self.params[constraint],
                               flush=True)
-                if constraint == "mhs":
-                    label = "            mhs_v = "
-                    print(label + np.array2string(
-                        (self.mhs_v),
-                        formatter={'float_kind': lambda x: "%.3g" % x},
-                        prefix=" " * len(label), separator=", "))
-                    if self.mhs_v_true is not None:
-                        label = "            true mhs_v = "
-                        print(label + np.array2string(
-                            (self.mhs_v_true),
-                            formatter={'float_kind': lambda x: "%.3g" % x},
-                            prefix=" " * len(label), separator=", "))
-                    label = "            mhs_v2 = "
-                    print(label + np.array2string(
-                        self.mhs_v2,
-                        formatter={'float_kind': lambda x: "%.3g" % x},
-                        prefix=" " * len(label), separator=", "))
-                    if self.mhs_v2_true is not None:
-                        label = "            true mhs_v2 = "
-                        print(label + np.array2string(
-                            self.mhs_v2_true,
-                            formatter={'float_kind': lambda x: "%.3g" % x},
-                            prefix=" " * len(label), separator=", "))
 
     def apply(self, structures, mixture_coefs=None, alpha=None):
         """Apply constraints using given structure(s).
@@ -344,83 +307,9 @@ class Constraints(object):
 
         return ag_np.array(homo_sep)
 
-    def _estimate_squared_variance_of_dij(self, struct):
-        """Compute distance between homolog centers of mass per chromosome.
-        """
-
-        struct_bw = struct * self.bead_weights
-        n = self.lengths_lowres.sum()
-
-        est_sq_var = []
-        begin = end = 0
-        for i in range(len(self.lengths_lowres)):
-            end = end + self.lengths_lowres[i]
-            chrom1_mean = ag_np.sum(struct_bw[begin:end], axis=0)
-            chrom2_mean = ag_np.sum(struct_bw[(n + begin):(n + end)], axis=0)
-            homo_sep = ag_np.square(chrom1_mean - chrom2_mean)
-            est_sq_var.append(ag_np.sum(homo_sep * self.mhs_v2[i]))
-            begin = end
-
-        return ag_np.array(est_sq_var)
-
-
-def _mhs_variances(lengths, struct=None, use_multiscale_variance=True):
-    """TODO
-    """
-
-    if not use_multiscale_variance:
-        chrom_var = 0.
-        mhs_v2 = 0.
-    else:
-        if struct is None:
-            raise ValueError(
-                "Must input `struct` when using multiscale-based "
-                "homolog-separating constraint.")
-        chrom_var = get_multiscale_variances_from_struct(
-            struct, lengths=lengths,
-            multiscale_factor=lengths.max(), verbose=False)
-        mhs_v2 = _mhs_v2(struct, lengths=lengths)
-
-    if not isinstance(chrom_var, np.ndarray):
-        mhs_v = np.full((lengths.shape[0],), float(chrom_var) * 2)
-    elif chrom_var.shape[0] == lengths.shape[0] * 2:
-        nchrom = lengths.shape[0]
-        mhs_v = chrom_var[:nchrom] + chrom_var[nchrom:]
-    elif chrom_var.shape[0] == lengths.shape[0]:
-        mhs_v = chrom_var * 2
-    else:
-        raise ValueError("`chrom_var` is of unexpected length.")
-
-    return mhs_v, mhs_v2
-
-
-def _mhs_v2(struct, lengths):
-    """TODO
-    """
-
-    n = lengths.sum()
-    if struct.shape[0] == n:
-        homo1 = homo2 = struct
-    else:
-        homo1 = struct[:n]
-        homo2 = struct[n:]
-
-    est_vsq = []
-    begin = end = 0
-    for l in lengths:
-        end += l
-        est_vsq_chrom = []
-        for i in range(3):
-            homo1_i = homo1[begin:end, i]
-            homo2_i = homo2[begin:end, i]
-            est_vsq_chrom.append((np.var(homo1_i) + np.var(homo2_i)))
-        begin = end
-        est_vsq.append(np.array(est_vsq_chrom).reshape(1, 3))
-    return np.concatenate(est_vsq)
-
 
 def _mean_interhomolog_counts(counts, lengths, bias=None):
-    """TODO
+    """Determine or estimate the mean interhomolog counts, divided by beta.
     """
 
     from .counts import ambiguate_counts
