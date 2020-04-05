@@ -30,7 +30,7 @@ def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
                  max_alpha_loop=20, beta=None, multiscale_rounds=1,
                  use_multiscale_variance=True, init='mds', max_iter=30000,
                  factr=10000000., pgtol=1e-05, alpha_factr=1000000000000.,
-                 hsc_lambda=0., hsc_r=None, hsc_min_beads=5, mhs_lambda=0.,
+                 hsc_lambda=0., hsc_r=None, hsc_min_beads=5,
                  struct_draft_fullres=None, callback_freq=None,
                  callback_function=None, reorienter=None, alpha_true=None,
                  struct_true=None, input_weight=None, exclude_zeros=False,
@@ -38,8 +38,7 @@ def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
     """Infer draft 3D structures with PASTIS via Poisson model.
     """
 
-    need_multiscale_var = use_multiscale_variance and (
-        mhs_lambda or multiscale_rounds > 1)
+    need_multiscale_var = use_multiscale_variance and multiscale_rounds > 1
     infer_draft_fullres = struct_draft_fullres is None and (
         need_multiscale_var or alpha is None)
     infer_draft_lowres = hsc_lambda > 0 and hsc_r is None
@@ -317,7 +316,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
             use_multiscale_variance=use_multiscale_variance, init=init,
             max_iter=max_iter, factr=factr, pgtol=pgtol,
             alpha_factr=alpha_factr, hsc_lambda=hsc_lambda, hsc_r=hsc_r,
-            hsc_min_beads=hsc_min_beads, mhs_lambda=mhs_lambda,
+            hsc_min_beads=hsc_min_beads,
             struct_draft_fullres=struct_draft_fullres,
             callback_freq=callback_freq, callback_function=callback_function,
             reorienter=reorienter, alpha_true=alpha_true,
