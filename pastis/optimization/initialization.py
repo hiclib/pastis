@@ -80,7 +80,7 @@ def _initialize_struct(counts, lengths, ploidy, alpha, bias, random_state,
             lengths_lowres.sum() * ploidy * 3))).reshape(-1, 3) for coef in mixture_coefs]
     elif isinstance(init, str) and os.path.exists(init):
         if verbose:
-            print('INITIALIZATION: 3D structure', flush=True)
+            print('INITIALIZATION: 3D structure, %s' % init, flush=True)
         structures = _format_structures(
             np.loadtxt(init), mixture_coefs=mixture_coefs)
     else:
