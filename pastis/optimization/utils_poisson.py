@@ -37,8 +37,11 @@ def _load_infer_var(infer_var_file):
         index_col=0, dtype=str))
     infer_var['beta'] = [float(b) for b in infer_var['beta'].split()]
     if 'hsc_r' in infer_var:
-        infer_var['hsc_r'] = [float(
-            r) for r in infer_var['hsc_r'].split()]
+        infer_var['hsc_r'] = np.array([float(
+            r) for r in infer_var['hsc_r'].split()])
+    if 'mhs_k' in infer_var:
+        infer_var['mhs_k'] = np.array([float(
+            r) for r in infer_var['mhs_k'].split()])
     infer_var['alpha'] = float(infer_var['alpha'])
     infer_var['converged'] = strtobool(infer_var['converged'])
     return infer_var
