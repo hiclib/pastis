@@ -42,6 +42,9 @@ def _load_infer_var(infer_var_file):
     if 'mhs_k' in infer_var:
         infer_var['mhs_k'] = np.array([float(
             r) for r in infer_var['mhs_k'].split()])
+    if 'orient' in infer_var:
+        infer_var['orient'] = np.array([float(
+            r) for r in infer_var['orient'].split()])
     infer_var['alpha'] = float(infer_var['alpha'])
     infer_var['converged'] = strtobool(infer_var['converged'])
     return infer_var
@@ -267,6 +270,8 @@ def _intra_counts(counts, lengths, ploidy, exclude_zeros=False):
     from .counts import _check_counts_matrix
 
     if isinstance(counts, np.ndarray):
+        counts = counts.copy()
+        counts[np.isnan(counts)] = 0
         counts = sparse.coo_matrix(counts)
     elif not sparse.issparse(counts):
         counts = counts.tocoo()
@@ -287,6 +292,8 @@ def _inter_counts(counts, lengths, ploidy, exclude_zeros=False):
     from .counts import _check_counts_matrix
 
     if isinstance(counts, np.ndarray):
+        counts = counts.copy()
+        counts[np.isnan(counts)] = 0
         counts = sparse.coo_matrix(counts)
     elif not sparse.issparse(counts):
         counts = counts.tocoo()
