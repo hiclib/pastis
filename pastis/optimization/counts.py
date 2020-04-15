@@ -9,6 +9,7 @@ from iced.normalization import ICE_normalization
 
 from .constraints import _constraint_dis_indices
 from .utils_poisson import find_beads_to_remove
+from .utils_poisson import _intra_counts, _inter_counts
 
 from .multiscale_optimization import decrease_lengths_res
 from .multiscale_optimization import decrease_counts_res
@@ -294,8 +295,8 @@ def check_counts(counts, lengths, ploidy, exclude_zeros=False,
 
 def preprocess_counts(counts_raw, lengths, ploidy, multiscale_factor, normalize,
                       filter_threshold, beta=None, fullres_torm=None,
-                      mixture_coefs=None, exclude_zeros=False,
-                      input_weight=None, verbose=True):
+                      excluded_counts=None, mixture_coefs=None,
+                      exclude_zeros=False, input_weight=None, verbose=True):
     """Check counts, reformat, reduce resolution, filter, and compute bias.
 
     Preprocessing options include reducing resolution, computing bias (if
@@ -327,8 +328,8 @@ def preprocess_counts(counts_raw, lengths, ploidy, multiscale_factor, normalize,
         For multiscale optimization, this indicates which beads of the full-
         resolution structure do not correspond to any counts data, and should
         therefore be removed. There should be one array per counts matrix.
-    output_directory : str, optional
-        If not None, save preprocessed counts to this output directory.
+    excluded_counts : {"inter", "intra"}, optional
+        Whether to exclude inter- or intra-chromosomal counts from optimization.
 
     Returns
     -------
@@ -345,12 +346,27 @@ def preprocess_counts(counts_raw, lengths, ploidy, multiscale_factor, normalize,
         multiscale_factor=multiscale_factor, normalize=normalize,
         filter_threshold=filter_threshold, exclude_zeros=exclude_zeros,
         verbose=verbose)
+
+    lengths_lowres = decrease_lengths_res(lengths, multiscale_factor)
+
+    if excluded_counts is not None:
+        if excluded_counts.lower() == 'intra':
+            counts_prepped = [_inter_counts(
+                c, lengths=lengths_lowres, ploidy=ploidy,
+                exclude_zeros=exclude_zeros) for c in counts_prepped]
+        elif excluded_counts.lower() == 'inter':
+            counts_prepped = [_intra_counts(
+                c, lengths=lengths_lowres, ploidy=ploidy,
+                exclude_zeros=exclude_zeros) for c in counts_prepped]
+        else:
+            raise ValueError(
+                "`excluded_counts` must be 'inter', 'intra' or None.")
+
     counts = _format_counts(
         counts_prepped, beta=beta, input_weight=input_weight,
         lengths=lengths, ploidy=ploidy, exclude_zeros=exclude_zeros,
         multiscale_factor=multiscale_factor, fullres_torm=fullres_torm)
 
-    lengths_lowres = decrease_lengths_res(lengths, multiscale_factor)
     torm = find_beads_to_remove(counts_prepped,
                                 nbeads=lengths_lowres.sum() * ploidy)
     if mixture_coefs is not None:
