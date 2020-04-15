@@ -57,6 +57,9 @@ def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
                     'Low resolution, for `hsc_r` estimation'],
                 max_length=80, blank_lines=2)
 
+    if not infer_draft_fullres or infer_draft_lowres:
+        None, alpha, beta, None, True
+
     counts, _, _, fullres_torm = preprocess_counts(
         counts_raw=counts_raw, lengths=lengths, ploidy=ploidy,
         normalize=normalize, filter_threshold=filter_threshold,
@@ -172,9 +175,8 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
           final_multiscale_round=False, init='mds', max_iter=30000,
           factr=10000000., pgtol=1e-05, alpha_factr=1000000000000.,
           bcc_lambda=0., hsc_lambda=0., hsc_r=None, hsc_min_beads=5,
-          mhs_lambda=0., mhs_k=None,
-          fullres_torm=None, struct_draft_fullres=None, draft=False,
-          simple_diploid=False, simple_diploid_init=None,
+          mhs_lambda=0., mhs_k=None, excluded_counts=None, fullres_torm=None,
+          struct_draft_fullres=None, draft=False, simple_diploid=False,
           callback_freq=None, callback_function=None, reorienter=None,
           alpha_true=None, struct_true=None, input_weight=None,
           exclude_zeros=False, null=False, mixture_coefs=None, verbose=True):
@@ -247,6 +249,16 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
     hsc_min_beads : int, optional
         For diploid organisms: number of beads in the low-resolution
         structure from which `hsc_r` is estimated.
+    mhs_lambda : float, optional
+        For diploid organisms: lambda of the multiscale-based homolog-
+        separating constraint.
+    mhs_k : list of float, optional
+        For diploid organisms: hyperparameter of the multiscale-based
+        homolog-separating constraint specificying the expected mean inter-
+        homolog count for each chromosome, scaled by beta and biases. If
+        not supplied, `mhs_k` will be estimated from the counts data.
+    excluded_counts : {"inter", "intra"}, optional
+        Whether to exclude inter- or intra-chromosomal counts from optimization.
     fullres_torm : list of array of bool, optional
         For multiscale optimization, this indicates which beads of the full-
         resolution structure do not correspond to any counts data, and should
@@ -260,9 +272,6 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         For diploid organisms: whether this optimization is inferring a "simple
         diploid" structure in which homologs are assumed to be identical and
         completely overlapping with one another.
-    simple_diploid_init : np.ndarray, optional
-        For diploid organisms: structure to be used for beta estimation when
-        `simple_diploid` is True.
 
     Returns
     -------
@@ -307,6 +316,10 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
     alpha_ = alpha
     beta_ = beta
     if multiscale_factor == 1 and not (draft or simple_diploid):
+        need_multiscale_var = use_multiscale_variance and multiscale_rounds > 1
+        infer_draft_fullres = struct_draft_fullres is None and (
+            need_multiscale_var or alpha is None)
+        infer_draft_lowres = hsc_lambda > 0 and hsc_r is None
         struct_draft_fullres, alpha_, beta_, hsc_r, draft_converged = _infer_draft(
             counts_raw, lengths=lengths, ploidy=ploidy, outdir=outdir,
             alpha=alpha, seed=seed, normalize=normalize,
@@ -326,7 +339,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         if not draft_converged:
             return None, {'alpha': alpha_, 'beta': beta_, 'seed': seed,
                           'converged': draft_converged}
-        elif verbose:
+        elif verbose and (infer_draft_fullres or infer_draft_lowres):
             _print_code_header(
                 ['Draft inference complete', 'INFERRING STRUCTURE'],
                 max_length=80, blank_lines=2)
@@ -348,7 +361,8 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         counts_raw=counts_raw, lengths=lengths, ploidy=ploidy, normalize=normalize,
         filter_threshold=filter_threshold, multiscale_factor=multiscale_factor,
         exclude_zeros=exclude_zeros, beta=beta_, input_weight=input_weight,
-        verbose=verbose, fullres_torm=fullres_torm, mixture_coefs=mixture_coefs)
+        verbose=verbose, fullres_torm=fullres_torm,
+        excluded_counts=excluded_counts, mixture_coefs=mixture_coefs)
     if simple_diploid:
         beta_adjust = 2
         new_beta = {c.ambiguity: c.beta * beta_adjust for c in counts}
@@ -357,11 +371,6 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         print('BETA: %s' % ', '.join(
             ['%s=%.3g' % (c.ambiguity, c.beta) for c in counts if c.sum() != 0]),
             flush=True)
-
-    # SIMPlE DIPLOID
-    if simple_diploid and struct_true is not None:
-        struct_true = np.mean(
-            [struct_true[:lengths.sum()], struct_true[lengths.sum():]], axis=0)
 
     # INITIALIZATION
     random_state = np.random.RandomState(seed)
@@ -468,6 +477,8 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
             infer_var['hsc_r'] = hsc_r
         if mhs_lambda > 0:
             infer_var['mhs_k'] = mhs_k
+        if reorienter is not None and reorienter.reorient:
+            infer_var['orient'] = pm.orientation_.flatten()
 
         if outdir is not None:
             with open(infer_var_file, 'w') as f:
@@ -496,7 +507,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         # BEGIN MULTISCALE OPTIMIZATION
         all_multiscale_factors = 2 ** np.flip(
             np.arange(multiscale_rounds), axis=0)
-        struct_ = init
+        X_ = init
 
         for i in all_multiscale_factors:
             if verbose:
@@ -517,7 +528,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
                 beta=beta_, multiscale_factor=i,
                 multiscale_rounds=multiscale_rounds,
                 use_multiscale_variance=use_multiscale_variance,
-                final_multiscale_round=final_multiscale_round, init=struct_,
+                final_multiscale_round=final_multiscale_round, init=X_,
                 max_iter=max_iter, factr=factr, pgtol=pgtol,
                 alpha_factr=alpha_factr, bcc_lambda=bcc_lambda,
                 hsc_lambda=hsc_lambda, hsc_r=hsc_r, hsc_min_beads=hsc_min_beads,
@@ -531,6 +542,10 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
                 null=null, mixture_coefs=mixture_coefs, verbose=verbose)
             if not infer_var['converged']:
                 return struct_, infer_var
+            if reorienter is not None and reorienter.reorient:
+                X_ = infer_var['orient']
+            else:
+                X_ = struct_
         return struct_, infer_var
 
 
@@ -541,13 +556,15 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
                    max_iter=30000, factr=10000000., pgtol=1e-05,
                    alpha_factr=1000000000000., bcc_lambda=0., hsc_lambda=0.,
                    hsc_r=None, hsc_min_beads=5, mhs_lambda=0., mhs_k=None,
-                   callback_function=None,
-                   print_freq=100, history_freq=100, save_freq=None,
-                   piecewise=False, piecewise_step=None, piecewise_chrom=None,
-                   piecewise_min_beads=5, piecewise_fix_homo=False,
-                   piecewise_opt_orient=True, alpha_true=None, struct_true=None,
-                   init='mds', input_weight=None, exclude_zeros=False,
-                   null=False, mixture_coefs=None, verbose=True):
+                   callback_function=None, print_freq=100, history_freq=100,
+                   save_freq=None, piecewise=False, piecewise_step=None,
+                   piecewise_chrom=None, piecewise_min_beads=5,
+                   piecewise_fix_homo=False, piecewise_opt_orient=True,
+                   piecewise_step3_multiscale=False,
+                   piecewise_step1_accuracy=1, alpha_true=None,
+                   struct_true=None, init='mds', input_weight=None,
+                   exclude_zeros=False, null=False, mixture_coefs=None,
+                   verbose=True):
     """Infer 3D structures with PASTIS via Poisson model.
 
     Infer 3D structure from Hi-C contact counts data for haploid or diploid
@@ -615,6 +632,14 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
     hsc_min_beads : int, optional
         For diploid organisms: number of beads in the low-resolution
         structure from which `hsc_r` is estimated.
+    mhs_lambda : float, optional
+        For diploid organisms: lambda of the multiscale-based homolog-
+        separating constraint.
+    mhs_k : list of float, optional
+        For diploid organisms: hyperparameter of the multiscale-based
+        homolog-separating constraint specificying the expected mean inter-
+        homolog count for each chromosome, scaled by beta and biases. If
+        not supplied, `mhs_k` will be estimated from the counts data.
 
     Returns
     -------
@@ -685,6 +710,8 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
             piecewise_min_beads=piecewise_min_beads,
             piecewise_fix_homo=piecewise_fix_homo,
             piecewise_opt_orient=piecewise_opt_orient,
+            piecewise_step3_multiscale=piecewise_step3_multiscale,
+            piecewise_step1_accuracy=piecewise_step1_accuracy,
             alpha_true=alpha_true, struct_true=struct_true, init=init,
             input_weight=input_weight, exclude_zeros=exclude_zeros, null=null,
             mixture_coefs=mixture_coefs, verbose=verbose)
