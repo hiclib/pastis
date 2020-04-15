@@ -298,35 +298,40 @@ def estimate_X(counts, init_X, alpha, lengths, bias=None, constraints=None,
         else:
             opt_type = 'structure'
         callback.on_training_begin(opt_type=opt_type, alpha_loop=alpha_loop)
-        objective_wrapper(
+        obj = objective_wrapper(
             init_X.flatten(), counts=counts, alpha=alpha, lengths=lengths,
             bias=bias, constraints=constraints, reorienter=reorienter,
             multiscale_factor=multiscale_factor,
             multiscale_variances=multiscale_variances,
             mixture_coefs=mixture_coefs, callback=callback)
+    else:
+        obj = np.nan
 
-    if max_fun is None:
-        max_fun = max_iter
-    results = optimize.fmin_l_bfgs_b(
-        objective_wrapper,
-        x0=init_X.flatten(),
-        fprime=fprime_wrapper,
-        iprint=0,
-        maxiter=max_iter,
-        maxfun=max_fun,
-        pgtol=pgtol,
-        factr=factr,
-        args=(counts, alpha, lengths, bias, constraints,
-              reorienter, multiscale_factor, multiscale_variances,
-              mixture_coefs, callback))
+    if max_iter == 0:
+        X = init_X.flatten()
+        converged = True
+    else:
+        if max_fun is None:
+            max_fun = max_iter
+        results = optimize.fmin_l_bfgs_b(
+            objective_wrapper,
+            x0=init_X.flatten(),
+            fprime=fprime_wrapper,
+            iprint=0,
+            maxiter=max_iter,
+            maxfun=max_fun,
+            pgtol=pgtol,
+            factr=factr,
+            args=(counts, alpha, lengths, bias, constraints,
+                  reorienter, multiscale_factor, multiscale_variances,
+                  mixture_coefs, callback))
+        X, obj, d = results
+        converged = d['warnflag'] == 0
 
     history = None
     if callback is not None:
         callback.on_training_end()
         history = callback.history
-
-    X, obj, d = results
-    converged = d['warnflag'] == 0
 
     if verbose:
         if converged:
@@ -440,6 +445,7 @@ class PastisPM(object):
                 frequency={'print': 100, 'history': 100, 'save': None})
         if reorienter is None:
             reorienter = ChromReorienter(lengths=lengths, ploidy=ploidy)
+        reorienter.set_multiscale_factor(multiscale_factor)
 
         self.counts = counts
         self.lengths = lengths
