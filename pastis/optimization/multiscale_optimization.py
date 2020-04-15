@@ -487,8 +487,9 @@ def _choose_max_multiscale_rounds(lengths, min_beads):
     """Choose the maximum number of multiscale rounds, given `min_beads`.
     """
 
-    multiscale_rounds = 1
-    while decrease_lengths_res(lengths, 2 ** (multiscale_rounds + 1)).min() >= min_beads:
+    multiscale_rounds = 0
+    while decrease_lengths_res(
+            lengths, 2 ** (multiscale_rounds + 1)).min() >= min_beads:
         multiscale_rounds += 1
     return multiscale_rounds
 
