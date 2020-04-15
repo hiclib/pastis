@@ -185,7 +185,8 @@ def initialize(counts, lengths, init, ploidy, random_state=None, alpha=-3.,
         if isinstance(init, np.ndarray):
             print('INITIALIZATION: inputted translation coordinates'
                   ' and/or rotation quaternions', flush=True)
-            init_reorient = init
+            init_reorient = init.flatten()
+            reorienter.check_X(init_reorient)
         else:
             print('INITIALIZATION: random', flush=True)
             init_reorient = []
