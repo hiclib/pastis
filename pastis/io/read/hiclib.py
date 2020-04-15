@@ -4,26 +4,6 @@ from scipy import sparse
 import pandas as pd
 
 
-def load_hiclib_lengths(filename):
-    """
-    Fast loading of the bed files
-
-    Parameters
-    ----------
-    filename : str,
-        path to the file to load. The file should be a bed file
-
-    Returns
-    -------
-    lengths : the lengths of each chromosomes
-    """
-    data = pd.read_csv(filename, sep="\t", comment="#", header=None)
-    data = data.values
-    _, idx, lengths = np.unique(data[:, 0], return_counts=True,
-                                return_index=True)
-    return lengths[idx.argsort()]
-
-
 def _get_counts_shape(row_max, col_max, lengths=None):
     """Return shape of counts matrix.
     """

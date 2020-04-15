@@ -4,7 +4,8 @@ import pandas as pd
 import glob
 import os
 from scipy import sparse
-from .hiclib import load_hiclib_counts, load_hiclib_lengths
+from iced.io import load_lengths
+from .hiclib import load_hiclib_counts
 from ...optimization.counts import subset_chrom
 
 
@@ -13,10 +14,10 @@ def _get_lengths(lengths):
     """
 
     if isinstance(lengths, str) and os.path.exists(lengths):
-        lengths = load_hiclib_lengths(lengths)
+        lengths = load_lengths(lengths)
     elif lengths is not None and (isinstance(lengths, list) or isinstance(lengths, np.ndarray)):
         if len(lengths) == 1 and isinstance(lengths[0], str) and os.path.exists(lengths[0]):
-            lengths = load_hiclib_lengths(lengths[0])
+            lengths = load_lengths(lengths[0])
     lengths = np.array(lengths).astype(int)
     return lengths
 
