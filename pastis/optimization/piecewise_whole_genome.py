@@ -3,7 +3,6 @@ import numpy as np
 from sklearn.metrics import euclidean_distances
 import os
 from scipy import linalg
-#from ..io.read import _load_inferred_struct
 from .counts import subset_chrom, _get_chrom_subset_index, preprocess_counts
 from .pastis_algorithms import infer, _infer_draft
 from .utils_poisson import _print_code_header, _load_infer_var
@@ -18,7 +17,7 @@ class ChromReorienter(object):
 
     def __init__(self, lengths, ploidy, struct_init=None, translate=False,
                  rotate=False, fix_homo=True, mixture_coefs=None):
-        self.lengths = lengths
+        self.lengths_fullres = lengths
         self.ploidy = ploidy
         self.reorient = translate or rotate
         self.translate = translate
@@ -36,11 +35,21 @@ class ChromReorienter(object):
                     "Must supply struct_init when rotating or translating.")
             if not isinstance(struct_init, list):
                 struct_init = [struct_init]
-            self.struct_init = _format_structures(
+            self.struct_init_fullres = _format_structures(
                 struct_init, lengths=lengths, ploidy=ploidy,
                 mixture_coefs=mixture_coefs)
         else:
-            self.struct_init = None
+            self.struct_init_fullres = None
+        self.lengths = self.lengths_fullres
+        self.struct_init = self.struct_init_fullres
+
+    def set_multiscale_factor(self, multiscale_factor=1):
+        self.lengths = decrease_lengths_res(
+            self.lengths_fullres, multiscale_factor=multiscale_factor)
+        if self.reorient:
+            self.struct_init = [decrease_struct_res(
+                s, multiscale_factor=multiscale_factor,
+                lengths=self.lengths_fullres) for s in self.struct_init_fullres]
 
     def check_X(self, X):
         """
@@ -85,9 +94,9 @@ class ChromReorienter(object):
                 rotations = X.reshape(-1, 4)
                 translations = ag_np.zeros((self.nchrom, 3))
             else:
-                return X
+                raise ValueError("Must translate or rotate.")
 
-            lengths = np.tile(self.lengths, self.ploidy)
+            lengths_tiled = np.tile(self.lengths, self.ploidy)
             if self.fix_homo:
                 translations = ag_np.tile(translations, (self.ploidy, 1))
                 rotations = ag_np.tile(rotations, (self.ploidy, 1))
@@ -96,8 +105,8 @@ class ChromReorienter(object):
             for init_structure in self.struct_init:
                 new_structure = []
                 begin = end = 0
-                for i in range(lengths.shape[0]):
-                    length = lengths[i]
+                for i in range(lengths_tiled.shape[0]):
+                    length = lengths_tiled[i]
                     end += length
                     if self.rotate:
                         new_structure.append(ag_np.dot(
@@ -118,7 +127,7 @@ def _norm(x):
     """Vector norm.
     """
 
-    return ag_np.sqrt(sum(i**2 for i in x))
+    return ag_np.sqrt(ag_np.sum(x ** 2))
 
 
 def _quat_to_rotation_matrix(q):
@@ -134,7 +143,7 @@ def _quat_to_rotation_matrix(q):
     y = q[2]
     z = q[3]
 
-    n = _norm(q)
+    n = ag_np.sum(q ** 2)
     if n == 0.0:
         raise ZeroDivisionError(
             "Input to `_quat_to_rotation_matrix({0})` has zero norm".format(q))
@@ -199,6 +208,9 @@ def _realign_structures(X, Y, rescale=False, copy=True, verbose=False,
 
     mask = np.invert(np.isnan(X[:, 0]) | np.isnan(Y[:, 0]))
 
+    X -= np.nanmean(X, axis=0)
+    Y -= np.nanmean(Y, axis=0)
+
     if rescale:
         Y, _, _, _ = _realign_structures(X, Y)
         if use_disterror:
@@ -209,9 +221,6 @@ def _realign_structures(X, Y, rescale=False, copy=True, verbose=False,
             scale_factor = (X[mask] * Y[mask]).sum() / (Y[mask] ** 2).sum()
 
         Y *= scale_factor
-
-    X -= np.nanmean(X, axis=0)
-    Y -= np.nanmean(Y, axis=0)
 
     K = np.dot(X[mask].T, Y[mask])
     U, L, V = linalg.svd(K)
@@ -243,7 +252,7 @@ def _realign_structures(X, Y, rescale=False, copy=True, verbose=False,
     error_mirror = _realignment_error(
         X[mask], Y_mirror_fit[mask], use_disterror=use_disterror)
 
-    if error <= error_mirror:
+    if error < error_mirror:
         best_Y_fit = Y_fit
         best_error = error
         mirror = False
@@ -317,7 +326,7 @@ def _orient_single_fullres_chrom(struct_genome_lowres, struct_chrom_fullres,
             chrom_fullres[:, 0] = - chrom_fullres[:, 0]
         fullres_chrom_mirrored.append(chrom_fullres)
 
-    return np.concatenate(trans), np.concatenate(rot), fullres_chrom_mirrored
+    return trans, rot, fullres_chrom_mirrored
 
 
 def _orient_fullres_chroms_via_lowres_genome(outdir, seed, chromosomes,
@@ -331,17 +340,17 @@ def _orient_fullres_chroms_via_lowres_genome(outdir, seed, chromosomes,
     outdir_lowres = _output_subdir(outdir=outdir, piecewise_step=1)
     outdir_chrom = _output_subdir(outdir=outdir, piecewise_step=2)
     outdir_orient = _output_subdir(outdir=outdir, piecewise_step=3)
+    outdir_orient_init = os.path.join(outdir_orient, 'via_step1')
 
-    #struct_genome_lowres = _load_inferred_struct(outdir_lowres)
     struct_genome_lowres = np.loadtxt(os.path.join(
         outdir_lowres, 'struct_inferred.%03d.coords' % seed))
 
     struct_fullres_genome_init = []
-    rotations = []
-    translations = []
+    rotations_homo1 = []
+    translations_homo1 = []
+    rotations_homo2 = []
+    translations_homo2 = []
     for chrom in chromosomes:
-        #struct_chrom_fullres = _load_inferred_struct(
-        #    os.path.join(outdir_chrom, chrom))
         struct_chrom_fullres = np.loadtxt(os.path.join(
             outdir_chrom, chrom, 'struct_inferred.%03d.coords' % seed))
         trans, rot, fullres_chrom_mirrored = _orient_single_fullres_chrom(
@@ -351,8 +360,13 @@ def _orient_fullres_chroms_via_lowres_genome(outdir, seed, chromosomes,
             piecewise_factor=piecewise_factor,
             piecewise_fix_homo=piecewise_fix_homo)
         struct_fullres_genome_init.extend(fullres_chrom_mirrored)
-        translations.extend(trans)
-        rotations.extend(rot)
+        translations_homo1.extend(trans[0])
+        rotations_homo1.extend(rot[0])
+        if len(trans) > 1:
+            translations_homo2.extend(trans[1])
+            rotations_homo2.extend(rot[1])
+    translations = translations_homo1 + translations_homo2
+    rotations = rotations_homo1 + rotations_homo2
 
     struct_fullres_genome_init = np.concatenate(struct_fullres_genome_init)
     reorient_init = np.concatenate(
@@ -363,22 +377,23 @@ def _orient_fullres_chroms_via_lowres_genome(outdir, seed, chromosomes,
         lengths=lengths, ploidy=ploidy, struct_init=struct_fullres_genome_init,
         translate=True, rotate=True, fix_homo=piecewise_fix_homo,
         mixture_coefs=mixture_coefs)
-    reorienter.translate_and_rotate(reorient_init)[0].reshape(-1, 3)
+    struct_fullres_genome_reoriented = reorienter.translate_and_rotate(
+        reorient_init)[0].reshape(-1, 3)
 
     try:
-        os.makedirs(outdir_orient)
+        os.makedirs(outdir_orient_init)
     except OSError:
         pass
     np.savetxt(
-        os.path.join(outdir_orient,
-                     'orient_via_lowres.%03d.trans_rot' % seed),
+        os.path.join(outdir_orient_init,
+                     'orient_via_step1.%03d.trans_rot' % seed),
         reorient_init)
     np.savetxt(
-        os.path.join(outdir_orient,
-                     'struct_orient_via_lowres.%03d.coords' % seed),
-        struct_fullres_genome_init)
+        os.path.join(outdir_orient_init,
+                     'struct_orient_via_step1.%03d.coords' % seed),
+        struct_fullres_genome_reoriented)
 
-    return struct_fullres_genome_init, reorient_init
+    return reorient_init, struct_fullres_genome_init, struct_fullres_genome_reoriented
 
 
 def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
@@ -391,10 +406,11 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
                     callback_function=None, callback_freq=None,
                     piecewise_step=None, piecewise_chrom=None,
                     piecewise_min_beads=5, piecewise_fix_homo=False,
-                    piecewise_opt_orient=True, alpha_true=None,
-                    struct_true=None, init='msd', input_weight=None,
-                    exclude_zeros=False, null=False, mixture_coefs=None,
-                    verbose=True):
+                    piecewise_opt_orient=True, piecewise_step3_multiscale=False,
+                    piecewise_step1_accuracy=1,
+                    alpha_true=None, struct_true=None, init='msd',
+                    input_weight=None, exclude_zeros=False, null=False,
+                    mixture_coefs=None, verbose=True):
     """Infer whole genome 3D structures piecewise, first inferring chromosomes.
     """
 
@@ -418,7 +434,15 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
     outdir_orient = _output_subdir(outdir=outdir, piecewise_step=3)
 
     # Infer draft structure
-    if 1 in piecewise_step or 2 in piecewise_step:
+    step1_multiscale = 1 in piecewise_step and piecewise_factor > 1
+    step2_multiscale = multiscale_rounds > 1 and 2 in piecewise_step
+    step3_multiscale = multiscale_rounds > 1 and 3 in piecewise_step and \
+        piecewise_step3_multiscale
+    need_multiscale_var = use_multiscale_variance and (
+        step1_multiscale or step2_multiscale or step3_multiscale)
+    infer_draft_fullres = need_multiscale_var or alpha is None
+    infer_draft_lowres = hsc_lambda > 0 and hsc_r is None
+    if infer_draft_fullres or infer_draft_lowres:
         struct_draft_fullres, alpha_, beta_, hsc_r, draft_converged = _infer_draft(
             counts_raw, lengths=lengths, ploidy=ploidy, outdir=outdir,
             alpha=alpha, seed=seed, normalize=normalize,
@@ -435,22 +459,46 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
         if not draft_converged:
             return None, {'alpha': alpha_, 'beta': beta_, 'seed': seed,
                           'converged': draft_converged}
+    else:
+        alpha_ = alpha
+        beta_ = beta
+        struct_draft_fullres = None
 
     # Prepare multiscale optimization
-    if 1 in piecewise_step or (2 in piecewise_step and multiscale_rounds > 1):
+    if step1_multiscale or step2_multiscale or step3_multiscale:
         _, _, _, fullres_torm_for_multiscale = preprocess_counts(
             counts_raw=counts_raw, lengths=lengths, ploidy=ploidy,
             normalize=normalize, filter_threshold=filter_threshold,
             multiscale_factor=1, exclude_zeros=exclude_zeros, beta=beta,
             input_weight=input_weight, verbose=verbose,
             mixture_coefs=mixture_coefs)
+    else:
+        fullres_torm_for_multiscale = None
 
     # Infer entire genome at low res
     if 1 in piecewise_step:
+
+        note1 = []
+        note2 = []
+        if piecewise_step1_accuracy != 1:
+            factr_lowres = 10 ** (np.log10(factr) * piecewise_step1_accuracy)
+            note1.append('low-accuracy')
+            note2.append(('factr=%.3g' % factr_lowres).replace(
+                'e+0', 'e').replace('e+', 'e'))
+        else:
+            factr_lowres = factr
+        if piecewise_factor > 1:
+            note1.append('low-res')
+            note2.append('%dx' % piecewise_factor)
+        note1 = ', '.join(note1)
+        note2 = ', '.join(note2)
+        if len(note2) > 0:
+            note1 = ' %s' % note1
+            note2 = ' (%s)' % note2
+
         _print_code_header(
             ['PIECEWISE WHOLE GENOME: STEP 1',
-                'Inferring low-res whole-genome structure'
-                ' (%dx)' % piecewise_factor],
+                'Inferring%s whole-genome structure%s' % (note1, note2)],
             max_length=80, blank_lines=2)
 
         struct_, infer_var = infer(
@@ -460,7 +508,7 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
             alpha_init=alpha_init, max_alpha_loop=max_alpha_loop,
             beta=beta_, multiscale_factor=piecewise_factor,
             use_multiscale_variance=use_multiscale_variance,
-            init=init, max_iter=max_iter, factr=factr, pgtol=pgtol,
+            init=init, max_iter=max_iter, factr=factr_lowres, pgtol=pgtol,
             alpha_factr=alpha_factr, bcc_lambda=bcc_lambda,
             hsc_lambda=hsc_lambda, hsc_r=hsc_r, mhs_lambda=mhs_lambda,
             mhs_k=mhs_k, fullres_torm=fullres_torm_for_multiscale,
@@ -521,6 +569,15 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
                 draft_index = index[:lengths.sum()]
             else:
                 draft_index = index
+            if struct_draft_fullres is None:
+                struct_draft_fullres_chrom = None
+            else:
+                struct_draft_fullres_chrom = struct_draft_fullres[draft_index]
+            if fullres_torm_for_multiscale is None:
+                fullres_torm_chrom = None
+            else:
+                fullres_torm_chrom = [
+                    x[index] for x in fullres_torm_for_multiscale]
 
             struct_, infer_var = infer(
                 counts_raw=chrom_counts,
@@ -534,8 +591,8 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
                 alpha_factr=alpha_factr, bcc_lambda=bcc_lambda,
                 hsc_lambda=hsc_lambda, hsc_r=hsc_r_chrom,
                 mhs_lambda=mhs_lambda, mhs_k=mhs_k_chrom,
-                fullres_torm=[x[index] for x in fullres_torm_for_multiscale],
-                struct_draft_fullres=struct_draft_fullres[draft_index],
+                fullres_torm=fullres_torm_chrom,
+                struct_draft_fullres=struct_draft_fullres_chrom,
                 callback_function=callback_function,
                 callback_freq=callback_freq, alpha_true=alpha_true,
                 struct_true=chrom_struct_true, input_weight=input_weight,
@@ -550,11 +607,28 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
             ['PIECEWISE WHOLE GENOME: STEP 3', 'Orienting full-res chromosomes'],
             max_length=80, blank_lines=2)
 
-        struct_fullres_genome_init, reorient_init = _orient_fullres_chroms_via_lowres_genome(
+        reorient_init, struct_fullres_genome_init, struct_fullres_genome_reoriented = _orient_fullres_chroms_via_lowres_genome(
             outdir=outdir, seed=seed, chromosomes=chromosomes,
             lengths=lengths, alpha=alpha, ploidy=ploidy,
             piecewise_factor=piecewise_factor,
             piecewise_fix_homo=piecewise_fix_homo, mixture_coefs=mixture_coefs)
+        outdir_orient_init = os.path.join(outdir_orient, 'via_step1')
+        infer(
+            counts_raw=counts_raw, outdir=outdir_orient_init,
+            lengths=lengths, ploidy=ploidy, alpha=alpha_, seed=seed,
+            normalize=normalize, filter_threshold=filter_threshold,
+            alpha_init=alpha_init, max_alpha_loop=max_alpha_loop,
+            beta=beta_, multiscale_rounds=1,
+            use_multiscale_variance=use_multiscale_variance,
+            init=struct_fullres_genome_reoriented, max_iter=0, factr=factr,
+            pgtol=pgtol, alpha_factr=alpha_factr, bcc_lambda=bcc_lambda,
+            hsc_lambda=hsc_lambda, hsc_r=hsc_r, mhs_lambda=mhs_lambda,
+            mhs_k=mhs_k, callback_function=callback_function,
+            callback_freq={'print': 0, 'history': callback_freq['history'],
+                           'save': 0},
+            alpha_true=alpha_true, struct_true=struct_true,
+            input_weight=input_weight, exclude_zeros=exclude_zeros,
+            null=null, mixture_coefs=mixture_coefs, verbose=False)
 
         # Optionally rotate & translate previously inferred chromosomes
         if piecewise_opt_orient:
@@ -564,14 +638,31 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
                 rotate=True, fix_homo=piecewise_fix_homo,
                 mixture_coefs=mixture_coefs)
 
+            if piecewise_fix_homo:
+                hsc_lambda_3 = 0.
+                mhs_lambda_3 = 0.
+            else:
+                hsc_lambda_3 = hsc_lambda
+                mhs_lambda_3 = mhs_lambda
+
+            if piecewise_step3_multiscale:
+                multiscale_rounds_3 = multiscale_rounds
+            else:
+                multiscale_rounds_3 = 1
+
             struct_, infer_var = infer(
                 counts_raw=counts_raw, outdir=outdir_orient,
                 lengths=lengths, ploidy=ploidy, alpha=alpha_, seed=seed,
                 normalize=normalize, filter_threshold=filter_threshold,
                 alpha_init=alpha_init, max_alpha_loop=max_alpha_loop,
-                beta=beta_, init=reorient_init, max_iter=max_iter, factr=factr,
+                beta=beta_, multiscale_rounds=multiscale_rounds_3,
+                use_multiscale_variance=use_multiscale_variance,
+                init=reorient_init, max_iter=max_iter, factr=factr,
                 pgtol=pgtol, alpha_factr=alpha_factr, bcc_lambda=0.,
-                hsc_lambda=0., hsc_r=None, mhs_lambda=0., mhs_k=None,
+                hsc_lambda=hsc_lambda_3, hsc_r=hsc_r, mhs_lambda=mhs_lambda_3,
+                mhs_k=mhs_k, excluded_counts='intra',
+                fullres_torm=fullres_torm_for_multiscale,
+                struct_draft_fullres=struct_draft_fullres,
                 callback_function=callback_function,
                 callback_freq=callback_freq, reorienter=reorienter,
                 alpha_true=alpha_true, struct_true=struct_true,
