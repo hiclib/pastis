@@ -155,6 +155,8 @@ class Callback(object):
             self.struct_true = decrease_struct_res(
                 struct_true, multiscale_factor=multiscale_factor,
                 lengths=lengths)
+        else:
+            self.struct_true = None
         self.alpha_true = alpha_true
         self.verbose = verbose
 
