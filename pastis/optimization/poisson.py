@@ -591,7 +591,7 @@ class PastisPM(object):
                   % self.alpha_init, flush=True)
             self._fit_structure(alpha_loop=0)
             prev_alpha_obj = None
-            if self.converged:
+            if self.converged_:
                 for alpha_loop in range(1, self.max_alpha_loop + 1):
                     time_current = str(
                         timedelta(seconds=round(timer() - time_start)))
@@ -600,7 +600,7 @@ class PastisPM(object):
                           (alpha_loop, time_current), flush=True)
                     self._fit_alpha(alpha_loop=alpha_loop)
                     self.beta_ = self._infer_beta()
-                    if not self.converged:
+                    if not self.converged_:
                         break
                     time_current = str(
                         timedelta(seconds=round(timer() - time_start)))
@@ -608,7 +608,7 @@ class PastisPM(object):
                           " structure, total elapsed time=%s" %
                           (alpha_loop, time_current), flush=True)
                     self._fit_structure(alpha_loop=alpha_loop)
-                    if not self.converged:
+                    if not self.converged_:
                         break
                     if _convergence_criteria(
                             f_k=prev_alpha_obj, f_kplus1=self.alpha_obj_,
