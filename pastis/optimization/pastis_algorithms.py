@@ -9,6 +9,7 @@ import os
 import numpy as np
 import pandas as pd
 from sklearn.utils import check_random_state
+
 from .utils_poisson import _print_code_header, _load_infer_var
 from .utils_poisson import _output_subdir
 from .counts import preprocess_counts, ambiguate_counts
@@ -564,7 +565,7 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
                    piecewise_step1_accuracy=1, alpha_true=None,
                    struct_true=None, init='mds', input_weight=None,
                    exclude_zeros=False, null=False, mixture_coefs=None,
-                   verbose=True):
+                   bootstrap=False, verbose=True):
     """Infer 3D structures with PASTIS via Poisson model.
 
     Infer 3D structure from Hi-C contact counts data for haploid or diploid
@@ -673,6 +674,9 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
     outdir = _output_subdir(
         outdir=outdir, chrom_full=chrom_full, chrom_subset=chrom_subset,
         null=null)
+
+    if bootstrap:
+        counts = boostrap_counts(counts, random_state=seed)
 
     if (not piecewise) or len(chrom_subset) == 1:
         struct_, infer_var = infer(
