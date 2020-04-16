@@ -489,7 +489,7 @@ class PastisPM(object):
             reorienter=self.reorienter, verbose=verbose)
         self.counts = _update_betas_in_counts_matrices(
             counts=self.counts, beta=new_beta)
-        return new_beta.values()
+        return list(new_beta.values())
 
     def _fit_structure(self, alpha_loop=None):
         """Fit structure to counts data, given current alpha.
