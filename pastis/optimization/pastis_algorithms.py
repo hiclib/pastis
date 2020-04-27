@@ -120,10 +120,10 @@ def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
             counts_raw)) if counts_raw[i].shape == (lengths.sum() * ploidy,
                                                     lengths.sum() * ploidy)]
         if len(ua_index) == 1:
-            counts_for_lowres = counts_raw[ua_index[0]]
+            counts_for_lowres = [counts_raw[ua_index[0]]]
             simple_diploid_for_lowres = False
-            fullres_torm = fullres_torm[ua_index[0]]
-            beta_for_lowres = beta[ua_index[0]]
+            fullres_torm = [fullres_torm[ua_index[0]]]
+            beta_for_lowres = [beta[ua_index[0]]]
         elif len(ua_index) > 1:
             raise ValueError("Only input one matrix of unambiguous counts."
                              " Please pool unambiguos counts before"
