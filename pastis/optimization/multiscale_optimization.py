@@ -197,7 +197,7 @@ def _convert_indices_to_full_res(rows, cols, rows_max, cols_max,
         row_mask = np.floor(rows_binned.mean(axis=0)) == i
         current_rows = rows[:, row_mask][
             np.invert(incorrect_rows)[:, row_mask]]
-        if current_rows.shape[0] > 0:
+        if current_rows.shape[0] > 0 and i < bins_for_rows.shape[0]:
             max_row = current_rows.max()
             if max_row < bins_for_rows[i] - 1:
                 rows[rows > max_row] -= multiscale_factor - \
@@ -206,7 +206,7 @@ def _convert_indices_to_full_res(rows, cols, rows_max, cols_max,
         col_mask = np.floor(cols_binned.mean(axis=0)) == i
         current_cols = cols[:, col_mask][
             np.invert(incorrect_cols)[:, col_mask]]
-        if current_cols.shape[0] > 0:
+        if current_cols.shape[0] > 0 and i < bins_for_cols.shape[0]:
             max_col = current_cols.max()
             if max_col < bins_for_cols[i] - 1:
                 cols[cols > max_col] -= multiscale_factor - \
@@ -475,11 +475,22 @@ def _var3d(struct_grouped):
     multiscale_variances = np.full(struct_grouped.shape[1], np.nan)
     for i in range(struct_grouped.shape[1]):
         struct_group = struct_grouped[:, i, :]
-        mean_coords = np.nanmean(struct_group, axis=0)
-        # Euclidian distance formula = ((A - B) ** 2).sum(axis=1) ** 0.5
-        var = (1 / np.invert(np.isnan(struct_group[:, 0])).sum()) * \
-            np.nansum((struct_group - mean_coords) ** 2)
+        beads_in_group = np.invert(np.isnan(struct_group[:, 0])).sum()
+        if beads_in_group == 0:
+            var = np.nan
+        else:
+            mean_coords = np.nanmean(struct_group, axis=0)
+            # Euclidian distance formula = ((A - B) ** 2).sum(axis=1) ** 0.5
+            var = (1 / beads_in_group) * \
+                np.nansum((struct_group - mean_coords) ** 2)
         multiscale_variances[i] = var
+
+    if np.isnan(multiscale_variances).sum() == multiscale_variances.shape[0]:
+        raise ValueError("Multiscale variances are not a number for each bead.")
+
+    multiscale_variances[np.isnan(multiscale_variances)] = np.nanmedian(
+        multiscale_variances)
+
     return multiscale_variances
 
 
