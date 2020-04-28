@@ -54,8 +54,7 @@ def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
                 max_length=80, blank_lines=2)
         elif infer_draft_lowres:
             _print_code_header(
-                ['INFERRING DRAFT STRUCTURE',
-                    'Low resolution, for `hsc_r` estimation'],
+                ['INFERRING DRAFT STRUCTURE', 'Low resolution'],
                 max_length=80, blank_lines=2)
 
     if not infer_draft_fullres or infer_draft_lowres:
@@ -103,8 +102,8 @@ def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
             lengths=lengths, min_beads=hsc_min_beads)
         if verbose and infer_draft_fullres:
             _print_code_header(
-                "Inferring low-res draft structure for `hsc_r` estimation"
-                " (%dx)" % multiscale_factor_for_lowres,
+                "Inferring low-res draft structure (%dx)"
+                % multiscale_factor_for_lowres,
                 max_length=50, blank_lines=1)
         if ploidy == 1:
             raise ValueError("Can not apply homolog-separating constraint"
