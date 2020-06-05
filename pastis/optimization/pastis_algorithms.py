@@ -13,7 +13,7 @@ from sklearn.utils import check_random_state
 from .utils_poisson import _print_code_header, _load_infer_var
 from .utils_poisson import _output_subdir
 from .counts import preprocess_counts, ambiguate_counts
-from .counts import _update_betas_in_counts_matrices, check_counts
+from .counts import check_counts
 from .initialization import initialize
 from .callbacks import Callback
 from .constraints import Constraints, distance_between_homologs
@@ -24,6 +24,29 @@ from .multiscale_optimization import _choose_max_multiscale_factor
 from .multiscale_optimization import decrease_lengths_res, decrease_struct_res
 from ..io.read import load_data
 from .poisson import objective
+
+
+def _adjust_beta_simple_diploid(beta, counts, lengths):
+    """Adjust beta for simple diploid.
+    """
+
+    if beta is None:
+        raise ValueError(
+            "Beta must not be None to adjust beta for simple diploid.")
+    if not isinstance(counts, list):
+        counts = [counts]
+    if len(counts) != len(beta):
+        raise ValueError(
+            "Inconsistent number of betas (%d) and counts matrices (%d)"
+            % (len(beta), len(counts)))
+
+    summed_beta = 0.
+    for i in range(len(beta)):
+        if counts[i].shape[0] == counts[i].shape[1]:
+            summed_beta += beta[i] * 2
+        else:
+            summed_beta += beta[i] * 4
+    return summed_beta
 
 
 def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
@@ -39,10 +62,14 @@ def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
     """Infer draft 3D structures with PASTIS via Poisson model.
     """
 
-    need_multiscale_var = use_multiscale_variance and multiscale_rounds > 1
-    infer_draft_fullres = struct_draft_fullres is None and (
-        need_multiscale_var or alpha is None)
     infer_draft_lowres = hsc_lambda > 0 and hsc_r is None
+    need_multiscale_var = use_multiscale_variance and (
+        multiscale_rounds > 1 or infer_draft_lowres)
+    infer_draft_fullres = struct_draft_fullres is None and (
+        need_multiscale_var)
+
+    multiscale_factor_for_lowres = _choose_max_multiscale_factor(
+        lengths=lengths, min_beads=hsc_min_beads)
 
     if verbose:
         if (infer_draft_fullres and infer_draft_lowres):
@@ -54,7 +81,8 @@ def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
                 max_length=80, blank_lines=2)
         elif infer_draft_lowres:
             _print_code_header(
-                ['INFERRING DRAFT STRUCTURE', 'Low resolution'],
+                ['INFERRING DRAFT STRUCTURE',
+                    'Low resolution (%dx)' % multiscale_factor_for_lowres],
                 max_length=80, blank_lines=2)
 
     if not infer_draft_fullres or infer_draft_lowres:
@@ -92,14 +120,12 @@ def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
             verbose=verbose)
         if not infer_var_fullres['converged']:
             return struct_draft_fullres, alpha_, beta_, hsc_r, False
-        alpha_ = infer_var_fullres['alpha']
-        beta_adjust = 2
-        beta_ = list(infer_var_fullres['beta'] * np.array(
-            beta) / sum(beta) / beta_adjust)
+        if alpha is not None:
+            alpha_ = infer_var_fullres['alpha']
+            beta_ = list(infer_var_fullres['beta'] * np.array(
+                beta) / _adjust_beta_simple_diploid(beta, counts_raw, lengths=lengths))
 
     if infer_draft_lowres:
-        multiscale_factor_for_lowres = _choose_max_multiscale_factor(
-            lengths=lengths, min_beads=hsc_min_beads)
         if verbose and infer_draft_fullres:
             _print_code_header(
                 "Inferring low-res draft structure (%dx)"
@@ -108,9 +134,9 @@ def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
         if ploidy == 1:
             raise ValueError("Can not apply homolog-separating constraint"
                              " to haploid data.")
-        if alpha_ is None:
-            raise ValueError("Alpha must be set prior to inferring r from"
-                             " counts data")
+        #if alpha_ is None:
+        #    raise ValueError("Alpha must be set prior to inferring r from"
+        #                     " counts data")
         if outdir is None:
             lowres_outdir = None
         else:
@@ -315,11 +341,14 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
     # INFER DRAFT STRUCTURES (for estimation of multiscale_variance & hsc_r)
     alpha_ = alpha
     beta_ = beta
+    if draft and alpha_ is None:
+        alpha_ = alpha_init
     if multiscale_factor == 1 and not (draft or simple_diploid):
-        need_multiscale_var = use_multiscale_variance and multiscale_rounds > 1
-        infer_draft_fullres = struct_draft_fullres is None and (
-            need_multiscale_var or alpha is None)
         infer_draft_lowres = hsc_lambda > 0 and hsc_r is None
+        need_multiscale_var = use_multiscale_variance and (
+            multiscale_rounds > 1 or infer_draft_lowres)
+        infer_draft_fullres = struct_draft_fullres is None and (
+            need_multiscale_var)
         struct_draft_fullres, alpha_, beta_, hsc_r, draft_converged = _infer_draft(
             counts_raw, lengths=lengths, ploidy=ploidy, outdir=outdir,
             alpha=alpha, seed=seed, normalize=normalize,
@@ -347,30 +376,47 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
     if verbose and outdir is not None:
         print('OUTPUT: %s' % out_file, flush=True)
 
+    # MULTISCALE VARIANCES
+    if multiscale_factor != 1 and use_multiscale_variance and struct_draft_fullres is not None:
+        multiscale_variances = np.median(get_multiscale_variances_from_struct(
+            struct_draft_fullres, lengths=lengths,
+            multiscale_factor=multiscale_factor, mixture_coefs=mixture_coefs,
+            verbose=verbose))
+        if struct_true is not None and verbose:
+            multiscale_variances_true = np.median(
+                get_multiscale_variances_from_struct(
+                    struct_true, lengths=lengths,
+                    multiscale_factor=multiscale_factor,
+                    mixture_coefs=mixture_coefs, verbose=False))
+            print("True multiscale variance: %.3g" % multiscale_variances_true,
+                  flush=True)
+    else:
+        multiscale_variances = None
+
     # PREPARE COUNTS OBJECTS
     if simple_diploid:
         counts_raw = check_counts(
             counts_raw, lengths=lengths, ploidy=ploidy,
             exclude_zeros=exclude_zeros)
+        beta_ = _adjust_beta_simple_diploid(beta_, counts_raw, lengths=lengths)
         counts_raw = [ambiguate_counts(
             counts=counts_raw, lengths=lengths, ploidy=ploidy,
             exclude_zeros=exclude_zeros)]
         ploidy = 1
-        beta_ = sum(beta_)
     counts, bias, torm, fullres_torm_for_multiscale = preprocess_counts(
         counts_raw=counts_raw, lengths=lengths, ploidy=ploidy, normalize=normalize,
         filter_threshold=filter_threshold, multiscale_factor=multiscale_factor,
         exclude_zeros=exclude_zeros, beta=beta_, input_weight=input_weight,
         verbose=verbose, fullres_torm=fullres_torm,
         excluded_counts=excluded_counts, mixture_coefs=mixture_coefs)
-    if simple_diploid:
-        beta_adjust = 2
-        new_beta = {c.ambiguity: c.beta * beta_adjust for c in counts}
-        counts = _update_betas_in_counts_matrices(counts=counts, beta=new_beta)
     if verbose:
         print('BETA: %s' % ', '.join(
             ['%s=%.3g' % (c.ambiguity, c.beta) for c in counts if c.sum() != 0]),
             flush=True)
+        if alpha_ is None:
+            print('ALPHA: to be inferred, init = %.3g' % alpha_init, flush=True)
+        else:
+            print('ALPHA: %.3g' % alpha_, flush=True)
 
     # INITIALIZATION
     random_state = np.random.RandomState(seed)
@@ -379,29 +425,16 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         if struct_true is None:
             raise ValueError("Attempting to initialize with struct_true but"
                              " struct_true is None")
-        print('INITIALIZATION: initializing with true structure', flush=True)
+        if verbose:
+            print(
+                'INITIALIZATION: initializing with true structure', flush=True)
         init = struct_true
     struct_init = initialize(
         counts=counts, lengths=lengths, init=init, ploidy=ploidy,
-        random_state=random_state, alpha=alpha_, bias=bias,
-        multiscale_factor=multiscale_factor, reorienter=reorienter,
+        random_state=random_state,
+        alpha=alpha_init if alpha_ is None else alpha_,
+        bias=bias, multiscale_factor=multiscale_factor, reorienter=reorienter,
         mixture_coefs=mixture_coefs, verbose=verbose)
-
-    # MULTISCALE VARIANCES
-    if multiscale_factor != 1 and use_multiscale_variance and struct_draft_fullres is not None:
-        multiscale_variances = np.median(get_multiscale_variances_from_struct(
-            struct_draft_fullres, lengths=lengths,
-            multiscale_factor=multiscale_factor, mixture_coefs=mixture_coefs,
-            verbose=verbose))
-        if struct_true is not None and verbose:
-            multiscale_variances_true = np.median(get_multiscale_variances_from_struct(
-                struct_true, lengths=lengths,
-                multiscale_factor=multiscale_factor,
-                mixture_coefs=mixture_coefs, verbose=False))
-            print("True multiscale variance: %.3g" % multiscale_variances_true,
-                  flush=True)
-    else:
-        multiscale_variances = None
 
     # HOMOLOG-SEPARATING CONSTRAINT
     if ploidy == 1 and (hsc_lambda > 0 or mhs_lambda > 0):
@@ -438,8 +471,14 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
             struct_true_lowres = decrease_struct_res(
                 struct_true, multiscale_factor=multiscale_factor,
                 lengths=lengths)
+            if simple_diploid:
+                struct_true_lowres = np.nanmean(
+                    [struct_true_lowres[:int(struct_true.shape[0] / 2)],
+                     struct_true_lowres[int(struct_true.shape[0] / 2):]],
+                    axis=0)
             _, obj_true, _, _ = objective(
-                struct_true_lowres, counts=counts, alpha=alpha_,
+                struct_true_lowres, counts=counts,
+                alpha=alpha_init if alpha_ is None else alpha_,
                 lengths=lengths, bias=bias, constraints=constraints,
                 multiscale_factor=multiscale_factor,
                 multiscale_variances=multiscale_variances,
@@ -546,6 +585,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
                 X_ = infer_var['orient']
             else:
                 X_ = struct_
+            alpha_ = infer_var['alpha']
         return struct_, infer_var
 
 
@@ -556,6 +596,7 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
                    max_iter=30000, factr=10000000., pgtol=1e-05,
                    alpha_factr=1000000000000., bcc_lambda=0., hsc_lambda=0.,
                    hsc_r=None, hsc_min_beads=5, mhs_lambda=0., mhs_k=None,
+                   struct_draft_fullres=None,
                    callback_function=None, print_freq=100, history_freq=100,
                    save_freq=None, piecewise=False, piecewise_step=None,
                    piecewise_chrom=None, piecewise_min_beads=5,
@@ -686,6 +727,7 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
             alpha_factr=alpha_factr, bcc_lambda=bcc_lambda,
             hsc_lambda=hsc_lambda, hsc_r=hsc_r, hsc_min_beads=hsc_min_beads,
             mhs_lambda=mhs_lambda, mhs_k=mhs_k,
+            struct_draft_fullres=struct_draft_fullres,
             callback_function=callback_function, callback_freq=callback_freq,
             alpha_true=alpha_true, struct_true=struct_true,
             input_weight=input_weight, exclude_zeros=exclude_zeros,
@@ -703,6 +745,7 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
             factr=factr, pgtol=pgtol, alpha_factr=alpha_factr,
             bcc_lambda=bcc_lambda, hsc_lambda=hsc_lambda, hsc_r=hsc_r,
             mhs_lambda=mhs_lambda, mhs_k=mhs_k,
+            struct_draft_fullres=struct_draft_fullres,
             hsc_min_beads=hsc_min_beads, callback_function=callback_function,
             callback_freq=callback_freq,
             piecewise_step=piecewise_step,
