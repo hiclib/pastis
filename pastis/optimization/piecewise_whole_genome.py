@@ -438,10 +438,12 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
     step2_multiscale = multiscale_rounds > 1 and 2 in piecewise_step
     step3_multiscale = multiscale_rounds > 1 and 3 in piecewise_step and \
         piecewise_step3_multiscale
-    need_multiscale_var = use_multiscale_variance and (
-        step1_multiscale or step2_multiscale or step3_multiscale)
-    infer_draft_fullres = need_multiscale_var or alpha is None
     infer_draft_lowres = hsc_lambda > 0 and hsc_r is None
+    need_multiscale_var = use_multiscale_variance and (
+        step1_multiscale or step2_multiscale or step3_multiscale or
+        infer_draft_lowres)
+    infer_draft_fullres = need_multiscale_var or alpha is None
+
     if infer_draft_fullres or infer_draft_lowres:
         struct_draft_fullres, alpha_, beta_, hsc_r, draft_converged = _infer_draft(
             counts_raw, lengths=lengths, ploidy=ploidy, outdir=outdir,
