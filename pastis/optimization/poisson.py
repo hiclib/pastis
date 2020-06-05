@@ -23,7 +23,7 @@ def _poisson_obj_single(structures, counts, alpha, lengths, bias=None,
     """Computes the poisson objective function for each counts matrix.
     """
 
-    if (bias is not None and bias.sum() == 0) or counts.nnz == 0:
+    if (bias is not None and bias.sum() == 0) or counts.nnz == 0 or counts.null:
         return 0.
 
     if mixture_coefs is not None and len(structures) != len(mixture_coefs):
@@ -73,7 +73,7 @@ def _poisson_obj_single(structures, counts, alpha, lengths, bias=None,
 
 def objective(X, counts, alpha, lengths, bias=None, constraints=None,
               reorienter=None, multiscale_factor=1, multiscale_variances=None,
-              mixture_coefs=None, return_extras=False):
+              mixture_coefs=None, return_extras=False, inferring_alpha=False):
     """Computes the objective function.
 
     Computes the negative log likelihood of the poisson model and constraints.
@@ -131,7 +131,8 @@ def objective(X, counts, alpha, lengths, bias=None, constraints=None,
         obj_constraints = {}
     else:
         obj_constraints = constraints.apply(
-            structures, mixture_coefs=mixture_coefs, alpha=alpha)
+            structures, alpha=alpha, inferring_alpha=inferring_alpha,
+            mixture_coefs=mixture_coefs)
     obj_poisson = {}
     for counts_maps in counts:
         obj_poisson['obj_' + counts_maps.name] = _poisson_obj_single(
@@ -477,18 +478,22 @@ class PastisPM(object):
         self.struct_ = None
         self.orientation_ = None
 
-    def _infer_beta(self, verbose=True):
+    def _infer_beta(self, update_counts=True, verbose=True):
         """Estimate beta, given current structure and alpha.
         """
 
         from .estimate_alpha_beta import _estimate_beta
 
         new_beta = _estimate_beta(
-            self.X_.flatten(), self.counts, alpha=self.alpha_, bias=self.bias,
-            lengths=self.lengths, mixture_coefs=self.mixture_coefs,
+            self.X_.flatten(), self.counts, alpha=self.alpha_,
+            lengths=self.lengths, bias=self.bias,
+            multiscale_factor=self.multiscale_factor,
+            multiscale_variances=self.multiscale_variances,
+            mixture_coefs=self.mixture_coefs,
             reorienter=self.reorienter, verbose=verbose)
-        self.counts = _update_betas_in_counts_matrices(
-            counts=self.counts, beta=new_beta)
+        if update_counts:
+            self.counts = _update_betas_in_counts_matrices(
+                counts=self.counts, beta=new_beta)
         return list(new_beta.values())
 
     def _fit_structure(self, alpha_loop=None):
@@ -583,7 +588,7 @@ class PastisPM(object):
         # Infer structure
         self.history_ = None
         time_start = timer()
-        if self.alpha is not None or self.multiscale_factor != 1:
+        if self.alpha is not None:
             self._fit_structure()
         else:
             print("JOINTLY INFERRING STRUCTURE + ALPHA: inferring structure,"
