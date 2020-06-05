@@ -1,5 +1,8 @@
 import sys
 import numpy as np
+from scipy import sparse
+from scipy.interpolate import interp1d
+from iced.io import load_lengths
 
 if sys.version_info[0] < 3:
     raise Exception("Must be using Python 3")
@@ -52,9 +55,6 @@ def increase_struct_res(struct, multiscale_factor, lengths, mask=None):
         3D chromatin structure that has been linearly interpolated to the
         specified high resolution.
     """
-
-    from scipy.interpolate import interp1d
-    from ..externals.iced.io import load_lengths
 
     if int(multiscale_factor) != multiscale_factor:
         raise ValueError('The multiscale_factor must be an integer')
@@ -157,12 +157,7 @@ def _convert_indices_to_full_res(rows, cols, rows_max, cols_max,
 
     if multiscale_factor == 1:
         return rows, cols
-    # Move all indices to upper triangular (necessary for proper full-res
-    # indexing!)
-    rows_new = np.minimum(rows, cols)
-    cols_new = np.maximum(rows, cols)
-    rows = rows_new
-    cols = cols_new
+
     # Convert low-res indices to full-res
     nnz = len(rows)
     x, y = np.indices((multiscale_factor, multiscale_factor))
@@ -230,7 +225,7 @@ def decrease_counts_res(counts, multiscale_factor, lengths, ploidy):
 
     Parameters
     ----------
-    counts_raw : list of array or coo_matrix
+    counts : array or coo_matrix
         Counts data at full resolution, ideally without normalization or
         filtering.
     multiscale_factor : int, optional
@@ -251,34 +246,41 @@ def decrease_counts_res(counts, multiscale_factor, lengths, ploidy):
         `multiscale_factor`.
     """
 
-    from .counts import _row_and_col
-    from scipy import sparse
+    from .counts import _row_and_col, _check_counts_matrix
 
-    input_is_sparse = False
-    if sparse.issparse(counts):
-        counts = counts.copy().toarray()
-        input_is_sparse = True
+    if multiscale_factor == 1:
+        return counts
 
-    lengths_lowres = np.ceil(np.array(lengths).astype(
-        float) / multiscale_factor).astype(int)
-    counts_lowres = np.ones(
-        np.array(counts.shape / lengths.sum() * lengths_lowres.sum(), dtype=int))
-    np.fill_diagonal(counts_lowres, 0)
-    counts_lowres = sparse.coo_matrix(counts_lowres)
-    rows_raw, cols_raw = _row_and_col(counts_lowres)
-    rows, cols = _convert_indices_to_full_res(
-        rows_raw, cols_raw, rows_max=counts.shape[0], cols_max=counts.shape[1],
-        multiscale_factor=multiscale_factor, lengths=lengths,
-        n=lengths_lowres.sum(), counts_shape=counts_lowres.shape, ploidy=ploidy)
-    data = counts[rows, cols].reshape(multiscale_factor ** 2, -1).sum(axis=0)
-    counts_lowres = sparse.coo_matrix((data[data != 0], (rows_raw[data != 0],
-                                                         cols_raw[data != 0])),
-                                      shape=counts_lowres.shape)
+    input_is_sparse = sparse.issparse(counts)
+
+    counts = _check_counts_matrix(
+        counts, lengths=lengths, ploidy=ploidy, exclude_zeros=True).toarray()
+
+    lengths_lowres = decrease_lengths_res(
+        lengths, multiscale_factor=multiscale_factor)
+    dummy_counts_lowres = np.ones(
+        np.array(counts.shape / lengths.sum() * lengths_lowres.sum()).astype(int))
+    dummy_counts_lowres = _check_counts_matrix(
+        dummy_counts_lowres, lengths=lengths_lowres, ploidy=ploidy,
+        exclude_zeros=True).toarray().astype(int)
+
+    dummy_counts_lowres = sparse.coo_matrix(dummy_counts_lowres)
+    rows_lowres, cols_lowres = _row_and_col(dummy_counts_lowres)
+    rows_fullres, cols_fullres = _convert_indices_to_full_res(
+        rows_lowres, cols_lowres, rows_max=counts.shape[0],
+        cols_max=counts.shape[1], multiscale_factor=multiscale_factor,
+        lengths=lengths, n=lengths_lowres.sum(),
+        counts_shape=dummy_counts_lowres.shape, ploidy=ploidy)
+    data = counts[rows_fullres, cols_fullres].reshape(
+        multiscale_factor ** 2, -1).sum(axis=0)
+    counts_lowres = sparse.coo_matrix(
+        (data[data != 0], (rows_lowres[data != 0], cols_lowres[data != 0])),
+        shape=dummy_counts_lowres.shape)
 
     if not input_is_sparse:
         counts_lowres = counts_lowres.toarray()
 
-    return counts_lowres, lengths_lowres
+    return counts_lowres
 
 
 def _get_struct_indices(ploidy, multiscale_factor, lengths):
@@ -472,6 +474,7 @@ def _var3d(struct_grouped):
     """Compute variance of beads in 3D.
     """
 
+    # struct_grouped.shape = (multiscale_factor, nbeads, 3)
     multiscale_variances = np.full(struct_grouped.shape[1], np.nan)
     for i in range(struct_grouped.shape[1]):
         struct_group = struct_grouped[:, i, :]
