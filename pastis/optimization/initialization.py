@@ -24,6 +24,8 @@ def _initialize_struct_mds(counts, lengths, ploidy, alpha, bias, random_state,
         raise ValueError(
             "Multiple unambiguous counts matrices detected."
             " Pool data from unambiguous counts matrices before inference.")
+    else:
+        raise ValueError("Unambiguous counts needed to initialize via MDS.")
 
     ua_counts = counts[ua_index]
     ua_beta = ua_counts.beta
