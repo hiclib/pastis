@@ -276,13 +276,20 @@ def _intra_counts(counts, lengths, ploidy, exclude_zeros=False):
     elif not sparse.issparse(counts):
         counts = counts.tocoo()
 
+    counts = _check_counts_matrix(
+        counts, lengths=lengths, ploidy=ploidy, exclude_zeros=True)
+
     mask = _intra_counts_mask(counts=counts, lengths=lengths)
-    counts = sparse.coo_matrix(
+    counts_new = sparse.coo_matrix(
         (counts.data[mask], (counts.row[mask], counts.col[mask])),
         shape=counts.shape)
 
-    return _check_counts_matrix(
-        counts, lengths=lengths, ploidy=ploidy, exclude_zeros=exclude_zeros)
+    if exclude_zeros:
+        return counts_new
+    else:
+        counts_array = np.full(counts_new.shape, np.nan)
+        counts_array[counts_new.row, counts_new.col] = counts_new.data
+        return counts_array
 
 
 def _inter_counts(counts, lengths, ploidy, exclude_zeros=False):
@@ -298,10 +305,17 @@ def _inter_counts(counts, lengths, ploidy, exclude_zeros=False):
     elif not sparse.issparse(counts):
         counts = counts.tocoo()
 
+    counts = _check_counts_matrix(
+        counts, lengths=lengths, ploidy=ploidy, exclude_zeros=True)
+
     mask = ~_intra_counts_mask(counts=counts, lengths=lengths)
-    counts = sparse.coo_matrix(
+    counts_new = sparse.coo_matrix(
         (counts.data[mask], (counts.row[mask], counts.col[mask])),
         shape=counts.shape)
 
-    return _check_counts_matrix(
-        counts, lengths=lengths, ploidy=ploidy, exclude_zeros=exclude_zeros)
+    if exclude_zeros:
+        return counts_new
+    else:
+        counts_array = np.full(counts_new.shape, np.nan)
+        counts_array[counts_new.row, counts_new.col] = counts_new.data
+        return counts_array
