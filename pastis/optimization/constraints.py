@@ -217,7 +217,8 @@ class Constraints(object):
                         print("            %s" % self.params[constraint],
                               flush=True)
 
-    def apply(self, structures, mixture_coefs=None, alpha=None):
+    def apply(self, structures, alpha=None, inferring_alpha=False,
+              mixture_coefs=None):
         """Apply constraints using given structure(s).
 
         Compute negative log likelhood for each constraint using the given
@@ -227,6 +228,13 @@ class Constraints(object):
         ----------
         structures : array or autograd SequenceBox or list of structures
             3D chromatin structure(s) for which to compute the constraint.
+        alpha : float, optional
+            Biophysical parameter of the transfer function used in converting
+            counts to wish distances. If alpha is not specified, it will be
+            inferred.
+        inferring_alpha : bool, optional
+            A value of "True" indicates that the current optimization aims to
+            infer alpha, rather than the structure.
 
         Returns
         -------
@@ -249,7 +257,7 @@ class Constraints(object):
 
         obj = {k: 0. for k, v in self.lambdas.items() if v != 0}
 
-        if self.lambdas["bcc"]:
+        if self.lambdas["bcc"] and not inferring_alpha:
             for struct, gamma in zip(structures, mixture_coefs):
                 neighbor_dis = ag_np.sqrt((ag_np.square(
                     struct[self.row_adj] - struct[self.col_adj])).sum(axis=1))
@@ -257,7 +265,7 @@ class Constraints(object):
                 obj['bcc'] = obj['bcc'] + gamma * self.lambdas['bcc'] * \
                     (n_edges * ag_np.square(neighbor_dis).sum() / ag_np.square(
                         neighbor_dis.sum()) - 1.)
-        if self.lambdas["hsc"]:
+        if self.lambdas["hsc"] and not inferring_alpha:
             for struct, gamma in zip(structures, mixture_coefs):
                 homo_sep = self._homolog_separation(struct)
                 hsc_diff = 0.
@@ -331,23 +339,22 @@ def _mean_interhomolog_counts(counts, lengths, bias=None):
                 "unambiguos counts before inputting.")
         ua_counts = counts_non0[ua_index[0]]
         mhs_beta = ua_counts.beta
-        mhs_counts = ua_counts.toarray()
+        mhs_counts = ua_counts.toarray().astype(float)
         if bias is not None:
-            ua_bias = counts.bias_per_bin(bias=bias, ploidy=2).reshape(-1, 1)
-            mhs_counts *= ua_bias * ua_bias.T
-        mhs_counts = mhs_counts[:n, n:].astype(float)
-        mhs_counts[torm[:n], :] = np.nan
-        mhs_counts[:, torm[n:]] = np.nan
+            ua_bias = np.tile(bias, 2).reshape(-1, 1)
+            mhs_counts /= (ua_bias * ua_bias.T)
+        mhs_counts_interhomo = mhs_counts[:n, n:]
+        mhs_counts_interhomo[torm[:n], :] = np.nan
+        mhs_counts_interhomo[:, torm[n:]] = np.nan
         mean_interhomo_counts = []
         begin = end = 0
         #print(bins_per_interhomolog)
         for l in lengths:
             end += l
             mean_interhomo_counts.append(np.nanmean(
-                mhs_counts[begin:end, begin:end]))
-            #print((~np.isnan(mhs_counts[begin:end, begin:end])).sum())
+                mhs_counts_interhomo[begin:end, begin:end]))
+            #print((~np.isnan(mhs_counts_inter[begin:end, begin:end])).sum())
             begin = end
-        mean_interhomo_counts = np.array(mean_interhomo_counts)
     else:
         if lengths.shape[0] == 1:
             raise ValueError(
@@ -355,21 +362,17 @@ def _mean_interhomolog_counts(counts, lengths, bias=None):
                 " inter-chromosomal counts requires data for  more than one"
                 " chromosome.")
         mhs_beta = sum([c.beta for c in counts_non0])
-        if bias is None:
-            counts_norm = counts_non0
-        else:
-            counts_norm = []
-            for counts_maps in counts_non0:
-                bias_maps = counts_maps.bias_per_bin(
-                    bias=bias, ploidy=2).reshape(-1, 1)
-                counts_norm.append(
-                    counts_maps.toarray() * bias_maps * bias_maps.T)
         mhs_counts = ambiguate_counts(
-            counts=counts_norm, lengths=lengths, ploidy=2, exclude_zeros=True)
-        mhs_counts = _inter_counts(
+            counts=counts_non0, lengths=lengths, ploidy=2,
+            exclude_zeros=True).toarray().astype(float)
+        if bias is not None:
+            ambig_bias = bias.reshape(-1, 1)
+            mhs_counts /= (ambig_bias * ambig_bias.T)
+        mhs_counts_inter = _inter_counts(
             mhs_counts, lengths=lengths, ploidy=2, exclude_zeros=False)
-        mean_interhomo_counts = np.nanmean(mhs_counts) / 2
+        mean_interhomo_counts = [np.nanmean(mhs_counts_inter) / 4]
 
+    mean_interhomo_counts = np.array(mean_interhomo_counts)
     return mean_interhomo_counts / mhs_beta
 
 
