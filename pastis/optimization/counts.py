@@ -52,17 +52,19 @@ def ambiguate_counts(counts, lengths, ploidy, exclude_zeros=False):
         if not isinstance(c, ZeroCountsMatrix):
             if not isinstance(c, np.ndarray):
                 c = c.toarray()
+            c = _check_counts_matrix(
+                c, lengths=lengths, ploidy=ploidy, exclude_zeros=True).toarray()
             if c.shape[0] > c.shape[1]:
                 c_ambig = np.nansum(
-                    [c[:n, :], c[n:, :], c[:n, :].T, c[n:, :].T])
+                    [c[:n, :], c[n:, :], c[:n, :].T, c[n:, :].T], axis=0)
             elif c.shape[0] < c.shape[1]:
                 c_ambig = np.nansum(
-                    [c[:, :n].T, c[:, n:].T, c[:, :n], c[:, n:]])
+                    [c[:, :n].T, c[:, n:].T, c[:, :n], c[:, n:]], axis=0)
             elif c.shape[0] == n:
                 c_ambig = c
             else:
                 c_ambig = np.nansum(
-                    [c[:n, :n], c[n:, :n], c[:n, n:], c[n:, n:]])
+                    [c[:n, :n], c[:n, n:], c[:n, n:].T, c[n:, n:]], axis=0)
             output[~np.isnan(c_ambig)] += c_ambig[~np.isnan(c_ambig)]
 
     output = np.triu(output, 1)
@@ -70,15 +72,12 @@ def ambiguate_counts(counts, lengths, ploidy, exclude_zeros=False):
         output, lengths=lengths, ploidy=ploidy, exclude_zeros=exclude_zeros)
 
 
-def _create_dummy_counts(counts, lengths, ploidy, multiscale_factor=1):
+def _create_dummy_counts(counts, lengths, ploidy):
     """Create sparse matrix of 1's with same row and col as input counts.
     """
 
-    lengths_lowres = decrease_lengths_res(lengths, multiscale_factor)
-
     rows, cols = _constraint_dis_indices(
-        counts, n=lengths_lowres.sum(), lengths=lengths, ploidy=ploidy,
-        multiscale_factor=multiscale_factor, nbeads=lengths.sum() * ploidy)
+        counts, n=lengths.sum(), lengths=lengths, ploidy=ploidy)
     dummy_counts = sparse.coo_matrix((np.ones_like(rows), (rows, cols)), shape=(
         lengths.sum() * ploidy, lengths.sum() * ploidy)).toarray()
     dummy_counts = sparse.coo_matrix(np.triu(dummy_counts + dummy_counts.T, 1))
@@ -394,6 +393,9 @@ def _prep_counts(counts_list, lengths, ploidy=1, multiscale_factor=1,
     """Copy counts, check matrix, reduce resolution, filter, and compute bias.
     """
 
+    if not isinstance(counts_list, list):
+        counts_list = [counts_list]
+
     # Copy counts
     counts_list = [c.copy() for c in counts_list]
 
@@ -416,7 +418,9 @@ def _prep_counts(counts_list, lengths, ploidy=1, multiscale_factor=1,
     lengths_lowres = lengths
     for counts_type, counts in counts_dict.items():
         if multiscale_factor != 1:
-            counts, lengths_lowres = decrease_counts_res(
+            lengths_lowres = decrease_lengths_res(
+                lengths, multiscale_factor=multiscale_factor)
+            counts = decrease_counts_res(
                 counts, multiscale_factor=multiscale_factor, lengths=lengths,
                 ploidy=ploidy)
             counts_dict[counts_type] = counts
@@ -525,8 +529,8 @@ def _prep_counts(counts_list, lengths, ploidy=1, multiscale_factor=1,
             torm = find_beads_to_remove(
                 ambiguate_counts(counts, lengths=lengths_lowres, ploidy=ploidy),
                 lengths_lowres.sum())
-            if verbose:
-                print('                removing %d beads from %s' %
+            if verbose and torm.sum() - initial_zero_beads > 0:
+                print('                removing %d additional beads from %s' %
                       (torm.sum() - initial_zero_beads, counts_type),
                       flush=True)
 
@@ -542,6 +546,7 @@ def _format_counts(counts, lengths, ploidy, beta=None, input_weight=None,
     """
 
     lengths_lowres = decrease_lengths_res(lengths, multiscale_factor)
+    n = lengths_lowres.sum()
 
     # Check input
     counts = check_counts(
@@ -564,9 +569,11 @@ def _format_counts(counts, lengths, ploidy, beta=None, input_weight=None,
 
             else:
                 beta_maps = np.nanmean(counts_maps)
-            if ploidy == 2 and counts_maps.shape == (
-                    lengths_lowres.sum(), lengths_lowres.sum()):
-                beta_maps /= 4
+            if ploidy == 2:
+                if counts_maps.shape == (n, n):
+                    beta_maps /= 4
+                elif counts_maps.shape[0] != counts_maps.shape[1]:
+                    beta_maps /= 2
             beta.append(beta_maps)
 
     if input_weight is not None:
@@ -1017,6 +1024,9 @@ class NullCountsMatrix(AtypicalCountsMatrix):
 
     def __init__(self, counts, lengths, ploidy, multiscale_factor=1,
                  beta=1., fullres_torm=None, weight=1.):
+        if not isinstance(counts, list):
+            counts = [counts]
+
         # Dummy counts need to be inputted because if a row/col is all 0 it is
         # excluded from calculations.
         # To create dummy counts, ambiguate counts & sum together, then set all
@@ -1029,12 +1039,18 @@ class NullCountsMatrix(AtypicalCountsMatrix):
         self._col = dummy_counts.col
         self._shape = dummy_counts.shape
         self.ambiguity = {1: 'ambig', 1.5: 'pa', 2: 'ua'}[
-            sum(counts.shape) / (lengths_lowres.sum() * ploidy)]
+            sum(dummy_counts.shape) / (lengths_lowres.sum() * ploidy)]
         self.name = '%s0' % self.ambiguity
         self.beta = 0.
         self.weight = 0.
-        self.input_sum = 0
         self.null = True
+
+        self.input_sum = 0.
+        for counts_maps in counts:
+            if isinstance(counts_maps, np.ndarray):
+                self.input_sum += np.nansum(counts_maps)
+            else:
+                self.input_sum += counts_maps.sum()
 
         if multiscale_factor != 1:
             self.highres_per_lowres_bead = _count_fullres_per_lowres_bead(
