@@ -2,7 +2,7 @@ import sys
 import pytest
 import numpy as np
 from sklearn.metrics import euclidean_distances
-from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal, assert_allclose
 from scipy import sparse
 
 pytestmark = pytest.mark.skipif(
@@ -151,7 +151,7 @@ def test_pastis_poisson_diploid_combo():
     ambig_counts = np.triu(ambig_counts, 1)
     ambig_counts = sparse.coo_matrix(ambig_counts)
 
-    pa_counts = (ratio_pa / 2) * beta * poisson_intensity
+    pa_counts = ratio_pa * beta * poisson_intensity
     pa_counts[np.isnan(pa_counts) | np.isinf(pa_counts)] = 0
     pa_counts = pa_counts[:, :n] + pa_counts[:, n:]
     np.fill_diagonal(pa_counts[:n, :], 0)
@@ -213,15 +213,26 @@ def test_pastis_poisson_diploid_unambig_hsc_constraint():
     ploidy = 2
     seed = 42
     bcc_lambda = 0
-    hsc_lambda = 1e8
-    hsc_r_true = 1.
+    hsc_lambda = 1e10
+    true_interhomo_dis = np.array([10.])
     hsc_r = None
     alpha, beta = -3., 1.
 
     random_state = np.random.RandomState(seed=seed)
     n = lengths.sum()
-    X_true = random_state.rand(n * ploidy, 3)
-    X_true[n:, 0] += hsc_r_true
+
+    X_true = np.zeros((n * ploidy, 3), dtype=float)
+    for i in range(X_true.shape[0]):
+        X_true[i:, random_state.choice([0, 1, 2])] += 1
+
+    X_true[n:] -= X_true[n:].mean(axis=0)
+    X_true[:n] -= X_true[:n].mean(axis=0)
+    begin = end = 0
+    for i in range(len(lengths)):
+        end += lengths[i]
+        X_true[begin:end, 0] += true_interhomo_dis[i]
+        begin = end
+
     dis = euclidean_distances(X_true)
     dis[dis == 0] = np.inf
     counts = beta * dis ** alpha
@@ -233,13 +244,58 @@ def test_pastis_poisson_diploid_unambig_hsc_constraint():
         counts, lengths=lengths, ploidy=ploidy, outdir=None, alpha=alpha,
         seed=seed, normalize=False, filter_threshold=0, beta=beta,
         bcc_lambda=bcc_lambda, hsc_lambda=hsc_lambda, hsc_r=hsc_r,
-        print_freq=None, history_freq=None, save_freq=None)
+        print_freq=None, history_freq=None, save_freq=None, struct_true=X_true)
+    infer_hsc_r = infer_var['hsc_r']
+    interhomo_dis = _inter_homolog_dis(struct_, lengths=lengths)
 
     assert infer_var['converged']
 
     # Make sure inference of hsc_r yields an acceptable result
-    assert_array_almost_equal(hsc_r_true, infer_var['hsc_r'][0], decimal=1)
+    assert_array_almost_equal(true_interhomo_dis, infer_hsc_r, decimal=1)
 
-    # Make sure inferred homologs are separated via inferred hsc_r
+    # Make sure inferred homologs are separated >= inferred hsc_r
+    assert interhomo_dis >= infer_hsc_r - 1e-6
+
+
+def test_pastis_poisson_diploid_unambig_mhs_constraint():
+    lengths = np.array([30])
+    ploidy = 2
+    seed = 42
+    bcc_lambda = 0
+    mhs_lambda = 1e11
+    true_interhomo_dis = np.array([10.])
+    alpha, beta = -3., 1.
+
+    random_state = np.random.RandomState(seed=seed)
+    n = lengths.sum()
+
+    X_true = np.zeros((n * ploidy, 3), dtype=float)
+    for i in range(X_true.shape[0]):
+        X_true[i:, random_state.choice([0, 1, 2])] += 1
+
+    X_true[n:] -= X_true[n:].mean(axis=0)
+    X_true[:n] -= X_true[:n].mean(axis=0)
+    begin = end = 0
+    for i in range(len(lengths)):
+        end += lengths[i]
+        X_true[begin:end, 0] += true_interhomo_dis[i]
+        begin = end
+
+    dis = euclidean_distances(X_true)
+    dis[dis == 0] = np.inf
+    counts = beta * dis ** alpha
+    counts[np.isnan(counts) | np.isinf(counts)] = 0
+    counts = np.triu(counts, 1)
+    counts = sparse.coo_matrix(counts)
+
+    struct_, infer_var = pastis_algorithms.pastis_poisson(
+        counts, lengths=lengths, ploidy=ploidy, outdir=None, alpha=alpha,
+        seed=seed, normalize=False, filter_threshold=0, beta=beta,
+        bcc_lambda=bcc_lambda, mhs_lambda=mhs_lambda, print_freq=None,
+        history_freq=None, save_freq=None, struct_true=X_true)
     interhomo_dis = _inter_homolog_dis(struct_, lengths=lengths)
-    assert_array_almost_equal(infer_var['hsc_r'], interhomo_dis, decimal=4)
+
+    assert infer_var['converged']
+
+    # Make sure inferred homologs are separated by ~true_interhomo_dis
+    assert_allclose(true_interhomo_dis, interhomo_dis, rtol=0.05, atol=0)
