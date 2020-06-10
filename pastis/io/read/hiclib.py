@@ -5,7 +5,8 @@ import pandas as pd
 
 
 def _get_counts_shape(row_max, col_max, lengths=None):
-    """Return shape of counts matrix.
+    """
+    Return shape of counts matrix.
     """
 
     if lengths is None:
