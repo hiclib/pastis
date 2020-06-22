@@ -1,12 +1,9 @@
 import numpy as np
-
-import pandas as pd
-import glob
 import os
 from scipy import sparse
-from iced.io import load_counts, load_lengths
-
-from .counts import subset_chrom
+from iced.io import load_lengths
+from .hiclib import load_hiclib_counts
+from ...optimization.counts import subset_chrom
 
 
 def _get_lengths(lengths):
@@ -52,7 +49,7 @@ def _get_counts(counts, lengths):
         elif f.endswith(".npy"):
             counts_maps = np.load(f)
         elif f.endswith(".matrix"):
-            counts_maps = load_counts(f, lengths=lengths)
+            counts_maps = load_hiclib_counts(f, lengths=lengths)
         else:
             raise ValueError("Counts file must end with .npy (for numpy array)"
                              " or .matrix (for hiclib / iced format)")
@@ -64,7 +61,7 @@ def _get_counts(counts, lengths):
 
 
 def load_data(counts, lengths_full, ploidy, chrom_full=None,
-              chrom_subset=None, exclude_zeros=True, struct_true=None):
+              chrom_subset=None, exclude_zeros=False, struct_true=None):
     """Load all input data from files, and/or reformat data objects.
 
     If files are provided, load data from files. Also reformats data objects.
@@ -119,54 +116,3 @@ def load_data(counts, lengths_full, ploidy, chrom_full=None,
         exclude_zeros=exclude_zeros, struct_true=struct_true)
 
     return counts, lengths_subset, chrom_subset, lengths_full, chrom_full, struct_true
-
-
-def _choose_best_seed(outdir):
-    """Choose seed with the lowest final objective value.
-    """
-
-
-    infer_var_files = glob.glob(
-        '%s*.txt' % os.path.join(outdir, 'inference_variables'))
-    if len(infer_var_files) == 0:
-        raise ValueError('No inferred structures found in %s' % outdir)
-
-    var_per_seed = [dict(pd.read_csv(f, sep='\t', header=None, names=(
-        'label', 'value')).set_index('label').value) for f in infer_var_files]
-    try:
-        best_seed_var = [x for x in var_per_seed if x['obj'] == pd.DataFrame(
-            var_per_seed).obj.min()][0]
-    except KeyError as e:
-        print(e, flush=True)
-        print(infer_var_files, flush=True)
-        print(pd.DataFrame(var_per_seed), flush=True)
-        exit(0)
-    return best_seed_var
-
-
-def _choose_struct_inferred_file(outdir, seed=None, verbose=True):
-    """Choose inferred structure with the lowest final objective value.
-    """
-
-    if seed is None:
-        best_seed_var = _choose_best_seed(outdir)
-        if 'seed' in best_seed_var:
-            seed = best_seed_var['seed']
-
-    if seed is None or seed == 'None':
-        if verbose:
-            print('Loading %s' % os.path.basename(outdir))
-        return os.path.join(outdir, 'struct_inferred.txt')
-    else:
-        if verbose:
-            print('Loading %s from seed %03d' %
-                  (os.path.basename(outdir), int(seed)))
-        return os.path.join(outdir, 'struct_inferred.%03d.txt' % int(seed))
-
-
-def _load_inferred_struct(outdir, seed=None, verbose=True):
-    """Load inferred structure with the lowest final objective value.
-    """
-
-    return np.loadtxt(
-        _choose_struct_inferred_file(outdir, seed=seed, verbose=verbose))

@@ -151,8 +151,12 @@ class Callback(object):
         if directory is None:
             directory = ''
         self.directory = directory
-        self.struct_true = decrease_struct_res(
-            struct_true, multiscale_factor=multiscale_factor, lengths=lengths)
+        if struct_true is not None:
+            self.struct_true = decrease_struct_res(
+                struct_true, multiscale_factor=multiscale_factor,
+                lengths=lengths)
+        else:
+            self.struct_true = None
         self.alpha_true = alpha_true
         self.verbose = verbose
 
@@ -234,7 +238,8 @@ class Callback(object):
             to_log = [('iter', self.epoch), ('alpha', alpha),
                       ('alpha_loop', self.alpha_loop),
                       ('opt_type', self.opt_type),
-                      ('multiscale_factor', self.multiscale_factor)]
+                      ('multiscale_factor', self.multiscale_factor),
+                      ('seconds', self.seconds)]
             to_log.extend(list(self.obj.items()))
 
             if self.analysis_function is not None:
@@ -268,6 +273,7 @@ class Callback(object):
             self.opt_type = opt_type
         self.alpha_loop = alpha_loop
         self.epoch = -1
+        self.seconds = 0
         self.time = '0:00:00.0'
         self.structures = None
         self.alpha = None
@@ -298,8 +304,8 @@ class Callback(object):
         """
 
         self.epoch += 1
-        current_time = str(timedelta(seconds=round(
-            timer() - self.time_start, 1))).split('.')
+        self.seconds = round(timer() - self.time_start, 1)
+        current_time = str(timedelta(seconds=self.seconds)).split('.')
         if len(current_time) == 1:
             self.time = current_time[0] + '.0'
         else:

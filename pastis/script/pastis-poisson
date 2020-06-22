@@ -41,6 +41,11 @@ parser.add_argument("--alpha_init", type=float, default=-3.,
 parser.add_argument("--max_alpha_loop", type=int, default=20,
                     help="For PM2, Number of times alpha and structure are"
                          " inferred.")
+parser.add_argument("--beta", nargs="+", default=None, type=float,
+                    help="Scaling parameter that determines the size of the"
+                         " structure, relative to each counts matrix. There"
+                         " should be one beta per counts matrix. If None, the"
+                         " optimal beta will be estimated.")
 parser.add_argument("--multiscale_rounds", default=1, type=int,
                     help="The number of resolutions at which a structure"
                          " should be inferred during multiscale optimization."
@@ -48,7 +53,7 @@ parser.add_argument("--multiscale_rounds", default=1, type=int,
                          " optimization.")
 
 # Optimization convergence
-parser.add_argument("--max_iter", default=1e15, type=float,
+parser.add_argument("--max_iter", default=30000, type=int,
                     help="Maximum number of iterations per optimization.")
 parser.add_argument("--factr", default=10000000.0, type=float,
                     help="factr for scipy's L-BFGS-B, alters convergence"
@@ -66,7 +71,7 @@ parser.add_argument("--bcc_lambda", type=float, default=0.,
 parser.add_argument("--hsc_lambda", type=float, default=0.,
                     help="For diploid organisms, lambda of the homolog-"
                          " separating constraint.")
-parser.add_argument("--hsc_r", default=None,
+parser.add_argument("--hsc_r", default=None, type=float, nargs="+",
                     help="For diploid organisms, hyperparameter of the"
                          " homolog-separating constraint specificying the"
                          " expected distance between homolog centers of mass"
@@ -76,6 +81,16 @@ parser.add_argument("--hsc_min_beads", type=int, default=5,
                     help="For diploid organisms, number of beads in the"
                          " low-resolution structure from which `hsc_r` is"
                          " estimated.")
+parser.add_argument("--mhs_lambda", type=float, default=0.,
+                    help="For diploid organisms: lambda of the multiscale-based"
+                         " homolog-separating constraint.")
+parser.add_argument("--mhs_k", default=None, type=float, nargs="+",
+                    help="For diploid organisms: hyperparameter of the"
+                         " multiscale-based homolog-separating constraint"
+                         " specificying the expected mean inter-homolog count"
+                         " for each chromosome, scaled by beta and biases. If"
+                         " not supplied, `mhs_k` will be estimated from the"
+                         " counts data.")
 
 # Hidden options
 parser.add_argument('--piecewise', default=False, action='store_true',
