@@ -87,7 +87,6 @@ def read_cooler(filepath, symmetric=True):
 
     return counts
 
-# returns counts, lengths
 def assemble_diploid(lengths, maternal_maternal=None, paternal_paternal=None,
                      maternal_paternal=None, maternal_unknown=None,
                      paternal_unknown=None, unknown_unknown=None):
@@ -125,7 +124,6 @@ def assemble_diploid(lengths, maternal_maternal=None, paternal_paternal=None,
     raise ValueError("Specify diploid files for unambiguous / partially ambig "
                      "/ ambiguous cases")
 
-# returns counts, lengths
 def assemble_haploid(haploid):
     """
     Assembles and returns the haploid.
