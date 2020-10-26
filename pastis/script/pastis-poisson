@@ -7,13 +7,36 @@ import argparse
 parser = argparse.ArgumentParser(
     description="Run PASTIS-PM1 or PASTIS-PM2 on diploid organisms.",
     fromfile_prefix_chars='@', prog="PASTIS")
-parser.add_argument("--counts", nargs="+", type=str, required=True,
-                    help="Counts data files in the hiclib format or as"
-                         " numpy ndarrays.")
 parser.add_argument("--lengths", nargs="+", type=str, required=True,
                     help="Number of beads per homolog of each chromosome.")
 parser.add_argument('--ploidy', type=int, required=True, choices=[1, 2],
                     help="Ploidy, 1 indicates haploid, 2 indicates diploid.")
+parser.add_argument("--maternal_maternal", nargs="+", type=str, required=False,
+                    default=None, help="Maternal maternal counts data file in"
+                                       " cooler format (diploid unambiguous)")
+parser.add_argument("--paternal_paternal", nargs="+", type=str, required=False,
+                    default=None, help="Paternal paternal counts data file in"
+                                       " cooler format (diploid unambiguous)")
+parser.add_argument("--maternal_paternal", nargs="+", type=str, required=False,
+                    default=None, help="Maternal paternal counts data file in"
+                                       " cooler format (diploid unambiguous)")
+parser.add_argument("--maternal_unknown", nargs="+", type=str, required=False,
+                    default=None, help="Maternal unknown counts data file in"
+                                       " cooler format (diploid partially" 
+                                       " amiguous)")
+parser.add_argument("--paternal_unknown", nargs="+", type=str, required=False,
+                    default=None, help="Paternal unknown counts data file in"
+                                       " cooler format (diploid partially"
+                                       " ambiguous)")
+parser.add_argument("--unknown_unknown", nargs="+", type=str, required=False,
+                    default=None, help="Unknown unknown counts data file in"
+                                       " cooler format (diploid ambiguous)")
+parser.add_argument("--haploid", nargs="+", type=str, required=False,
+                    default=None, help="Haploid counts data file in cooler"
+                                       " format")
+parser.add_argument("--counts", nargs="+", type=str, required=False,
+                    default=None, help="Counts data files in the hiclib format"
+                                       " or as numpy ndarrays.")
 parser.add_argument("--outdir", type=str, default="",
                     help="Directory in which to save results")
 parser.add_argument("--chromosomes", nargs="+", default=None,
