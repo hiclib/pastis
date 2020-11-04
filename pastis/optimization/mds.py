@@ -84,10 +84,10 @@ def estimate_X(counts, alpha=-3., beta=1., ini=None,
 
     Parameters
     ----------
-    counts : ndarray (n, n)
+    counts : ndarray (n, n)
         The (normalized) contact count matrix as a dense ndarray
 
-    alpha : float, optional, default: -3
+    alpha : float, optional, default: -3
         Coefficient of the power law used in converting interaction counts to
         wish distances
 
