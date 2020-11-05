@@ -79,6 +79,54 @@ def estimate_X(counts, alpha=-3., beta=1., ini=None,
                random_state=None, type="MDS2",
                factr=1e12,
                maxiter=10000):
+    """
+    Estimating the structure from contact count data using MDS/NMDS
+
+    Parameters
+    ----------
+    counts : ndarray (n, n)
+        The (normalized) contact count matrix as a dense ndarray
+
+    alpha : float, optional, default: -3
+        Coefficient of the power law used in converting interaction counts to
+        wish distances
+
+    beta : float, optional, default: 1.
+        Coefficient corresponding to the scaling factor of the structure.
+
+    ini : {None, "random", ndarray (n, 3)}, optional, default: None
+        The initial point of the optimization. If None or "random", will be
+        randomly set. Else, should be an ndarray of shape (n, 3) where `n` is
+        the number of bins in the contact count matrix.
+
+    use_zero_entries : boolean, optional, default: False
+        Whether to use contact counts that are 0.
+
+    precompute_distance : boolean, optional, default: False
+        If provided, then `counts` is considered to be the wish distances to
+        use in the MDS optimization.
+
+    random_state : int, RandomState instance, default=None
+        Determines random number generation. Use an int to make the randomness
+        deterministic.
+
+    type : {"MDS1", "MDS2"}, optional, default: "MDS2"
+        Whether to apply MDS1 or "MDS2" (weighted MDS). See companyon article
+        for more information.
+
+    factr : float, optional, default: 1e12
+        The precision of the optimization algorthim. See
+        scipy.optimize.fmin_l_bfgs_b for more information. The higher, the
+        more precise. By default, is set to very high precision.
+
+    maxiter : integer, optional, default: 10000
+        The maximum number of iteration.
+
+    Returns
+    -------
+    The structure as an ndarray of shape (n, 3).
+
+    """
     n = counts.shape[0]
 
     random_state = check_random_state(random_state)

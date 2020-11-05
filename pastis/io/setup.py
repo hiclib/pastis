@@ -8,12 +8,9 @@ def configuration(parent_package='', top_path=None):
     if os.name == 'posix':
         libraries.append('m')
 
-    config = Configuration('pastis', parent_package, top_path)
-    config.add_subpackage('utils')
-    config.add_subpackage("optimization")
-    config.add_subpackage("externals")
-    config.add_subpackage("datasets")
-    config.add_subpackage("io")
+    config = Configuration('io', parent_package, top_path)
+    config.add_subpackage('read')
+    config.add_subpackage('write_struct')
     return config
 
 

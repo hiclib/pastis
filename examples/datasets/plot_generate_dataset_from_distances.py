@@ -12,7 +12,7 @@ from matplotlib import colors
 
 from sklearn.metrics import euclidean_distances
 
-from pastis import datasets
+from pastis.datasets import generate_dataset_from_distances
 from pastis.optimization.mds import estimate_X
 import iced
 
@@ -28,9 +28,9 @@ distances = euclidean_distances(structure, structure)
 
 ##############################################################################
 # Now, generate the contact count matrix from the distance matrix
-negative_binomial_count = datasets.generate_dataset_from_distances(
+negative_binomial_count = generate_dataset_from_distances(
     distances, alpha=-3, distribution="NegativeBinomial")
-poisson_count = datasets.generate_dataset_from_distances(
+poisson_count = generate_dataset_from_distances(
     distances, alpha=-3, distribution="Poisson", lengths=lengths,
     alpha_inter=-2)
 
@@ -68,4 +68,3 @@ axes[1, 0].set_title("Simulated dataset (NB)", fontweight="bold")
 plot_matrix(axes[1, 1], poisson_count, norm=colors.SymLogNorm(1),
             lengths=lengths)
 axes[1, 1].set_title("Simulated dataset (Poisson)", fontweight="bold")
-
