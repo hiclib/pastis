@@ -90,3 +90,9 @@ fi
 
 
 pip install iced
+
+if [[ $COOLER_VERSION != "*" ]]; then
+    pip install --upgrade cooler==$COOLER_VERSION
+else
+    pip install --upgrade cooler
+fi
