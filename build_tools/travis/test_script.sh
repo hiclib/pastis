@@ -32,12 +32,19 @@ run_tests() {
     
 }
 
+run_cooler_tests() {
+  pushd examples/test_cooler_npz
+  bash launch_tests.sh
+  popd 
+}
+
 if [[ "$RUN_FLAKE8" == "true" ]]; then
     source build_tools/travis/flake8_diff.sh
 fi
 
 if [[ "$SKIP_TESTS" != "true" ]]; then
     run_tests
+    run_cooler_tests
 fi
 
 if [[ "$BUILD_DOC" == "true" ]] ; then
