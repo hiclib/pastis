@@ -11,7 +11,6 @@ import itertools
 from mpl_toolkits.mplot3d import axes3d
 import matplotlib
 import matplotlib.pyplot as plt
-import seaborn as sns
 import pandas as pd
 from scipy import interpolate
 
@@ -188,7 +187,6 @@ chrom1, chrom2 = interpolate_chromosomes(coordArr, theLengths)
 
 ##############################################################################
 # Plot the chromosomes.
-sns.set()
 fig = plt.figure(figsize=(15, 15))
 ax = fig.add_subplot(111, projection='3d')
 
