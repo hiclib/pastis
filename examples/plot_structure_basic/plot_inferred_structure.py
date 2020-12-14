@@ -133,9 +133,14 @@ def cmap_map(function, cmap):
         step_dict[key] = list(map(lambda x: x[0], cdict[key]))
     step_list = sum(step_dict.values(), [])
     step_list = np.array(list(set(step_list)))
+
     # Then compute the LUT, and apply the function to the LUT
-    reduced_cmap = lambda step: np.array(cmap(step)[0: 3])
-    old_LUT = np.array(list(map(reduced_cmap, step_list)))
+    def reduced_cmap(step):
+        return np.array(cmap(step)[0:3])
+    cmap_stepped = []
+    for curr_step in step_list:
+        cmap_stepped.append(reduced_cmap(curr_step))
+    old_LUT = np.array(cmap_stepped)
     new_LUT = np.array(list(map(function, old_LUT)))
     # Now try to make a minimal segment definition of the new LUT
     cdict = {}
