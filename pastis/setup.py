@@ -14,6 +14,7 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage("externals")
     config.add_subpackage("datasets")
     config.add_subpackage("io")
+    config.add_subpackage("_dispersion")
     return config
 
 
