@@ -15,12 +15,14 @@ def test_compute_mean_variance_sparse_without_zeros():
     counts = np.triu(counts)
     counts = counts.T + counts
     lengths = np.array([n])
-    mean_dense, var_dense = compute_mean_variance(counts, lengths,
-                                                  use_zero_counts=False)
+    _, mean_dense, var_dense, _ = compute_mean_variance(
+        counts, lengths,
+        use_zero_counts=False)
     counts = np.triu(counts)
-    mean_sparse, var_sparse = compute_mean_variance(sparse.coo_matrix(counts),
-                                                    lengths,
-                                                    use_zero_counts=False)
+    _, mean_sparse, var_sparse, _ = compute_mean_variance(
+        sparse.coo_matrix(counts),
+        lengths,
+        use_zero_counts=False)
     assert_array_almost_equal(mean_dense, mean_sparse)
     assert_array_almost_equal(var_dense, var_sparse)
 
@@ -32,12 +34,14 @@ def test_compute_mean_variance_sparse_with_zeros():
     counts = counts.T + counts
 
     lengths = np.array([n])
-    mean_dense, var_dense = compute_mean_variance(counts, lengths,
-                                                  use_zero_counts=True)
+    _, mean_dense, var_dense, _ = compute_mean_variance(
+        counts, lengths,
+        use_zero_counts=True)
     counts = np.triu(counts)
-    mean_sparse, var_sparse = compute_mean_variance(sparse.coo_matrix(counts),
-                                                    lengths,
-                                                    use_zero_counts=True)
+    _, mean_sparse, var_sparse, _ = compute_mean_variance(
+        sparse.coo_matrix(counts),
+        lengths,
+        use_zero_counts=True)
     assert_array_almost_equal(mean_dense, mean_sparse)
     assert_array_almost_equal(var_dense, var_sparse)
 
@@ -58,8 +62,9 @@ def test_exponential_dispersion():
     counts = counts.T + counts
 
     lengths = np.array([n])
-    mean_dense, var_dense = compute_mean_variance(counts, lengths,
-                                                  use_zero_counts=True)
+    _, mean_dense, var_dense, _ = compute_mean_variance(
+        counts, lengths,
+        use_zero_counts=True)
 
     for degree in [0, 1, 2]:
         dispersion_ = ExponentialDispersion(degree=degree)

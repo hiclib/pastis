@@ -65,14 +65,14 @@ def compute_mean_variance(counts, lengths, use_zero_counts=True,
             mean_ = (counts_ / b).mean()
             mean.append(mean_)
             num_data_points.append(len(counts_))
-            # XXX need to correct for the sample bias
+
             v = 1. / (len(counts_) - 1) * ((counts_ / b - mean_)**2).sum()
             var.append(v / (1. / b).mean())
 
-        # Returns a tuple of
-        return (np.arange(1, int(min_size)),
-                np.array(mean), np.array(var),
-                np.array(num_data_points))
+    # Returns a tuple of
+    return (np.arange(1, int(min_size)),
+            np.array(mean), np.array(var),
+            np.array(num_data_points))
 
 
 def _get_indices_genomic_distances(lengths, d):
