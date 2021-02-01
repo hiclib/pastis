@@ -21,12 +21,11 @@ def eval_f(x, user_data=None):
     Evaluate the objective function.
     """
     (m, n, counts, X, dispersion, bias,
-     use_zero_counts, lengths, weights, infer_beta) = user_data
+     use_zero_counts, lengths, infer_beta) = user_data
     X = X.reshape((m, n))
     return negative_binomial_obj(X, counts, alpha=x[0], beta=x[1],
                                  dispersion=dispersion,
                                  bias=bias,
-                                 weights=weights,
                                  lengths=lengths,
                                  use_zero_counts=use_zero_counts)
 
@@ -34,7 +33,6 @@ def eval_f(x, user_data=None):
 def negative_binomial_gradient(X, counts, alpha=-3, beta=1, bias=None,
                                dispersion=None,
                                lengths=None,
-                               weights=None,
                                use_zero_counts=False,
                                infer_beta=False):
     if bias is None:
@@ -48,7 +46,6 @@ def negative_binomial_gradient(X, counts, alpha=-3, beta=1, bias=None,
             X, counts, beta=beta, bias=bias,
             alpha=alpha, dispersion=dispersion,
             lengths=lengths,
-            weights=weights,
             use_zero_counts=use_zero_counts,
             infer_beta=infer_beta)
     else:
@@ -56,7 +53,6 @@ def negative_binomial_gradient(X, counts, alpha=-3, beta=1, bias=None,
             X, counts, beta=beta, bias=bias,
             alpha=alpha, dispersion=dispersion,
             lengths=lengths,
-            weights=weights,
             use_zero_counts=use_zero_counts,
             infer_beta=infer_beta)
 
@@ -65,7 +61,6 @@ def _negative_binomial_gradient_dense(X, counts, alpha=-3, beta=1,
                                       dispersion=None,
                                       bias=None,
                                       lengths=None,
-                                      weights=None,
                                       use_zero_counts=False,
                                       infer_beta=False):
     if not use_zero_counts:
@@ -73,8 +68,6 @@ def _negative_binomial_gradient_dense(X, counts, alpha=-3, beta=1,
     else:
         mask = (np.triu(np.ones(counts.shape, dtype=np.bool), k=1) &
                 np.invert(np.isnan(counts)))
-
-    w = 1.
 
     if bias is None:
         bias = np.ones((counts.shape[0], 1))
@@ -86,7 +79,7 @@ def _negative_binomial_gradient_dense(X, counts, alpha=-3, beta=1,
         disp = dispersion.predict(dis ** alpha)
 
         grad_beta = (
-            w * disp * bias.T * bias * (
+            disp * bias.T * bias * (
                 - special.digamma(counts + disp * beta_bias) +
                 special.digamma(beta_bias * disp) -
                 np.log(disp) + np.log(disp + dis ** alpha)))[mask].sum()
@@ -98,8 +91,7 @@ def _negative_binomial_gradient_dense(X, counts, alpha=-3, beta=1,
         X, counts, alpha=alpha, beta=beta,
         bias=bias,
         dispersion=dispersion,
-        lengths=lengths, weights=weights,
-        use_counts="all",
+        lengths=lengths,
         use_zero_counts=use_zero_counts)
     grad = np.array([grad, grad_beta])
 
@@ -108,16 +100,13 @@ def _negative_binomial_gradient_dense(X, counts, alpha=-3, beta=1,
 
 def _negative_binomial_gradient_alpha_dense(X, counts, alpha=-3, beta=1,
                                             dispersion=None, bias=None,
-                                            lengths=None, weights=None,
-                                            use_counts="all",
+                                            lengths=None,
                                             use_zero_counts=False):
     if not use_zero_counts:
         mask = np.triu(counts != 0, k=1)
     else:
         mask = (np.triu(np.ones(counts.shape, dtype=np.bool), k=1) &
                 np.invert(np.isnan(counts)))
-
-    w = 1.
 
     if bias is not None:
         bias = bias.reshape(-1, 1)
@@ -130,15 +119,15 @@ def _negative_binomial_gradient_alpha_dense(X, counts, alpha=-3, beta=1,
         dis ** alpha) * dis ** alpha * np.log(dis))
 
     grad = - (
-        w * special.digamma(counts + disp*beta_bias)
+        special.digamma(counts + disp*beta_bias)
         * beta_bias * d_prime)[mask].sum()
 
     grad += (
-        w * special.digamma(disp*beta_bias) * beta_bias * d_prime)[mask].sum()
-    grad -= (w * counts * np.log(dis))[mask].sum()
-    grad -= (w * beta_bias * d_prime * (np.log(disp) + 1))[mask].sum()
-    grad += (w * beta_bias * d_prime * np.log(disp + dis**alpha))[mask].sum()
-    grad += (w * (counts + beta_bias * disp) / (disp + dis**alpha) *
+        special.digamma(disp*beta_bias) * beta_bias * d_prime)[mask].sum()
+    grad -= (counts * np.log(dis))[mask].sum()
+    grad -= (beta_bias * d_prime * (np.log(disp) + 1))[mask].sum()
+    grad += (beta_bias * d_prime * np.log(disp + dis**alpha))[mask].sum()
+    grad += ((counts + beta_bias * disp) / (disp + dis**alpha) *
              (d_prime + dis**alpha * np.log(dis)))[mask].sum()
     return grad
 
@@ -147,7 +136,6 @@ def _negative_binomial_gradient_sparse(X, counts, alpha=-3, beta=1.,
                                        dispersion=None,
                                        bias=None,
                                        lengths=None,
-                                       weights=None,
                                        use_zero_counts=False,
                                        infer_beta=False):
     if use_zero_counts:
@@ -155,8 +143,6 @@ def _negative_binomial_gradient_sparse(X, counts, alpha=-3, beta=1.,
 
     if bias is None:
         bias = np.ones((counts.shape[0], 1))
-
-    w = 1.
 
     bias = bias.flatten()
 
@@ -174,12 +160,12 @@ def _negative_binomial_gradient_sparse(X, counts, alpha=-3, beta=1.,
         dis ** alpha,
         beta * bias[counts.row] * bias[counts.col]) * fdis * np.log(dis)
 
-    grad = - (w * special.digamma(counts.data + disp) * d_prime).sum()
-    grad += (w * special.digamma(disp) * d_prime).sum()
-    grad -= (w * counts.data * np.log(dis)).sum()
-    grad -= (w * d_prime * (np.log(disp) + 1)).sum()
-    grad += (w * d_prime * np.log(disp + fdis)).sum()
-    grad += (w * (counts.data + disp) / (disp + fdis) *
+    grad = - (special.digamma(counts.data + disp) * d_prime).sum()
+    grad += (special.digamma(disp) * d_prime).sum()
+    grad -= (counts.data * np.log(dis)).sum()
+    grad -= (d_prime * (np.log(disp) + 1)).sum()
+    grad += (d_prime * np.log(disp + fdis)).sum()
+    grad += ((counts.data + disp) / (disp + fdis) *
              (d_prime + fdis * np.log(dis))).sum()
     if infer_beta:
         d_prime = dispersion.predict(dis ** alpha,
@@ -188,9 +174,9 @@ def _negative_binomial_gradient_sparse(X, counts, alpha=-3, beta=1.,
             dispersion.predict(dis ** alpha) /
             (dis ** alpha + dispersion.predict(dis ** alpha)))
 
-        grad_beta = - (w * d_prime * special.digamma(counts.data + disp)).sum()
-        grad_beta += (w * d_prime * special.digamma(disp)).sum()
-        grad_beta -= (w * d_prime * np.log(p)).sum()
+        grad_beta = - (d_prime * special.digamma(counts.data + disp)).sum()
+        grad_beta += (d_prime * special.digamma(disp)).sum()
+        grad_beta -= (d_prime * np.log(p)).sum()
     else:
         grad_beta = 0
 
@@ -203,13 +189,12 @@ def eval_grad_f(x, user_data=None):
     Evaluate the gradient of the function in alpha
     """
     (m, n, counts, X, dispersion, bias,
-     use_zero_counts, lengths, weights, infer_beta) = user_data
+     use_zero_counts, lengths, infer_beta) = user_data
     X = X.reshape((m, n))
     return negative_binomial_gradient(X, counts, alpha=x[0], beta=x[1],
                                       dispersion=dispersion,
                                       bias=bias,
                                       lengths=lengths,
-                                      weights=weights,
                                       use_zero_counts=use_zero_counts,
                                       infer_beta=infer_beta)
 
@@ -218,7 +203,6 @@ def estimate_alpha_beta(counts, X, ini=None, dispersion=None, bias=None,
                         verbose=0,
                         use_zero_entries=False,
                         lengths=None,
-                        weights=None,
                         infer_beta=True,
                         random_state=None, maxiter=10000):
     """
@@ -250,7 +234,7 @@ def estimate_alpha_beta(counts, X, ini=None, dispersion=None, bias=None,
         counts[mask] = np.nan
 
     data = (m, n, counts, X, dispersion, bias,
-            use_zero_entries, lengths, weights, infer_beta)
+            use_zero_entries, lengths, infer_beta)
 
     results = optimize.fmin_l_bfgs_b(
         eval_f,

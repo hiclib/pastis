@@ -167,7 +167,7 @@ def test_check_grad():
     X = random_state.rand(n, 3)
     dis = euclidean_distances(X) ** -3
     udata = (n, 3, sparse.coo_matrix(np.triu(dis, 1)), X,
-             None, None, False, None, None, True)
+             None, None, False, None, True)
     init = np.array([-3, 1])
     eps = check_grad(negative_binomial.eval_f,
                      negative_binomial.eval_grad_f,
@@ -175,7 +175,7 @@ def test_check_grad():
                      udata)
     assert eps < 1e-3
 
-    udata = (n, 3, dis, X, None, None, True, None, None, True)
+    udata = (n, 3, dis, X, None, None, True, None, True)
     init = np.array([-3, 1])
     eps = check_grad(negative_binomial.eval_f,
                      negative_binomial.eval_grad_f,
@@ -186,7 +186,7 @@ def test_check_grad():
     bias = 0.1 + random_state.rand(n)
     bias = bias.reshape(n, 1)
 
-    udata = (n, 3, dis, X, None, bias, True, None, None, True)
+    udata = (n, 3, dis, X, None, bias, True, None, True)
     init = np.array([-3, 1])
     eps = check_grad(negative_binomial.eval_f,
                      negative_binomial.eval_grad_f,

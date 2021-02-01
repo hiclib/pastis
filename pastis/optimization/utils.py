@@ -172,12 +172,3 @@ def compute_wish_distances(counts, alpha=-3., beta=1., bias=None):
         wish_distances[wish_distances != 0] **= 1. / alpha
 
         return wish_distances
-
-
-def _get_intra_mask_sparse(lengths, counts):
-    """
-    """
-    chr_id = np.array([i for i, l in enumerate(lengths) for _ in range(l)])
-    mask = np.ones(counts.col.shape, dtype=bool) * True
-    mask[chr_id[counts.col] != chr_id[counts.row]] = False
-    return mask

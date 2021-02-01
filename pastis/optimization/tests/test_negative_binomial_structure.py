@@ -104,74 +104,6 @@ def test_negative_binomial_obj_sparse_dispersion_biased():
     assert_almost_equal(obj_sparse, obj_dense, 6)
 
 
-def test_negative_binomial_obj_dense_weights():
-    n = 50
-    lengths = np.array([10, 20, 20, 10])
-    random_state = np.random.RandomState(42)
-    X = random_state.rand(n, 3)
-    dis = euclidean_distances(X)
-    alpha, beta = -3, 1
-
-    counts = beta * dis ** alpha
-    counts = np.triu(counts)
-    counts[np.arange(len(counts)), np.arange(len(counts))] = 0
-
-    obj = negative_binomial_structure.negative_binomial_obj(
-        X, counts, alpha=alpha, beta=beta, lengths=lengths)
-
-    obj_ = negative_binomial_structure.negative_binomial_obj(
-        random_state.rand(*X.shape),
-        counts, alpha=alpha, beta=beta, lengths=lengths)
-    assert(obj < obj_)
-
-    obj = negative_binomial_structure.negative_binomial_obj(
-        X, counts, alpha=alpha, beta=beta, use_zero_counts=True,
-        lengths=lengths)
-
-    obj_ = negative_binomial_structure.negative_binomial_obj(
-        random_state.rand(*X.shape),
-        counts, alpha=alpha, beta=beta, use_zero_counts=True, lengths=lengths)
-    assert(obj < obj_)
-
-    obj = negative_binomial_structure.negative_binomial_obj(
-        X, counts, alpha=alpha, beta=beta, weights=1.)
-
-    obj_ = negative_binomial_structure.negative_binomial_obj(
-        random_state.rand(*X.shape),
-        counts, alpha=alpha, beta=beta, weights=1.)
-    assert(obj < obj_)
-
-    obj = negative_binomial_structure.negative_binomial_obj(
-        X, counts, alpha=alpha, beta=beta, use_zero_counts=True,
-        weights=1.)
-
-    obj_ = negative_binomial_structure.negative_binomial_obj(
-        random_state.rand(*X.shape),
-        counts, alpha=alpha, beta=beta, use_zero_counts=True, weights=1.)
-    assert(obj < obj_)
-
-
-def test_negative_binomial_obj_weighted_sparse():
-    lengths = np.array([10, 20, 20, 10])
-    n = lengths.sum()
-    random_state = np.random.RandomState(42)
-    X = random_state.rand(n, 3)
-    dis = euclidean_distances(X)
-    alpha, beta = -3, 1
-
-    counts = beta * dis ** alpha
-    counts = np.triu(counts)
-    counts[np.arange(len(counts)), np.arange(len(counts))] = 0
-
-    obj_dense = negative_binomial_structure.negative_binomial_obj(
-        X, counts, alpha=alpha, beta=beta, lengths=lengths, weights=0.1)
-
-    obj_sparse = negative_binomial_structure.negative_binomial_obj(
-        X, sparse.coo_matrix(counts),
-        alpha=alpha, beta=beta, lengths=lengths, weights=0.1)
-    assert_almost_equal(obj_dense, obj_sparse)
-
-
 def test_negative_binomial_gradient_dense():
     n = 10
     random_state = np.random.RandomState(42)
@@ -212,13 +144,6 @@ def test_negative_binomial_gradient_sparse():
     rand_grad_dense = negative_binomial_structure.negative_binomial_gradient(
         rand_X, counts.toarray())
     assert_array_almost_equal(rand_grad_sparse, rand_grad_dense)
-
-    lengths = np.array([5, 5])
-    rand_grad_sw = negative_binomial_structure.negative_binomial_gradient(
-        rand_X, counts, lengths=lengths, weights=0.1)
-    rand_grad_dw = negative_binomial_structure.negative_binomial_gradient(
-        rand_X, counts.toarray(), lengths=lengths, weights=0.1)
-    assert_array_almost_equal(rand_grad_sw, rand_grad_dw)
 
 
 def test_negative_binomial_gradient_sparse_dispersed():
@@ -333,7 +258,7 @@ def test_check_grad():
     counts = random_state.negative_binomial(disp, 1 - p)
     counts = np.triu(counts, 1)
     counts[np.arange(len(counts)), np.arange(len(counts))] = 0
-    user_data = (n, counts, alpha, beta, None, None, False, None, None)
+    user_data = (n, counts, alpha, beta, None, None, False, None)
 
     eps = check_grad(negative_binomial_structure.eval_f,
                      negative_binomial_structure.eval_grad_f,
@@ -341,7 +266,7 @@ def test_check_grad():
                      user_data)
 
     user_data = (n, sparse.coo_matrix(counts),
-                 alpha, beta, None, None, False, None, None)
+                 alpha, beta, None, None, False, None)
 
     eps_ = check_grad(negative_binomial_structure.eval_f,
                       negative_binomial_structure.eval_grad_f,
