@@ -1,0 +1,17 @@
+name: pastis
+channels:
+    - default
+dependencies:
+    - python=3.9
+    - pip
+    - pip:
+        - sphinx
+        - numpy
+        - scipy
+        - sklearn
+        - matplotlib
+        - iced
+        - pastis
+        - joblib
+        - cython
+        - pandas
