@@ -4,9 +4,9 @@ from numpy.testing import assert_array_almost_equal
 from numpy.testing import assert_array_equal
 from iced.utils import get_genomic_distances
 
-from pastis._dispersion import compute_mean_variance
-from pastis._dispersion import _get_indices_genomic_distances
-from pastis._dispersion import ExponentialDispersion
+from pastis.dispersion import compute_mean_variance
+from pastis.dispersion import _get_indices_genomic_distances
+from pastis.dispersion import ExponentialDispersion
 
 
 def test_compute_mean_variance_sparse_without_zeros():
