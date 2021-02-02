@@ -4,7 +4,7 @@ on:
     - cron: '0 0 * * *'
   push:
     branches:
-      - main # To change to latest release.
+      - master  # To change to latest release.
 
 jobs:
   build-html-and-deploy:
