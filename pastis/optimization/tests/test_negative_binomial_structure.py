@@ -5,7 +5,7 @@ from numpy.testing import assert_array_almost_equal
 from nose.tools import assert_almost_equal
 from scipy.optimize import check_grad
 
-from pastis import _dispersion as dispersion
+from pastis import dispersion
 from pastis.optimization import negative_binomial_structure
 
 
