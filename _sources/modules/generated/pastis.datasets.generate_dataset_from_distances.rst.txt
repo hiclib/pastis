@@ -1,0 +1,12 @@
+﻿pastis.datasets.generate_dataset_from_distances
+===============================================
+
+.. currentmodule:: pastis.datasets
+
+.. autofunction:: generate_dataset_from_distances
+
+.. include:: ../../generated/backreferences/pastis.datasets.generate_dataset_from_distances.examples
+
+.. raw:: html
+
+    <div class="sphx-glr-clear"></div>

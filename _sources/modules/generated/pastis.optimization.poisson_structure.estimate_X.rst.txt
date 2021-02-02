@@ -1,0 +1,12 @@
+﻿pastis.optimization.poisson_structure.estimate_X
+================================================
+
+.. currentmodule:: pastis.optimization.poisson_structure
+
+.. autofunction:: estimate_X
+
+.. include:: ../../generated/backreferences/pastis.optimization.poisson_structure.estimate_X.examples
+
+.. raw:: html
+
+    <div class="sphx-glr-clear"></div>

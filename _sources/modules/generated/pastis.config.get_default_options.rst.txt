@@ -1,0 +1,12 @@
+﻿pastis.config.get_default_options
+=================================
+
+.. currentmodule:: pastis.config
+
+.. autofunction:: get_default_options
+
+.. include:: ../../generated/backreferences/pastis.config.get_default_options.examples
+
+.. raw:: html
+
+    <div class="sphx-glr-clear"></div>

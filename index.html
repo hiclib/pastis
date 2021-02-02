@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+    <title>PASTIS: Poisson-based algorithm for stable inference of DNA Structure &#8212; Pastis 0.5.0-git documentation</title>
+  <!-- htmltitle is before nature.css - we use this hack to load bootstrap first -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet"
+        href="_static/css/bootstrap.min.css"
+	media="screen" />
+    <script src="_static/js/jquery.js"
+          type="text/javascript"></script>
+  <script src="_static/js/bootstrap.min.js"
+          type="text/javascript"></script>
+
+
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport'
+      content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="stylesheet"
+        href="_static/css/jhepc.css"
+         media="screen" />
+  <link href='http://fonts.googleapis.com/css?family=PT+Serif'
+        rel='stylesheet' type='text/css'>
+  <link href='http://fonts.googleapis.com/css?family=PT+Sans'
+        rel='stylesheet' type='text/css'>
+  <link href='http://fonts.googleapis.com/css?family=PT+Sans+Narrow'
+        rel='stylesheet' type='text/css'>
+
+
+
+  </head><body><div class="navbar">
+    <a class="navbar-brand" href="#">
+      <img src="_static/logos/logo_1.png" \>
+    </a>
+    <ul class="nav navbar-nav">
+
+      <li>
+        <a href="#">Home
+          <img src="_static/logos/button_orange.png">
+        </a>
+        </li>
+      <li><a href="install.html">Installation
+          <img src="_static/logos/button_blue.png">
+          </a>
+      </li>
+      <li><a href="documentation.html">Documentation
+          <img src="_static/logos/button_green.png">
+          </a></li>
+      <li><a href="auto_examples/index.html">Gallery
+          <img src="_static/logos/button_orange.png">
+          </a></li>
+
+    </ul>
+  </div>
+    <div class="container">
+  
+  <div class="section" id="pastis-poisson-based-algorithm-for-stable-inference-of-dna-structure">
+<h1>PASTIS: Poisson-based Algorithm for STable Inference of DNA Structure<a class="headerlink" href="#pastis-poisson-based-algorithm-for-stable-inference-of-dna-structure" title="Permalink to this headline">¶</a></h1>
+<div class="figure align-default">
+<a class="reference internal image-reference" href="_images/yeast_chr2.png"><img alt="_images/yeast_chr2.png" src="_images/yeast_chr2.png" style="width: 215.0px; height: 216.5px;" /></a>
+</div>
+<p>Recent technological advances allow the measurement, in a single Hi-C
+experiment, of the frequencies of physical contacts among pairs of genomic
+loci at a genome-wide scale. The next challenge is to infer, from the
+resulting DNA-DNA contact maps, accurate three dimensional models of how
+chromosomes fold and fit into the nucleus. Many existing inference methods
+rely upon multidimensional scaling (MDS), in which the pairwise distances of
+the inferred model are optimized to resemble pairwise distances derived
+directly from the contact counts. These approaches, however, often optimize a
+heuristic objective function and require strong assumptions about the
+biophysics of DNA to transform interaction frequencies to spatial distance,
+and thereby may lead to incorrect structure reconstruction.</p>
+<p>In pastis, we propose a novel approach to infer a consensus three-
+dimensional structure of a genome from Hi-C data. The method incorporates a
+statistical model of the contact counts, assuming that the counts between two
+loci follow a Poisson distribution whose intensity decreases with the physical
+distances between the loci. The method can automatically adjust the transfer
+function relating the spatial distance to the Poisson intensity and infer a
+genome structure that best explains the observed data.</p>
+<p>The package pastis contains four methods to infer the three dimensional
+methods of a genome from Hi-C data: MDS, NMDS, PM1, PM2. MDS and NMDS are
+algorithms from the multidimensional scaling family, while PM1 and PM2 are
+novel approaches, derived from a statistical modeling of the interaction
+counts and the physical distances.</p>
+<div class="section" id="download">
+<h2>Download<a class="headerlink" href="#download" title="Permalink to this headline">¶</a></h2>
+<p>Download the latest version of pastis <a class="reference external" href="https://github.com/hiclib/pastis/releases">here</a>
+or <a class="reference external" href="https://github.com/hiclib/pastis/">fork the code on github</a>.</p>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<p>N. Varoquaux, F. Ay, W. S. Noble, and J.-P. Vert. <cite>A statistical approach for
+inferring the 3D structure of the genome.
+&lt;http://bioinformatics.oxfordjournals.org/content/30/12/i26.short&gt;</cite>
+Bioinformatics, 30(12):i26–i33, 2014.</p>
+<p>A. G. Cauer, G. Yardimci, J.-P. Vert, N. Varoquaux, and W. S. Noble. <cite>Inferring
+diploid 3D chromatin structures from Hi-C data.
+&lt;http://drops.dagstuhl.de/opus/volltexte/2019/11041/&gt;</cite> In 19th International
+Workshop on Algorithms in Bioinformatics (WABI 2019), volume 143 of Leibniz
+International Proceedings in Informatics (LIPIcs), pages 11:1–11:13, Dagstuhl,
+Germany, 2019. Schloss Dagstuhl–Leibniz-Zentrum fuer Informatik.</p>
+</div>
+<div class="section" id="contacts">
+<h2>Contacts<a class="headerlink" href="#contacts" title="Permalink to this headline">¶</a></h2>
+<p>If you have any questions or suggestions, please email nelle dot varoquaux at
+ensmp dot fr, or open a ticket on <a class="reference external" href="https://github.com/hiclib/pastis/issues">Github</a></p>
+</div>
+</div>
+
+
+    </div>
+<footer class="footer">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2014, Nelle Varoquaux.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 3.4.3.<br/>
+    </p>
+</footer>
+  </body>
+</html>

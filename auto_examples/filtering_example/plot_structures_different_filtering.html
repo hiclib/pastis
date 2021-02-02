@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+    <title>PASTIS: Poisson-based algorithm for stable inference of DNA Structure &#8212; Pastis 0.5.0-git documentation</title>
+  <!-- htmltitle is before nature.css - we use this hack to load bootstrap first -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet"
+        href="../../_static/css/bootstrap.min.css"
+	media="screen" />
+    <script src="../../_static/js/jquery.js"
+          type="text/javascript"></script>
+  <script src="../../_static/js/bootstrap.min.js"
+          type="text/javascript"></script>
+
+
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport'
+      content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="stylesheet"
+        href="../../_static/css/jhepc.css"
+         media="screen" />
+  <link href='http://fonts.googleapis.com/css?family=PT+Serif'
+        rel='stylesheet' type='text/css'>
+  <link href='http://fonts.googleapis.com/css?family=PT+Sans'
+        rel='stylesheet' type='text/css'>
+  <link href='http://fonts.googleapis.com/css?family=PT+Sans+Narrow'
+        rel='stylesheet' type='text/css'>
+
+
+
+  </head><body><div class="navbar">
+    <a class="navbar-brand" href="../../index.html">
+      <img src="../../_static/logos/logo_1.png" \>
+    </a>
+    <ul class="nav navbar-nav">
+
+      <li>
+        <a href="../../index.html">Home
+          <img src="../../_static/logos/button_orange.png">
+        </a>
+        </li>
+      <li><a href="../../install.html">Installation
+          <img src="../../_static/logos/button_blue.png">
+          </a>
+      </li>
+      <li><a href="../../documentation.html">Documentation
+          <img src="../../_static/logos/button_green.png">
+          </a></li>
+      <li><a href="../index.html">Gallery
+          <img src="../../_static/logos/button_orange.png">
+          </a></li>
+
+    </ul>
+  </div>
+    <div class="container">
+  
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-auto-examples-filtering-example-plot-structures-different-filtering-py"><span class="std std-ref">here</span></a>
+to download the full example code or to run this example in your browser via Binder</p>
+</div>
+<div class="sphx-glr-example-title section" id="plot-3-d-structures-inferred-with-different-levels-of-filtering-with-matplotlib">
+<span id="sphx-glr-auto-examples-filtering-example-plot-structures-different-filtering-py"></span><h1>Plot 3-d structures inferred with different levels of filtering with matplotlib<a class="headerlink" href="#plot-3-d-structures-inferred-with-different-levels-of-filtering-with-matplotlib" title="Permalink to this headline">¶</a></h1>
+<p>This example plots two 3-d structures (with matplotlib) inferred with different
+levels of filtering to showcase how increasing filtering when running PASTIS
+can result in a better-looking inferred structure.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="kn">import</span> <span class="n">axes3d</span>  <span class="c1"># noqa: F401 unused import</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">interpolate</span>
+</pre></div>
+</div>
+<div class="section" id="define-the-interpolation-function">
+<h2>Define the interpolation function.<a class="headerlink" href="#define-the-interpolation-function" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">interpolate_chromosomes</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">lengths</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-1</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Returns a smoothed interpolation of the chromosomes.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : ndarray (n, 3)</span>
+<span class="sd">        The 3D structure</span>
+
+<span class="sd">        lengths : ndarray (L, )</span>
+<span class="sd">        The lengths of the chromosomes. Note that the sum of the lengths</span>
+<span class="sd">        should correspond to the length of the ndarray of the 3D structure.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        smoothed_X : the smoothed 3D structure, with a set of coordinates for</span>
+<span class="sd">        each chromosome (ie, the first chromosome&#39;s points will be</span>
+<span class="sd">        smoothed_X[0]). smoothed_X[0][i] will be a list with an x, y, and</span>
+<span class="sd">        z coordinate.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">smoothed_X</span> <span class="o">=</span> <span class="p">[[],</span> <span class="p">[]]</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]))</span>
+
+    <span class="n">begin</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+
+    <span class="c1"># Loops over each chromosome</span>
+    <span class="n">enumerated_lengths</span> <span class="o">=</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">length</span> <span class="ow">in</span> <span class="n">enumerated_lengths</span><span class="p">:</span>
+        <span class="n">end</span> <span class="o">+=</span> <span class="n">length</span>
+
+        <span class="c1"># Get the current chromosome&#39;s coordinates</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">begin</span><span class="p">:</span><span class="n">end</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">begin</span><span class="p">:</span><span class="n">end</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">begin</span><span class="p">:</span><span class="n">end</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="n">indx</span> <span class="o">=</span> <span class="n">mask</span><span class="p">[</span><span class="n">begin</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">break</span>
+
+        <span class="c1"># Encode missing values with nan</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">indx</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">x</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+            <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">y</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+            <span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">z</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="c1"># Encode missing values with nan</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">indx</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">x</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+            <span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">z</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+            <span class="n">z</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">z</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="n">indx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+        <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))[</span><span class="n">indx</span><span class="p">]</span>
+
+        <span class="c1"># Get interpolation functions for the x, y, and z coordinates</span>
+        <span class="n">f_x</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">Rbf</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="n">indx</span><span class="p">],</span> <span class="n">smooth</span><span class="o">=</span><span class="n">smooth</span><span class="p">)</span>
+        <span class="n">f_y</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">Rbf</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">y</span><span class="p">[</span><span class="n">indx</span><span class="p">],</span> <span class="n">smooth</span><span class="o">=</span><span class="n">smooth</span><span class="p">)</span>
+        <span class="n">f_z</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">Rbf</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">z</span><span class="p">[</span><span class="n">indx</span><span class="p">],</span> <span class="n">smooth</span><span class="o">=</span><span class="n">smooth</span><span class="p">)</span>
+
+        <span class="c1"># Use interpolation functions to create curve segments between</span>
+        <span class="c1"># adjacent (adjacent in the parameter X, for the current chromosome)</span>
+        <span class="c1"># coordinate beads</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">j</span> <span class="o">&lt;</span> <span class="n">length</span> <span class="o">-</span> <span class="mi">2</span><span class="p">):</span>
+                <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+            <span class="n">smoothed_X</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">f_x</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">m</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="mf">0.1</span><span class="p">)),</span>
+                                  <span class="n">f_y</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">m</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="mf">0.1</span><span class="p">)),</span>
+                                  <span class="n">f_z</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">m</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="mf">0.1</span><span class="p">))])</span>
+
+        <span class="n">begin</span> <span class="o">=</span> <span class="n">end</span>
+
+    <span class="k">return</span> <span class="n">smoothed_X</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="define-the-function-to-scatter-the-beads">
+<h2>Define the function to scatter the beads.<a class="headerlink" href="#define-the-function-to-scatter-the-beads" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">scatter_beads</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">bead_size</span><span class="p">,</span> <span class="n">curr_cmap</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">ax</span><span class="p">):</span>
+    <span class="n">last_idx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="n">bead_size</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">curr_cmap</span><span class="p">(</span><span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+               <span class="n">label</span><span class="o">=</span><span class="s1">&#39;start&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">last_idx</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">last_idx</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">last_idx</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="n">bead_size</span><span class="p">,</span>
+               <span class="n">cmap</span><span class="o">=</span><span class="n">curr_cmap</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">last_idx</span><span class="p">])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">last_idx</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">last_idx</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="n">last_idx</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="n">bead_size</span><span class="p">,</span>
+               <span class="n">color</span><span class="o">=</span><span class="n">curr_cmap</span><span class="p">(</span><span class="n">indices</span><span class="p">[</span><span class="n">last_idx</span><span class="p">]),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;end&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="define-the-function-to-lighten-or-darken-our-color-map">
+<h2>Define the function to lighten or darken our color map.<a class="headerlink" href="#define-the-function-to-lighten-or-darken-our-color-map" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">cmap_map</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">cmap</span><span class="p">):</span>
+    <span class="c1"># Function taken from:</span>
+    <span class="c1"># https://scipy-cookbook.readthedocs.io/items/Matplotlib_ColormapTransformations.html</span>
+
+    <span class="sd">&quot;&quot;&quot; Applies function (which should operate on vectors of shape 3:</span>
+<span class="sd">        [r, g, b]), on colormap cmap. This routine will break any discontinuous</span>
+<span class="sd">        points in a colormap.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cdict</span> <span class="o">=</span> <span class="n">cmap</span><span class="o">.</span><span class="n">_segmentdata</span>
+    <span class="n">step_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># First get the list of points where the segments start or end</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="s1">&#39;blue&#39;</span><span class="p">):</span>
+        <span class="n">step_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cdict</span><span class="p">[</span><span class="n">key</span><span class="p">]))</span>
+    <span class="n">step_list</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">step_dict</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="p">[])</span>
+    <span class="n">step_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">step_list</span><span class="p">)))</span>
+
+    <span class="c1"># Then compute the LUT, and apply the function to the LUT</span>
+    <span class="k">def</span> <span class="nf">reduced_cmap</span><span class="p">(</span><span class="n">step</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cmap</span><span class="p">(</span><span class="n">step</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span>
+    <span class="n">cmap_stepped</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">curr_step</span> <span class="ow">in</span> <span class="n">step_list</span><span class="p">:</span>
+        <span class="n">cmap_stepped</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reduced_cmap</span><span class="p">(</span><span class="n">curr_step</span><span class="p">))</span>
+    <span class="n">old_LUT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cmap_stepped</span><span class="p">)</span>
+    <span class="n">new_LUT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">old_LUT</span><span class="p">)))</span>
+    <span class="c1"># Now try to make a minimal segment definition of the new LUT</span>
+    <span class="n">cdict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="s1">&#39;blue&#39;</span><span class="p">]):</span>
+        <span class="n">this_cdict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">step_list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">step_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
+                <span class="n">this_cdict</span><span class="p">[</span><span class="n">step</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_LUT</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">new_LUT</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="n">old_LUT</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]:</span>
+                <span class="n">this_cdict</span><span class="p">[</span><span class="n">step</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_LUT</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+        <span class="n">colorvector</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">),</span> <span class="n">this_cdict</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+        <span class="n">colorvector</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">cdict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">colorvector</span>
+
+    <span class="k">return</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="p">(</span><span class="s1">&#39;colormap&#39;</span><span class="p">,</span> <span class="n">cdict</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="define-the-function-to-plot-the-coordinates">
+<h2>Define the function to plot the coordinates<a class="headerlink" href="#define-the-function-to-plot-the-coordinates" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">plot_structure</span><span class="p">(</span><span class="n">struct_file_name</span><span class="p">,</span> <span class="n">contact_counts</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># Load in the structure from its file</span>
+    <span class="n">coord_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">struct_file_name</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+
+    <span class="c1"># Get the length of the structure</span>
+    <span class="n">struct_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">coord_arr</span><span class="p">)])</span>
+
+    <span class="c1"># Get the structures coordinates</span>
+    <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">struct_length</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">coord_arr</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">][</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">coord_arr</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">][</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">coord_arr</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">][</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+
+    <span class="c1"># Interpolate the coordinates of the structure</span>
+    <span class="n">chrom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">interpolate_chromosomes</span><span class="p">(</span><span class="n">coord_arr</span><span class="p">,</span> <span class="n">struct_length</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="c1"># Get the plot ready</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Get our colors set up. color_beads determines which color in our color</span>
+    <span class="c1"># map each bead will have.</span>
+    <span class="n">color_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+    <span class="c1"># We will use a spectral color cmap.</span>
+    <span class="n">the_cmap</span> <span class="o">=</span> <span class="n">cmap_map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">*</span><span class="mf">0.85</span><span class="p">,</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;Spectral&#39;</span><span class="p">))</span>
+
+    <span class="c1"># Scatter the beads for the chromosome.</span>
+    <span class="n">scatter_beads</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="n">the_cmap</span><span class="p">,</span> <span class="n">color_indices</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span>
+
+    <span class="c1"># Plot the points we interpolated that go in between the beads of the</span>
+    <span class="c1"># chromosome.</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">struct_length</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">chrom</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">chrom</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">chrom</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">the_cmap</span><span class="p">(</span><span class="n">color_indices</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+
+    <span class="c1"># Set the labels, title, legend, and view angle and position. Show the</span>
+    <span class="c1"># plot.</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_zlabel</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">view_init</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">300</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Load the contact counts</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">contact_counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;data/contact_counts.npy&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Plot the structure with less filtering. As we can see, this structure looks
+quite odd, with spikes shooting out to single beads that are far away from
+the rest of the structure.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">plot_structure</span><span class="p">(</span><span class="s1">&#39;data/struct_inferred_less.000.coords&#39;</span><span class="p">,</span> <span class="n">contact_counts</span><span class="p">,</span>
+               <span class="s1">&#39;Inferred 3-d structure (Less Filtering)&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="Inferred 3-d structure (Less Filtering)" class="sphx-glr-single-img" src="../../_images/sphx_glr_plot_structures_different_filtering_001.png" />
+<p class="sphx-glr-script-out">Out:</p>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/home/runner/work/pastis/pastis/examples/filtering_example/plot_structures_different_filtering.py:179: VisibleDeprecationWarning: Creating an ndarray from ragged nested sequences (which is a list-or-tuple of lists-or-tuples-or ndarrays with different lengths or shapes) is deprecated. If you meant to do this, you must specify &#39;dtype=object&#39; when creating the ndarray.
+  chrom = np.array(interpolate_chromosomes(coord_arr, struct_length)[0])
+</pre></div>
+</div>
+<p>Plot the structure with more filtering. As we can see, this structure looks
+significantly better, as bins with low coverage in the contact counts matrix
+were filtered more heavily before PASTIS inferred the structure.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">plot_structure</span><span class="p">(</span><span class="s1">&#39;data/struct_inferred_more.000.coords&#39;</span><span class="p">,</span> <span class="n">contact_counts</span><span class="p">,</span>
+               <span class="s1">&#39;Inferred 3-d structure (More Filtering)&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="Inferred 3-d structure (More Filtering)" class="sphx-glr-single-img" src="../../_images/sphx_glr_plot_structures_different_filtering_002.png" />
+<p class="sphx-glr-script-out">Out:</p>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/home/runner/work/pastis/pastis/examples/filtering_example/plot_structures_different_filtering.py:179: VisibleDeprecationWarning: Creating an ndarray from ragged nested sequences (which is a list-or-tuple of lists-or-tuples-or ndarrays with different lengths or shapes) is deprecated. If you meant to do this, you must specify &#39;dtype=object&#39; when creating the ndarray.
+  chrom = np.array(interpolate_chromosomes(coord_arr, struct_length)[0])
+</pre></div>
+</div>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  1.643 seconds)</p>
+<div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-filtering-example-plot-structures-different-filtering-py">
+<div class="binder-badge docutils container">
+<a class="reference external image-reference" href="https://mybinder.org/v2/gh/hiclib/pastis/gh-pages?urlpath=lab/tree/notebooks/auto_examples/filtering_example/plot_structures_different_filtering.ipynb"><img alt="Launch binder" src="../../_images/binder_badge_logo1.svg" width="150px" /></a>
+</div>
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/e26a60e83708000d4d19066916a04e84/plot_structures_different_filtering.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_structures_different_filtering.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/0215a1afdb0ef20f99103fba622d1c72/plot_structures_different_filtering.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_structures_different_filtering.ipynb</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</div>
+</div>
+
+
+    </div>
+<footer class="footer">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2014, Nelle Varoquaux.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 3.4.3.<br/>
+    </p>
+</footer>
+  </body>
+</html>

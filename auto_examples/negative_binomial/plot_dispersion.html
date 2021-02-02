@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+    <title>PASTIS: Poisson-based algorithm for stable inference of DNA Structure &#8212; Pastis 0.5.0-git documentation</title>
+  <!-- htmltitle is before nature.css - we use this hack to load bootstrap first -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet"
+        href="../../_static/css/bootstrap.min.css"
+	media="screen" />
+    <script src="../../_static/js/jquery.js"
+          type="text/javascript"></script>
+  <script src="../../_static/js/bootstrap.min.js"
+          type="text/javascript"></script>
+
+
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport'
+      content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="stylesheet"
+        href="../../_static/css/jhepc.css"
+         media="screen" />
+  <link href='http://fonts.googleapis.com/css?family=PT+Serif'
+        rel='stylesheet' type='text/css'>
+  <link href='http://fonts.googleapis.com/css?family=PT+Sans'
+        rel='stylesheet' type='text/css'>
+  <link href='http://fonts.googleapis.com/css?family=PT+Sans+Narrow'
+        rel='stylesheet' type='text/css'>
+
+
+
+  </head><body><div class="navbar">
+    <a class="navbar-brand" href="../../index.html">
+      <img src="../../_static/logos/logo_1.png" \>
+    </a>
+    <ul class="nav navbar-nav">
+
+      <li>
+        <a href="../../index.html">Home
+          <img src="../../_static/logos/button_orange.png">
+        </a>
+        </li>
+      <li><a href="../../install.html">Installation
+          <img src="../../_static/logos/button_blue.png">
+          </a>
+      </li>
+      <li><a href="../../documentation.html">Documentation
+          <img src="../../_static/logos/button_green.png">
+          </a></li>
+      <li><a href="../index.html">Gallery
+          <img src="../../_static/logos/button_orange.png">
+          </a></li>
+
+    </ul>
+  </div>
+    <div class="container">
+  
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-auto-examples-negative-binomial-plot-dispersion-py"><span class="std std-ref">here</span></a>
+to download the full example code or to run this example in your browser via Binder</p>
+</div>
+<div class="sphx-glr-example-title section" id="estimating-the-dispersion">
+<span id="sphx-glr-auto-examples-negative-binomial-plot-dispersion-py"></span><h1>Estimating the dispersion<a class="headerlink" href="#estimating-the-dispersion" title="Permalink to this headline">¶</a></h1>
+<p>Are Hi-C contact count data overdispersed?</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">iced</span> <span class="kn">import</span> <span class="n">datasets</span>
+<span class="kn">import</span> <span class="nn">iced</span>
+<span class="kn">from</span> <span class="nn">pastis</span> <span class="kn">import</span> <span class="n">dispersion</span>
+</pre></div>
+</div>
+<p>Load a Yeast dataset, and a human dataset</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">counts</span><span class="p">,</span> <span class="n">lengths</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">load_sample_yeast</span><span class="p">()</span>
+</pre></div>
+</div>
+<p class="sphx-glr-script-out">Out:</p>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda3/envs/pastis/lib/python3.9/site-packages/iced/io/_io_pandas.py:56: UserWarning: Attempting to guess whether counts are 0 or 1 based
+  warnings.warn(
+</pre></div>
+</div>
+<p>Normalize the contact count data, but keep the biases to estimate the
+dispersion</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">counts</span> <span class="o">=</span> <span class="n">iced</span><span class="o">.</span><span class="n">filter</span><span class="o">.</span><span class="n">filter_low_counts</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">percentage</span><span class="o">=</span><span class="mf">0.06</span><span class="p">)</span>
+<span class="n">normed_counts</span><span class="p">,</span> <span class="n">biases</span> <span class="o">=</span> <span class="n">iced</span><span class="o">.</span><span class="n">normalization</span><span class="o">.</span><span class="n">ICE_normalization</span><span class="p">(</span>
+    <span class="n">counts</span><span class="p">,</span>
+    <span class="n">output_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, estimate the variance and mean for every genomic distance</p>
+<p>Note that in order to have an unbiased estimation of the variance, you need
+to provide the bias vector.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">_</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">variance</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">dispersion</span><span class="o">.</span><span class="n">compute_mean_variance</span><span class="p">(</span>
+    <span class="n">counts</span><span class="p">,</span> <span class="n">lengths</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="n">biases</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>And now plot the resulting mean versus variance</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">variance</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span>
+               <span class="n">s</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Mean&quot;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s2">&quot;bold&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Variance&quot;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s2">&quot;bold&quot;</span><span class="p">)</span>
+<span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">()</span>
+<span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">1e-1</span><span class="p">,</span> <span class="mf">1e7</span><span class="p">,</span> <span class="mf">1e6</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">1e-1</span><span class="p">,</span> <span class="mf">1e7</span><span class="p">,</span> <span class="mf">1e6</span><span class="p">),</span>
+        <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;top&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s1">&#39;bottom&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">((</span><span class="nb">min</span><span class="p">(</span><span class="n">ymin</span><span class="p">,</span> <span class="n">xmin</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">((</span><span class="nb">min</span><span class="p">(</span><span class="n">ymin</span><span class="p">,</span> <span class="n">xmin</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Are contat counts overdispersed?&quot;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s2">&quot;bold&quot;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="Are contat counts overdispersed?" class="sphx-glr-single-img" src="../../_images/sphx_glr_plot_dispersion_001.png" />
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.545 seconds)</p>
+<div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-negative-binomial-plot-dispersion-py">
+<div class="binder-badge docutils container">
+<a class="reference external image-reference" href="https://mybinder.org/v2/gh/hiclib/pastis/gh-pages?urlpath=lab/tree/notebooks/auto_examples/negative_binomial/plot_dispersion.ipynb"><img alt="Launch binder" src="../../_images/binder_badge_logo2.svg" width="150px" /></a>
+</div>
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/2988b56dd257c7cc733e46c921b5e4da/plot_dispersion.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_dispersion.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/77ed90c2a20dcbca7aad814c026fac1d/plot_dispersion.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_dispersion.ipynb</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</div>
+
+
+    </div>
+<footer class="footer">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2014, Nelle Varoquaux.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 3.4.3.<br/>
+    </p>
+</footer>
+  </body>
+</html>
