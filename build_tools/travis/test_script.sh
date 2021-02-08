@@ -32,12 +32,19 @@ run_tests() {
     
 }
 
+run_pastis_to_pdb_tests() {
+  pushd examples/test_pastis_to_pdb
+  bash launch_tests.sh
+  popd
+}
+
 if [[ "$RUN_FLAKE8" == "true" ]]; then
     source build_tools/travis/flake8_diff.sh
 fi
 
 if [[ "$SKIP_TESTS" != "true" ]]; then
     run_tests
+    run_pastis_to_pdb_tests
 fi
 
 if [[ "$BUILD_DOC" == "true" ]] ; then
