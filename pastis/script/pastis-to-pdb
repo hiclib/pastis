@@ -482,9 +482,11 @@ def main():
     """
     Load all input data and convert the given input file to a PDB file of the
     given output file name. If interpolate is 1, interpolates coordinates
-    between the coordinates in the input file. In the case where we are
-    interpolating a diploid structure (interpolate diploid case), either
-    lengths or a .bed file must be provided.
+    between the coordinates in the input file. The raw PASTIS coordinates are
+    output as oyxgen atoms, while the interpolated coordinates are output as
+    hydrogen atoms. In the case where we are interpolating a diploid structure
+    ("interpolate diploid case"), either lengths or a .bed file must be
+    provided.
 
     Parameters
     ----------
@@ -498,7 +500,7 @@ def main():
         If 0, does not.
     ploidy: int
         If 1, considers the structure to be haploid.
-        If 0, considers the structure to be diploid.
+        If 2, considers the structure to be diploid.
     lengths: int int
         Length of each homolog. Only used in the interpolate diploid case, in
         which case either --lengths or --bed_file, but not both, must be
