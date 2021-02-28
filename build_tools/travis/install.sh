@@ -48,7 +48,7 @@ else
     pip install --upgrade autograd
 fi
 
-
+pip install rmsd
 pip install cython
 
 
