@@ -21,8 +21,6 @@ def fprintf(fp, fmt, *args):
 
 
 def print_pdb_atom(outfile,
-                   # chrom_index,
-                   # copy_index,
                    atom_index,
                    is_node,
                    atom_name,
