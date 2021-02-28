@@ -1,4 +1,5 @@
 import numpy as np
+from pastis_to_pdb import interpolate_chromosomes, combine_structs
 
 
 def convert_back(pdb_file):
@@ -64,6 +65,9 @@ def main():
         3d structure output by PASTIS.
     pdb_file: str
         Name of the PDB file (the pdb version of the pastis file).
+    interpolate: int
+        if 1, interpolates coordinates between the PASTIS coordinates. If 0,
+        does not.
     """
 
     import argparse
@@ -72,11 +76,32 @@ def main():
                         help="coordinates of the pastis structure")
     parser.add_argument("--pdb_file", type=str, required=True,
                         help="pdb file version of pastis_coords_file")
+    parser.add_argument("--interpolate", type=int, required=True,
+                        help="if 1, interpolates coordinates between the"
+                             "PASTIS coordinates. If 0, does not.")
+    parser.add_argument("--ploidy", type=int, required=True,
+                        help="if 1, haploid. If 2, diploid.")
     args = parser.parse_args()
 
     # Load the two files
     struct_original = np.loadtxt(args.pastis_coords_file)
     struct_pdb = convert_back(args.pdb_file)
+
+    # If we are interpolating coordinates
+    if (args.interpolate == 1):
+        # Get the lengths
+        lengths = [len(struct_original)]
+        if (args.ploidy == 2):
+            half_length = int(len(struct_original) / 2)
+            lengths = [half_length, half_length]
+
+        # Interpolate the coordinates
+        struct_interpolated = interpolate_chromosomes(struct_original,
+                                                      lengths)
+        # Combine interpolated and original beads
+        struct_original, struct_truths = combine_structs(struct_original,
+                                                         struct_interpolated,
+                                                         lengths)
 
     # Recenter and scale the PDB coordinates (scale factor is 10)
     struct_pdb_recentered = (struct_pdb - np.mean(struct_pdb, axis=0)) / 10
