@@ -5,8 +5,8 @@
 
 Computation times
 =================
-**00:01.681** total execution time for **auto_examples_datasets** files:
+**00:01.836** total execution time for **auto_examples_datasets** files:
 
 +------------------------------------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_examples_datasets_plot_generate_dataset_from_distances.py` (``plot_generate_dataset_from_distances.py``) | 00:01.681 | 0.0 MB |
+| :ref:`sphx_glr_auto_examples_datasets_plot_generate_dataset_from_distances.py` (``plot_generate_dataset_from_distances.py``) | 00:01.836 | 0.0 MB |
 +------------------------------------------------------------------------------------------------------------------------------+-----------+--------+
