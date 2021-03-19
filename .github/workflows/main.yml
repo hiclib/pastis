@@ -1,10 +1,5 @@
 name: Main PASTIS Testing
-on:
-  schedule:
-    - cron: '0 0 * * *'
-  push:
-    branches:
-      - master  # To change to latest release.
+on: [push, pull_request]
 
 jobs:
   build-html-and-deploy:
