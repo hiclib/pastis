@@ -23,14 +23,6 @@ jobs:
         shell: bash -l {0}
         run: |
             make install
-      - name: Make directory
-        shell: bash -l {0}
-        run: |
-            mkdir "test_pastis_dir"
-      - name: Change directory
-        shell: bash -l {0}
-        run: |
-            cd "test_pastis_dir"
       - name: Run Test Script
         shell: bash -l {0}
         run: |

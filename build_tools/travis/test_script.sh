@@ -9,6 +9,8 @@
 set -e
 set -o xtrace
 
+bash mkdir "pastis_test_dir"
+bash cd "pastis_test_dir"
 
 python --version
 python -c "import numpy; print('numpy %s' % numpy.__version__)"
