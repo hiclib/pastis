@@ -5,10 +5,10 @@
 
 Computation times
 =================
-**00:00.770** total execution time for **auto_examples_negative_binomial** files:
+**00:00.745** total execution time for **auto_examples_negative_binomial** files:
 
 +-------------------------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_examples_negative_binomial_plot_dispersion.py` (``plot_dispersion.py``)                       | 00:00.557 | 0.0 MB |
+| :ref:`sphx_glr_auto_examples_negative_binomial_plot_dispersion.py` (``plot_dispersion.py``)                       | 00:00.546 | 0.0 MB |
 +-------------------------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_examples_negative_binomial_plot_estimating_dispersion.py` (``plot_estimating_dispersion.py``) | 00:00.213 | 0.0 MB |
+| :ref:`sphx_glr_auto_examples_negative_binomial_plot_estimating_dispersion.py` (``plot_estimating_dispersion.py``) | 00:00.199 | 0.0 MB |
 +-------------------------------------------------------------------------------------------------------------------+-----------+--------+
