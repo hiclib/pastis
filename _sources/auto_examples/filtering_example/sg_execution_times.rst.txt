@@ -5,8 +5,8 @@
 
 Computation times
 =================
-**00:01.606** total execution time for **auto_examples_filtering_example** files:
+**00:01.822** total execution time for **auto_examples_filtering_example** files:
 
 +-------------------------------------------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_examples_filtering_example_plot_structures_different_filtering.py` (``plot_structures_different_filtering.py``) | 00:01.606 | 0.0 MB |
+| :ref:`sphx_glr_auto_examples_filtering_example_plot_structures_different_filtering.py` (``plot_structures_different_filtering.py``) | 00:01.822 | 0.0 MB |
 +-------------------------------------------------------------------------------------------------------------------------------------+-----------+--------+
