@@ -18,14 +18,6 @@ jobs:
           python-version: 3.8
           environment-file: environment.yml
           activate-environment: pastis
-      - name: change directory
-        shell: bash -l {0}
-        run: |
-            mkdir "pastis_test_dir"
-      - name: change directory fully
-        shell: bash -l {0}
-        run: |
-            cd "pastis_test_dir"  
       - name: Install the latest version of PASTIS
         shell: bash -l {0}
         run: |
@@ -33,4 +25,14 @@ jobs:
       - name: Run Test Script
         shell: bash -l {0}
         run: |
-            bash build_tools/travis/test_script.sh
+            mkdir -p tmp_test
+            pushd tmp_test
+            pytest --showlocals --pyargs -v pastis
+            popd
+      - name: Build documentation
+        shell: bash -l {0}
+        run: |
+          pushd doc
+          make html
+          popd
+      
