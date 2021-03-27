@@ -153,12 +153,6 @@ Plot the resulting contact count matrices
 
  .. code-block:: none
 
-    /home/runner/work/pastis/pastis/examples/datasets/plot_generate_dataset_from_distances.py:55: MatplotlibDeprecationWarning: default base will change from np.e to 10 in 3.4.  To suppress this warning specify the base keyword argument.
-      plot_matrix(axes[0, 0], counts, norm=colors.SymLogNorm(1), lengths=lengths)
-    /home/runner/work/pastis/pastis/examples/datasets/plot_generate_dataset_from_distances.py:63: MatplotlibDeprecationWarning: default base will change from np.e to 10 in 3.4.  To suppress this warning specify the base keyword argument.
-      plot_matrix(axes[1, 0], negative_binomial_count, norm=colors.SymLogNorm(1),
-    /home/runner/work/pastis/pastis/examples/datasets/plot_generate_dataset_from_distances.py:68: MatplotlibDeprecationWarning: default base will change from np.e to 10 in 3.4.  To suppress this warning specify the base keyword argument.
-      plot_matrix(axes[1, 1], poisson_count, norm=colors.SymLogNorm(1),
 
     Text(0.5, 1.0, 'Simulated dataset (Poisson)')
 
@@ -167,7 +161,7 @@ Plot the resulting contact count matrices
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  1.833 seconds)
+   **Total running time of the script:** ( 0 minutes  1.921 seconds)
 
 
 .. _sphx_glr_download_auto_examples_datasets_plot_generate_dataset_from_distances.py:
