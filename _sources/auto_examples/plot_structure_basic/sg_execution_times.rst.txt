@@ -5,8 +5,8 @@
 
 Computation times
 =================
-**00:00.543** total execution time for **auto_examples_plot_structure_basic** files:
+**00:00.685** total execution time for **auto_examples_plot_structure_basic** files:
 
 +----------------------------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_examples_plot_structure_basic_plot_inferred_structure.py` (``plot_inferred_structure.py``) | 00:00.543 | 0.0 MB |
+| :ref:`sphx_glr_auto_examples_plot_structure_basic_plot_inferred_structure.py` (``plot_inferred_structure.py``) | 00:00.685 | 0.0 MB |
 +----------------------------------------------------------------------------------------------------------------+-----------+--------+
