@@ -2,7 +2,7 @@ name: pastis
 channels:
     - default
 dependencies:
-    - python=3.9
+    - python
     - pip
     - pip:
         - sphinx
@@ -17,3 +17,6 @@ dependencies:
         - pandas
         - sphinx-gallery
         - numpydoc
+        - pytest
+        - nose
+        - autograd
