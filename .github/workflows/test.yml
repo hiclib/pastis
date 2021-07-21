@@ -24,6 +24,12 @@ jobs:
         run: |
             make install
 
+
+      - name: Run Test Script
+        shell: bash -l {0}
+        run: |
+            make test
+
       # TODO run tests
       - name: Build the documentation
         shell: bash -l {0}
