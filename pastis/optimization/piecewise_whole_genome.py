@@ -410,7 +410,7 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
                     piecewise_step1_accuracy=1,
                     alpha_true=None, struct_true=None, init='msd',
                     input_weight=None, exclude_zeros=False, null=False,
-                    mixture_coefs=None, verbose=True):
+                    mixture_coefs=None, verbose=True, bias=None):
     """Infer whole genome 3D structures piecewise, first inferring chromosomes.
     """
 
@@ -457,7 +457,7 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
             callback_function=callback_function, alpha_true=alpha_true,
             struct_true=struct_true, input_weight=input_weight,
             exclude_zeros=exclude_zeros, null=null, mixture_coefs=mixture_coefs,
-            verbose=verbose)
+            verbose=verbose, bias=bias)
         if not draft_converged:
             return None, {'alpha': alpha_, 'beta': beta_, 'seed': seed,
                           'converged': draft_converged}
@@ -473,7 +473,7 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
             normalize=normalize, filter_threshold=filter_threshold,
             multiscale_factor=1, exclude_zeros=exclude_zeros, beta=beta,
             input_weight=input_weight, verbose=verbose,
-            mixture_coefs=mixture_coefs)
+            mixture_coefs=mixture_coefs, bias=bias)
     else:
         fullres_torm_for_multiscale = None
 
@@ -519,7 +519,7 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
             callback_freq=callback_freq,
             alpha_true=alpha_true, struct_true=struct_true,
             input_weight=input_weight, exclude_zeros=exclude_zeros,
-            null=null, mixture_coefs=mixture_coefs, verbose=verbose)
+            null=null, mixture_coefs=mixture_coefs, verbose=verbose, bias=bias)
         if not infer_var['converged']:
             return struct_, infer_var
 
@@ -599,7 +599,7 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
                 callback_freq=callback_freq, alpha_true=alpha_true,
                 struct_true=chrom_struct_true, input_weight=input_weight,
                 exclude_zeros=exclude_zeros, null=null,
-                mixture_coefs=mixture_coefs, verbose=verbose)
+                mixture_coefs=mixture_coefs, verbose=verbose, bias=bias)
             if not infer_var['converged']:
                 return struct_, infer_var
 
@@ -630,7 +630,7 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
                            'save': 0},
             alpha_true=alpha_true, struct_true=struct_true,
             input_weight=input_weight, exclude_zeros=exclude_zeros,
-            null=null, mixture_coefs=mixture_coefs, verbose=False)
+            null=null, mixture_coefs=mixture_coefs, verbose=False, bias=bias)
 
         # Optionally rotate & translate previously inferred chromosomes
         if piecewise_opt_orient:
@@ -669,7 +669,7 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
                 callback_freq=callback_freq, reorienter=reorienter,
                 alpha_true=alpha_true, struct_true=struct_true,
                 input_weight=input_weight, exclude_zeros=exclude_zeros,
-                null=null, mixture_coefs=mixture_coefs, verbose=verbose)
+                null=null, mixture_coefs=mixture_coefs, verbose=verbose, bias=bias)
             if not infer_var['converged']:
                 return struct_, infer_var
 
@@ -699,6 +699,6 @@ def infer_piecewise(counts_raw, outdir, lengths, ploidy, chromosomes, alpha,
             callback_function=callback_function, callback_freq=callback_freq,
             alpha_true=alpha_true, struct_true=struct_true,
             input_weight=input_weight, exclude_zeros=exclude_zeros,
-            null=null, mixture_coefs=mixture_coefs, verbose=verbose)
+            null=null, mixture_coefs=mixture_coefs, verbose=verbose, bias=bias)
 
     return struct_, infer_var

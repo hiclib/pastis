@@ -58,7 +58,7 @@ def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
                  struct_draft_fullres=None, callback_freq=None,
                  callback_function=None, reorienter=None, alpha_true=None,
                  struct_true=None, input_weight=None, exclude_zeros=False,
-                 null=False, mixture_coefs=None, verbose=True):
+                 null=False, mixture_coefs=None, verbose=True, bias=None):
     """Infer draft 3D structures with PASTIS via Poisson model.
     """
 
@@ -92,7 +92,8 @@ def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
         counts_raw=counts_raw, lengths=lengths, ploidy=ploidy,
         normalize=normalize, filter_threshold=filter_threshold,
         multiscale_factor=1, exclude_zeros=exclude_zeros, beta=beta,
-        input_weight=input_weight, verbose=False, mixture_coefs=mixture_coefs)
+        input_weight=input_weight, verbose=False, mixture_coefs=mixture_coefs,
+        bias=bias)
     beta = [c.beta for c in counts if c.sum() != 0]
 
     alpha_ = alpha
@@ -117,7 +118,7 @@ def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
             reorienter=reorienter, alpha_true=alpha_true,
             struct_true=struct_true, input_weight=input_weight,
             exclude_zeros=exclude_zeros, null=null, mixture_coefs=mixture_coefs,
-            verbose=verbose)
+            verbose=verbose, bias=bias)
         if not infer_var_fullres['converged']:
             return struct_draft_fullres, alpha_, beta_, hsc_r, False
         if alpha is not None:
@@ -176,7 +177,7 @@ def _infer_draft(counts_raw, lengths, ploidy, outdir=None, alpha=None, seed=0,
             reorienter=reorienter, alpha_true=alpha_true,
             struct_true=struct_true, input_weight=input_weight,
             exclude_zeros=exclude_zeros, null=null,
-            mixture_coefs=mixture_coefs, verbose=verbose)
+            mixture_coefs=mixture_coefs, verbose=verbose, bias=bias)
         if not infer_var_lowres['converged']:
             return struct_draft_fullres, alpha_, beta_, hsc_r, False
         hsc_r = distance_between_homologs(
@@ -205,7 +206,8 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
           struct_draft_fullres=None, draft=False, simple_diploid=False,
           callback_freq=None, callback_function=None, reorienter=None,
           alpha_true=None, struct_true=None, input_weight=None,
-          exclude_zeros=False, null=False, mixture_coefs=None, verbose=True):
+          exclude_zeros=False, null=False, mixture_coefs=None, verbose=True,
+          bias=None):
     """Infer 3D structures with PASTIS via Poisson model.
 
     Optimize 3D structure from Hi-C contact counts data for diploid
@@ -298,6 +300,8 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         For diploid organisms: whether this optimization is inferring a "simple
         diploid" structure in which homologs are assumed to be identical and
         completely overlapping with one another.
+    bias: str, optional
+        The path to the bias vector to normalize the counts data with.
 
     Returns
     -------
@@ -364,7 +368,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
             reorienter=reorienter, alpha_true=alpha_true,
             struct_true=struct_true, input_weight=input_weight,
             exclude_zeros=exclude_zeros, null=null, mixture_coefs=mixture_coefs,
-            verbose=verbose)
+            verbose=verbose, bias=bias)
         if not draft_converged:
             return None, {'alpha': alpha_, 'beta': beta_, 'seed': seed,
                           'converged': draft_converged}
@@ -408,7 +412,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         filter_threshold=filter_threshold, multiscale_factor=multiscale_factor,
         exclude_zeros=exclude_zeros, beta=beta_, input_weight=input_weight,
         verbose=verbose, fullres_torm=fullres_torm,
-        excluded_counts=excluded_counts, mixture_coefs=mixture_coefs)
+        excluded_counts=excluded_counts, mixture_coefs=mixture_coefs, bias=bias)
     if verbose:
         print('BETA: %s' % ', '.join(
             ['%s=%.3g' % (c.ambiguity, c.beta) for c in counts if c.sum() != 0]),
@@ -578,7 +582,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
                 callback_freq=callback_freq, reorienter=reorienter,
                 alpha_true=alpha_true, struct_true=struct_true,
                 input_weight=input_weight, exclude_zeros=exclude_zeros,
-                null=null, mixture_coefs=mixture_coefs, verbose=verbose)
+                null=null, mixture_coefs=mixture_coefs, verbose=verbose, bias=bias)
             if not infer_var['converged']:
                 return struct_, infer_var
             if reorienter is not None and reorienter.reorient:
@@ -605,7 +609,7 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
                    piecewise_step1_accuracy=1, alpha_true=None,
                    struct_true=None, init='mds', input_weight=None,
                    exclude_zeros=False, null=False, mixture_coefs=None,
-                   verbose=True):
+                   verbose=True, bias=None):
     """Infer 3D structures with PASTIS via Poisson model.
 
     Infer 3D structure from Hi-C contact counts data for haploid or diploid
@@ -681,6 +685,8 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
         homolog-separating constraint specificying the expected mean inter-
         homolog count for each chromosome, scaled by beta and biases. If
         not supplied, `mhs_k` will be estimated from the counts data.
+    bias : str, optional
+        The path to the bias vector to normalize the counts with
 
     Returns
     -------
@@ -706,10 +712,11 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
     callback_freq = {'print': print_freq, 'history': history_freq,
                      'save': save_freq}
 
-    counts, lengths_subset, chrom_subset, lengths_full, chrom_full, struct_true = load_data(
+    counts, lengths_subset, chrom_subset, lengths_full, chrom_full, struct_true, bias = load_data(
         counts=counts, lengths_full=lengths_full, ploidy=ploidy,
         chrom_full=chrom_full, chrom_subset=chrom_subset,
-        exclude_zeros=exclude_zeros, struct_true=struct_true)
+        exclude_zeros=exclude_zeros, struct_true=struct_true,
+        bias=bias)
 
     outdir = _output_subdir(
         outdir=outdir, chrom_full=chrom_full, chrom_subset=chrom_subset,
@@ -731,7 +738,7 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
             callback_function=callback_function, callback_freq=callback_freq,
             alpha_true=alpha_true, struct_true=struct_true,
             input_weight=input_weight, exclude_zeros=exclude_zeros,
-            null=null, mixture_coefs=mixture_coefs, verbose=verbose)
+            null=null, mixture_coefs=mixture_coefs, verbose=verbose, bias=bias)
     else:
         from .piecewise_whole_genome import infer_piecewise
 
@@ -757,7 +764,7 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
             piecewise_step1_accuracy=piecewise_step1_accuracy,
             alpha_true=alpha_true, struct_true=struct_true, init=init,
             input_weight=input_weight, exclude_zeros=exclude_zeros, null=null,
-            mixture_coefs=mixture_coefs, verbose=verbose)
+            mixture_coefs=mixture_coefs, verbose=verbose, bias=bias)
 
     if verbose:
         if infer_var['converged']:

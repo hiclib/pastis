@@ -295,7 +295,8 @@ def check_counts(counts, lengths, ploidy, exclude_zeros=False,
 def preprocess_counts(counts_raw, lengths, ploidy, multiscale_factor, normalize,
                       filter_threshold, beta=None, fullres_torm=None,
                       excluded_counts=None, mixture_coefs=None,
-                      exclude_zeros=False, input_weight=None, verbose=True):
+                      exclude_zeros=False, input_weight=None, verbose=True,
+                      bias=None):
     """Check counts, reformat, reduce resolution, filter, and compute bias.
 
     Preprocessing options include reducing resolution, computing bias (if
@@ -329,6 +330,8 @@ def preprocess_counts(counts_raw, lengths, ploidy, multiscale_factor, normalize,
         therefore be removed. There should be one array per counts matrix.
     excluded_counts : {"inter", "intra"}, optional
         Whether to exclude inter- or intra-chromosomal counts from optimization.
+    bias: str, optional
+        The path to the bias vector to normalize the counts data with.
 
     Returns
     -------
@@ -344,7 +347,7 @@ def preprocess_counts(counts_raw, lengths, ploidy, multiscale_factor, normalize,
         counts_raw, lengths=lengths, ploidy=ploidy,
         multiscale_factor=multiscale_factor, normalize=normalize,
         filter_threshold=filter_threshold, exclude_zeros=exclude_zeros,
-        verbose=verbose)
+        verbose=verbose, bias=bias)
 
     lengths_lowres = decrease_lengths_res(lengths, multiscale_factor)
 
@@ -389,7 +392,7 @@ def _percent_nan_beads(counts):
 
 def _prep_counts(counts_list, lengths, ploidy=1, multiscale_factor=1,
                  normalize=True, filter_threshold=0.04, exclude_zeros=True,
-                 verbose=True):
+                 verbose=True, bias=None):
     """Copy counts, check matrix, reduce resolution, filter, and compute bias.
     """
 
@@ -504,15 +507,16 @@ def _prep_counts(counts_list, lengths, ploidy=1, multiscale_factor=1,
             counts_dict[counts_type] = counts
 
     # Optionally normalize counts
-    bias = None
     if normalize:
-        if verbose:
-            print('COMPUTING BIAS: all counts together', flush=True)
-        bias = ICE_normalization(
-            ambiguate_counts(
-                list(counts_dict.values()), lengths=lengths_lowres,
-                ploidy=ploidy, exclude_zeros=True),
-            max_iter=300, output_bias=True)[1].flatten()
+        # If we have to calculate the bias
+        if bias is None:
+            if verbose:
+                print('COMPUTING BIAS: all counts together', flush=True)
+            bias = ICE_normalization(
+                ambiguate_counts(
+                    list(counts_dict.values()), lengths=lengths_lowres,
+                    ploidy=ploidy, exclude_zeros=True),
+                max_iter=300, output_bias=True)[1].flatten()
         # In each counts matrix, zero out counts for which bias is NaN
         for counts_type, counts in counts_dict.items():
             initial_zero_beads = find_beads_to_remove(
