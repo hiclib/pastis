@@ -422,6 +422,9 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         else:
             print('ALPHA: %.3g' % alpha_, flush=True)
 
+    #import scipy
+    #scipy.sparse.save_npz("gesine_counts2.npz", counts[0].tocoo())
+
     # INITIALIZATION
     random_state = np.random.RandomState(seed)
     random_state = check_random_state(random_state)

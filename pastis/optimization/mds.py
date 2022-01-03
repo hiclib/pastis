@@ -128,17 +128,22 @@ def estimate_X(counts, alpha=-3., beta=1., ini=None,
 
     """
     n = counts.shape[0]
+    print('in here')
 
     random_state = check_random_state(random_state)
     if ini is None or ini == "random":
+        print('what')
         ini = 1 - 2 * random_state.rand(n * 3)
     if not precompute_distances or precompute_distances == "auto":
+        print('lol!')
         distances = compute_wish_distances(counts, alpha=alpha, beta=beta,
                                            bias=bias)
     else:
         if bias is not None:
             counts /= bias
             counts /= bias.T
+        print('ohh')
+        np.save("gesine_counts2.npy", counts)
         distances = counts
     results = optimize.fmin_l_bfgs_b(
         MDS_obj, ini.flatten(),

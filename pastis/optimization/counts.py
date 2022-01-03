@@ -505,18 +505,19 @@ def _prep_counts(counts_list, lengths, ploidy=1, multiscale_factor=1,
             individual_counts_torms = individual_counts_torms | torm
             counts = sparse.coo_matrix(counts)
             counts_dict[counts_type] = counts
-
+    
+    verbose=True
     # Optionally normalize counts
-    if normalize:
+    if normalize and bias is None:
         # If we have to calculate the bias
-        if bias is None:
-            if verbose:
-                print('COMPUTING BIAS: all counts together', flush=True)
-            bias = ICE_normalization(
-                ambiguate_counts(
-                    list(counts_dict.values()), lengths=lengths_lowres,
-                    ploidy=ploidy, exclude_zeros=True),
-                max_iter=300, output_bias=True)[1].flatten()
+        if verbose:
+            print('COMPUTING BIAS: all counts together', flush=True)
+        bias = ICE_normalization(
+            ambiguate_counts(
+                list(counts_dict.values()), lengths=lengths_lowres,
+                ploidy=ploidy, exclude_zeros=True),
+            max_iter=300, output_bias=True)[1].flatten()
+    if bias is not None:
         # In each counts matrix, zero out counts for which bias is NaN
         for counts_type, counts in counts_dict.items():
             initial_zero_beads = find_beads_to_remove(
