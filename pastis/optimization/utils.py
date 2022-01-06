@@ -162,12 +162,18 @@ def compute_wish_distances(counts, alpha=-3., beta=1., bias=None):
         if not sparse.isspmatrix_coo(counts):
             counts = counts.tocoo()
         if bias is not None:
-            print('bias')
+            print('done it here')
+            #print('bias')
             bias = bias.flatten()
+            #bias[np.isnan(bias)] = 1.0
             counts.data /= bias[counts.row] * bias[counts.col]
-            sparse.save_npz("gesine_counts3.npz", counts)
+            #sparse.save_npz("gesine_counts3.npz", counts)
         wish_distances = counts / beta
         wish_distances.data[wish_distances.data != 0] **= 1. / alpha
+        #sparse.save_npz("gesine_wd_sparse.npz", wish_distances)
+        #print("SAVED THEM!")
+        #return sparse.load_npz("nelle_wd_sparse.npz")
+        #return sparse.load_npz("gesine_wd_sparse.npz")
         return wish_distances
     else:
         wish_distances = counts.copy() / beta

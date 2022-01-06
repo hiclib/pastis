@@ -129,6 +129,7 @@ def estimate_X(counts, alpha=-3., beta=1., ini=None,
     """
     n = counts.shape[0]
     print('in here')
+    
 
     random_state = check_random_state(random_state)
     if ini is None or ini == "random":
@@ -138,13 +139,19 @@ def estimate_X(counts, alpha=-3., beta=1., ini=None,
         print('lol!')
         distances = compute_wish_distances(counts, alpha=alpha, beta=beta,
                                            bias=bias)
+        #np.save("gesine_wish_distance", distances)
+        #np.save("nelle_wish_distance", distances)
+        print('saved')
     else:
         if bias is not None:
+            print('used bias here')
             counts /= bias
             counts /= bias.T
-        print('ohh')
-        np.save("gesine_counts2.npy", counts)
+        #print('ohh')
+        #np.save("gesine_counts2.npy", counts)
         distances = counts
+    #distances = sparse.load_npz("nelle_wd_sparse.npz")
+    #distances = sparse.load_npz("gesine_wd_sparse.npz")
     results = optimize.fmin_l_bfgs_b(
         MDS_obj, ini.flatten(),
         MDS_gradient,

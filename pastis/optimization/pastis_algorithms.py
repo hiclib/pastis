@@ -442,6 +442,14 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         alpha=alpha_init if alpha_ is None else alpha_,
         bias=bias, multiscale_factor=multiscale_factor, reorienter=reorienter,
         mixture_coefs=mixture_coefs, verbose=verbose)
+    #np.save("gesine_init_nelle_wd", struct_init)
+    #print("DONE THE SAVE!")
+    #print(np.sum(np.isnan(struct_init)))
+    #print('saved')
+    #np.save("gesine_init_struct_seed1", struct_init)
+    #print("LOADED IT!!!")
+    #struct_init = np.loadtxt("./data/exp/exp_MDS_01_structure.txt")
+    #struct_init[np.isnan(struct_init)] = 0
 
     # HOMOLOG-SEPARATING CONSTRAINT
     if ploidy == 1 and (hsc_lambda > 0 or mhs_lambda > 0):
