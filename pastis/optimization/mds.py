@@ -79,6 +79,37 @@ def estimate_X(counts, alpha=-3., beta=1., ini=None,
                random_state=None, type="MDS2",
                factr=1e12,
                maxiter=10000):
+    
+    """
+    counts,
+    alpha=-3.,
+    beta=1.,
+    ini=None,
+    verbose=0,
+    use_zero_entries=False,
+    precompute_distances=False,
+    bias=None,
+    random_state=None, 
+    type="MDS2",
+    factr=1e12,
+    maxiter=10000
+               
+               
+    ua_counts._counts.astype(float),
+    alpha=-3. if alpha is None else alpha, 
+    beta=ua_beta, 
+    #ini=None
+    #verbose=False,
+    #use_zero_entries=False, 
+    #precompute_distances='auto',
+    bias=(np.tile(bias, ploidy) if bias is not None else bias),
+    random_state=random_state, 
+    #type="MDS2", 
+    #factr=1e12, 
+    #maxiter=10000,
+    
+    """
+    
     """
     Estimating the structure from contact count data using MDS/NMDS
 
@@ -127,24 +158,49 @@ def estimate_X(counts, alpha=-3., beta=1., ini=None,
     The structure as an ndarray of shape (n, 3).
 
     """
+    
+    #print(counts)
+    #print(alpha)
+    #print(beta)
+    #print(ini)
+    #print(verbose)
+    #print(use_zero_entries)
+    #print(bias)
+    #print(random_state)
+    #print(factr)
+    #print(maxiter)
+    
+    """
+    
+    -3.0
+    1.0
+    RandomState(MT19937)
+    
+    
+    -3.0
+    1.0
+    RandomState(MT19937)
+    """
+    
+    
     n = counts.shape[0]
-    print('in here')
+    #print('in here')
     
 
     random_state = check_random_state(random_state)
     if ini is None or ini == "random":
-        print('what')
+        #print('what')
         ini = 1 - 2 * random_state.rand(n * 3)
     if not precompute_distances or precompute_distances == "auto":
-        print('lol!')
+        #print('lol!')
         distances = compute_wish_distances(counts, alpha=alpha, beta=beta,
                                            bias=bias)
         #np.save("gesine_wish_distance", distances)
         #np.save("nelle_wish_distance", distances)
-        print('saved')
+        #print('saved')
     else:
         if bias is not None:
-            print('used bias here')
+            #print('used bias here')
             counts /= bias
             counts /= bias.T
         #print('ohh')

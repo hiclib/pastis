@@ -155,6 +155,7 @@ def compute_wish_distances(counts, alpha=-3., beta=1., bias=None):
     -------
     wish_distances
     """
+    print("WISHING")
     if beta == 0:
         raise ValueError("beta cannot be equal to 0.")
     counts = counts.copy()
@@ -174,6 +175,12 @@ def compute_wish_distances(counts, alpha=-3., beta=1., bias=None):
         #print("SAVED THEM!")
         #return sparse.load_npz("nelle_wd_sparse.npz")
         #return sparse.load_npz("gesine_wd_sparse.npz")
+        
+        #sparse.save_npz("nelle_wd_nonorm_bias_bias_triu.npz", wish_distances)
+        #sparse.save_npz("nelle_wd_nonorm_bias_bias.npz", wish_distances)
+        #sparse.save_npz("nelle_wd_norm_bias_none_triu.npz", wish_distances)
+        sparse.save_npz("nelle_wd_norm_bias_none.npz", wish_distances)
+        print("WE HAVE INDEED SAVED THEM")
         return wish_distances
     else:
         wish_distances = counts.copy() / beta
