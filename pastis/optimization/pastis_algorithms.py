@@ -344,7 +344,7 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
     if draft and alpha_ is None:
         alpha_ = alpha_init
     if multiscale_factor == 1 and not (draft or simple_diploid):
-        """
+        #"""
         infer_draft_lowres = hsc_lambda > 0 and hsc_r is None
         need_multiscale_var = use_multiscale_variance and (
             multiscale_rounds > 1 or infer_draft_lowres)
@@ -373,8 +373,18 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
             _print_code_header(
                 ['Draft inference complete', 'INFERRING STRUCTURE'],
                 max_length=80, blank_lines=2)
-        """
-        struct_draft_fullres = np.loadtxt("./results_4DNFI9YAVTI1/struct_draft_fullres/struct_inferred.000.coords")
+        #"""
+        #struct_draft_fullres = np.loadtxt("./results_4DNFI9YAVTI1/struct_draft_fullres/struct_inferred.000.coords")
+        #alpha_ = -3
+        #beta_ = 1.0
+        #hsc_r = distance_between_homologs(
+        #    structures=struct_draft_lowres,
+        #    lengths=decrease_lengths_res(
+        #        lengths=lengths,
+        #        multiscale_factor=multiscale_factor_for_lowres),
+        #    mixture_coefs=mixture_coefs,
+        #    simple_diploid=simple_diploid_for_lowres)
+        #draft_converged = True
     if verbose and outdir is not None:
         print('OUTPUT: %s' % out_file, flush=True)
 
@@ -472,16 +482,16 @@ def infer(counts_raw, lengths, ploidy, outdir='', alpha=None, seed=0,
         # COMPUTE OBJECTIVE ON TRUE STRUCTURE
         if outdir is not None and struct_true is not None and not null and (
                 reorienter is None or not reorienter.reorient):
-            #struct_true_lowres = decrease_struct_res(
-            #    struct_true, multiscale_factor=multiscale_factor,
-            #    lengths=lengths)
-            struct_true_lowres = np.loadtxt("./results_4DNFI9YAVTI1/struct_draft_lowres/struct_inferred.000.coords")
+            struct_true_lowres = decrease_struct_res(
+                struct_true, multiscale_factor=multiscale_factor,
+                lengths=lengths)
+            #struct_true_lowres = np.loadtxt("./results_4DNFI9YAVTI1/struct_draft_lowres/struct_inferred.000.coords")
             if simple_diploid:
-                #struct_true_lowres = np.nanmean(
-                #    [struct_true_lowres[:int(struct_true.shape[0] / 2)],
-                #     struct_true_lowres[int(struct_true.shape[0] / 2):]],
-                #    axis=0)
-                struct_true_lowres = np.loadtxt("./results_4DNFI9YAVTI1/struct_draft_lowres/struct_inferred.000.coords")
+                struct_true_lowres = np.nanmean(
+                    [struct_true_lowres[:int(struct_true.shape[0] / 2)],
+                     struct_true_lowres[int(struct_true.shape[0] / 2):]],
+                    axis=0)
+                #struct_true_lowres = np.loadtxt("./results_4DNFI9YAVTI1/struct_draft_lowres/struct_inferred.000.coords")
             _, obj_true, _, _ = objective(
                 struct_true_lowres, counts=counts,
                 alpha=alpha_init if alpha_ is None else alpha_,
