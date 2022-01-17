@@ -31,7 +31,7 @@ def _initialize_struct_mds(counts, lengths, ploidy, alpha, bias, random_state,
     ua_beta = ua_counts.beta
     if ua_beta is not None:
         ua_beta *= multiscale_factor ** 2
-
+        
     struct = estimate_X(
         ua_counts._counts.astype(float),
         alpha=-3. if alpha is None else alpha, beta=ua_beta, verbose=False,
@@ -42,7 +42,7 @@ def _initialize_struct_mds(counts, lengths, ploidy, alpha, bias, random_state,
 
     struct = struct.reshape(-1, 3)
     torm = find_beads_to_remove(counts, struct.shape[0])
-    print(torm)
+    
     struct[torm] = np.nan
 
     return struct

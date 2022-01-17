@@ -538,7 +538,6 @@ def _prep_counts(counts_list, lengths, ploidy=1, multiscale_factor=1,
                 print('                removing %d additional beads from %s' %
                       (torm.sum() - initial_zero_beads, counts_type),
                       flush=True)
-        #bias[np.isnan(bias)] = 1
     output_counts = check_counts(
         list(counts_dict.values()), lengths=lengths_lowres, ploidy=ploidy,
         exclude_zeros=exclude_zeros)

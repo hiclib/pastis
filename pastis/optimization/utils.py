@@ -155,7 +155,7 @@ def compute_wish_distances(counts, alpha=-3., beta=1., bias=None):
     -------
     wish_distances
     """
-    print("WISHING")
+    #print("WISHING")
     if beta == 0:
         raise ValueError("beta cannot be equal to 0.")
     counts = counts.copy()
@@ -163,27 +163,12 @@ def compute_wish_distances(counts, alpha=-3., beta=1., bias=None):
         if not sparse.isspmatrix_coo(counts):
             counts = counts.tocoo()
         if bias is not None:
-            print('done it here')
-            #print('bias')
             bias = bias.flatten()
-            #bias[np.isnan(bias)] = 1.0
             counts.data /= bias[counts.row] * bias[counts.col]
-            #sparse.save_npz("gesine_counts3.npz", counts)
         wish_distances = counts / beta
         wish_distances.data[wish_distances.data != 0] **= 1. / alpha
-        #sparse.save_npz("gesine_wd_sparse.npz", wish_distances)
-        #print("SAVED THEM!")
-        #return sparse.load_npz("nelle_wd_sparse.npz")
-        #return sparse.load_npz("gesine_wd_sparse.npz")
-        
-        #sparse.save_npz("nelle_wd_nonorm_bias_bias_triu.npz", wish_distances)
-        #sparse.save_npz("nelle_wd_nonorm_bias_bias.npz", wish_distances)
-        #sparse.save_npz("nelle_wd_norm_bias_none_triu.npz", wish_distances)
-        sparse.save_npz("nelle_wd_norm_bias_none.npz", wish_distances)
-        print("WE HAVE INDEED SAVED THEM")
         return wish_distances
     else:
         wish_distances = counts.copy() / beta
         wish_distances[wish_distances != 0] **= 1. / alpha
-
         return wish_distances
