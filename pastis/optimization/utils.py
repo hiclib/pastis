@@ -155,7 +155,7 @@ def compute_wish_distances(counts, alpha=-3., beta=1., bias=None):
     -------
     wish_distances
     """
-    #print("WISHING")
+    
     if beta == 0:
         raise ValueError("beta cannot be equal to 0.")
     counts = counts.copy()

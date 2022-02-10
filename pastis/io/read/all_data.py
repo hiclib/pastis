@@ -9,22 +9,18 @@ from ...optimization.counts import subset_chrom
 def _get_lengths(lengths):
     """Load chromosome lengths from file, or reformat lengths object.
     """
+
     if lengths is not None:
-        if (isinstance(lengths, list) or isinstance(lengths, np.ndarray)) and len(lengths) == 1:
+        if (isinstance(lengths, list) or isinstance(lengths, np.ndarray)) \
+          and len(lengths) == 1:
             lengths = lengths[0]
-        if isinstance(lengths, str) and os.path.exists(lengths):
-            lengths = load_lengths(lengths)
+        if isinstance(lengths, str):
+            if os.path.exists(lengths):
+                lengths = load_lengths(lengths)
+            else:
+                raise ValueError("Path to lengths does not exist.")
         lengths = np.array(lengths).astype(int)
     return lengths
-"""
-    if isinstance(lengths, str) and os.path.exists(lengths):
-        lengths = load_lengths(lengths)
-    elif lengths is not None and (isinstance(lengths, list) or isinstance(lengths, np.ndarray)):
-        if len(lengths) == 1 and isinstance(lengths[0], str) and os.path.exists(lengths[0]):
-            lengths = load_lengths(lengths[0])
-    lengths = np.array(lengths).astype(int)
-    return lengths
-"""
 
 
 def _get_chrom(chrom, lengths):
@@ -33,25 +29,18 @@ def _get_chrom(chrom, lengths):
 
     lengths = _get_lengths(lengths)
     if chrom is not None:
-        if (isinstance(chrom, list) or isinstance(chrom, np.ndarray)) and len(chrom) == 1:
+        if (isinstance(chrom, list) or isinstance(chrom, np.ndarray)) \
+          and len(chrom) == 1:
             chrom = chrom[0]
-        if isinstance(chrom, str) and os.path.exists(chrom):
-            chrom = np.genfromtxt(chrom, dtype='str')
+        if isinstance(chrom, str):
+            if os.path.exists(chrom):
+                chrom = np.genfromtxt(chrom, dtype='str')
+            else:
+                raise ValueError("Path to chrom does not exist.")
         chrom = np.array(chrom).reshape(-1)
     else:
         chrom = np.array(['num%d' % i for i in range(1, len(lengths) + 1)])
     return chrom
-"""
-    if isinstance(chrom, str) and os.path.exists(chrom):
-        chrom = np.array(np.genfromtxt(chrom, dtype='str')).reshape(-1)
-    elif chrom is not None and (isinstance(chrom, list) or isinstance(chrom, np.ndarray)):
-        if len(chrom) == 1 and isinstance(chrom[0], str) and os.path.exists(chrom[0]):
-            chrom = np.array(np.genfromtxt(chrom[0], dtype='str')).reshape(-1)
-        chrom = np.array(chrom)
-    else:
-        chrom = np.array(['num%d' % i for i in range(1, len(lengths) + 1)])
-    return chrom
-"""
 
 
 def _get_counts(counts, lengths):
@@ -82,8 +71,10 @@ def _get_counts(counts, lengths):
 def _get_bias(bias):
     """Load bias from file, or reformat bias object.
     """
+
     if bias is not None:
-        if (isinstance(bias, list) or isinstance(bias, np.ndarray)) and len(bias) == 1:
+        if (isinstance(bias, list) or isinstance(bias, np.ndarray)) \
+          and len(bias) == 1:
             bias = bias[0]
         if isinstance(bias, str):
             if os.path.exists(bias):
