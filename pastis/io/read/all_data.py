@@ -10,16 +10,6 @@ def _get_lengths(lengths):
     """Load chromosome lengths from file, or reformat lengths object.
     """
 
-    """
-    if isinstance(lengths, str) and os.path.exists(lengths):
-        lengths = load_lengths(lengths)
-    elif lengths is not None and (isinstance(lengths, list) or isinstance(lengths, np.ndarray)):
-        if len(lengths) == 1 and isinstance(lengths[0], str) and os.path.exists(lengths[0]):
-            lengths = load_lengths(lengths[0])
-    lengths = np.array(lengths).astype(int)
-    return lengths
-    """
-
     if lengths is not None:
         if (isinstance(lengths, list) or isinstance(lengths, np.ndarray)) \
           and len(lengths) == 1:
@@ -29,6 +19,8 @@ def _get_lengths(lengths):
                 lengths = load_lengths(lengths)
             else:
                 raise ValueError("Path to lengths does not exist.")
+        if isinstance(lengths, np.int64):
+            lengths = lengths.item()
         if isinstance(lengths, int):
             lengths = [lengths]
     lengths = np.array(lengths).astype(int)
@@ -49,6 +41,8 @@ def _get_chrom(chrom, lengths):
                 chrom = np.genfromtxt(chrom, dtype='str')
             else:
                 raise ValueError("Path to chrom does not exist.")
+        if isinstance(chrom, np.ndarray):
+            chrom = [chrom].item()
         chrom = np.array(chrom).reshape(-1)
     else:
         chrom = np.array(['num%d' % i for i in range(1, len(lengths) + 1)])
@@ -96,6 +90,10 @@ def _get_bias(bias):
                     bias = np.loadtxt(bias)
             else:
                 raise ValueError("Path to bias vector does not exist.")
+        if isinstance(bias, np.int64):
+            bias = bias.item()
+        if isinstance(bias, int):
+            bias = [bias]
         bias = np.array(bias).astype(float)
     return bias
 
@@ -147,6 +145,8 @@ def load_data(counts, lengths_full, ploidy, chrom_full=None,
     """
 
     lengths_full = _get_lengths(lengths_full)
+    print("YEP")
+    print(lengths_full)
     chrom_full = _get_chrom(chrom_full, lengths_full)
     counts = _get_counts(counts, lengths_full)
     bias = _get_bias(bias)
