@@ -155,6 +155,7 @@ def compute_wish_distances(counts, alpha=-3., beta=1., bias=None):
     -------
     wish_distances
     """
+    
     if beta == 0:
         raise ValueError("beta cannot be equal to 0.")
     counts = counts.copy()
@@ -170,5 +171,4 @@ def compute_wish_distances(counts, alpha=-3., beta=1., bias=None):
     else:
         wish_distances = counts.copy() / beta
         wish_distances[wish_distances != 0] **= 1. / alpha
-
         return wish_distances

@@ -51,6 +51,8 @@ parser.add_argument("--multiscale_rounds", default=1, type=int,
                          " should be inferred during multiscale optimization."
                          " Values of 1 or 0 disable multiscale"
                          " optimization.")
+parser.add_argument("--bias", default=None, type=str,
+                    help="Path to the bias vector for normalization.")
 
 # Optimization convergence
 parser.add_argument("--max_iter", default=30000, type=int,

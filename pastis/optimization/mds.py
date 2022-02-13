@@ -127,8 +127,9 @@ def estimate_X(counts, alpha=-3., beta=1., ini=None,
     The structure as an ndarray of shape (n, 3).
 
     """
+    
     n = counts.shape[0]
-
+    
     random_state = check_random_state(random_state)
     if ini is None or ini == "random":
         ini = 1 - 2 * random_state.rand(n * 3)
