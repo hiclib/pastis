@@ -21,14 +21,16 @@ def _get_lengths(lengths):
     """
 
     if lengths is not None:
-        if (isinstance(lengths, list) or isinstance(lengths, np.ndarray)):
-          if len(lengths) == 1:
+        if (isinstance(lengths, list) or isinstance(lengths, np.ndarray)) \
+          and len(lengths) == 1:
             lengths = lengths[0]
         if isinstance(lengths, str):
             if os.path.exists(lengths):
                 lengths = load_lengths(lengths)
             else:
                 raise ValueError("Path to lengths does not exist.")
+        if isinstance(lengths, int):
+            lengths = [lengths]
     lengths = np.array(lengths).astype(int)
     return lengths
 
