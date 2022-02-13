@@ -18,7 +18,7 @@ def _get_lengths(lengths):
             if os.path.exists(lengths):
                 lengths = load_lengths(lengths)
             else:
-                raise ValueError("Path to lengths file does not exist.")
+                raise ValueError("Path to lengths does not exist.")
         lengths = np.array(lengths).astype(int)
     return lengths
 
