@@ -19,7 +19,7 @@ def _get_lengths(lengths):
                 lengths = load_lengths(lengths)
             else:
                 raise ValueError("Path to lengths does not exist.")
-        lengths = np.array([lengths]).astype(int)
+        lengths = np.array(lengths).astype(int)
     return lengths
 
 
