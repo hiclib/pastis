@@ -145,8 +145,6 @@ def load_data(counts, lengths_full, ploidy, chrom_full=None,
     """
 
     lengths_full = _get_lengths(lengths_full)
-    print("YEP")
-    print(lengths_full)
     chrom_full = _get_chrom(chrom_full, lengths_full)
     counts = _get_counts(counts, lengths_full)
     bias = _get_bias(bias)
