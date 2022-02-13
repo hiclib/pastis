@@ -10,6 +10,7 @@ def _get_lengths(lengths):
     """Load chromosome lengths from file, or reformat lengths object.
     """
 
+    """
     if isinstance(lengths, str) and os.path.exists(lengths):
         lengths = load_lengths(lengths)
     elif lengths is not None and (isinstance(lengths, list) or isinstance(lengths, np.ndarray)):
@@ -17,10 +18,11 @@ def _get_lengths(lengths):
             lengths = load_lengths(lengths[0])
     lengths = np.array(lengths).astype(int)
     return lengths
+    """
 
     if lengths is not None:
-        if (isinstance(lengths, list) or isinstance(lengths, np.ndarray)) \
-          and len(lengths) == 1:
+        if (isinstance(lengths, list) or isinstance(lengths, np.ndarray)):
+          if len(lengths) == 1:
             lengths = lengths[0]
         if isinstance(lengths, str):
             if os.path.exists(lengths):
