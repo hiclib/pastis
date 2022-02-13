@@ -12,7 +12,7 @@ def _get_lengths(lengths):
 
     if lengths is not None:
         if (isinstance(lengths, list) or isinstance(lengths, np.ndarray)) \
-        and len(lengths) == 1:
+          and len(lengths) == 1:
             lengths = lengths[0]
         if isinstance(lengths, str):
             if os.path.exists(lengths):
