@@ -707,6 +707,8 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
         Keys: 'alpha', 'beta', 'hsc_r', 'obj', and 'seed'.
     """
 
+    save_freq = 1000
+
     if not isinstance(counts, list):
         counts = [counts]
     if verbose:
