@@ -51,6 +51,15 @@ parser.add_argument("--multiscale_rounds", default=1, type=int,
                          " should be inferred during multiscale optimization."
                          " Values of 1 or 0 disable multiscale"
                          " optimization.")
+parser.add_argument("--save_freq", type=int, default=None,
+                    help="The number of iterations used as an interval to save"
+                        " a checkpoint of the structure at.")
+parser.add_argument("--restart_struct", type=str, default=None,
+                    help="The structure to restart inference from (used as the"
+                         " initialization.")
+parser.add_argument("--restart_iter", type=int, default=None,
+                    help="The number of iterations to restart from (corresponds"
+                         " to the restart_struct file).")
 
 # Optimization convergence
 parser.add_argument("--max_iter", default=30000, type=int,
