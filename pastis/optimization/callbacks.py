@@ -276,8 +276,9 @@ class Callback(object):
         else:
             self.opt_type = opt_type
         self.alpha_loop = alpha_loop
-        if self.restart_iter is None:
-            self.epoch = -1
+        self.epoch = -1
+        if self.restart_iter is not None:
+            self.epoch = self.restart_iter - 1
         self.seconds = 0
         self.time = '0:00:00.0'
         self.structures = None
