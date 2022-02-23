@@ -620,8 +620,7 @@ def pastis_poisson(counts, lengths, ploidy, outdir='', chromosomes=None,
                    piecewise_step1_accuracy=1, alpha_true=None,
                    struct_true=None, init='mds', input_weight=None,
                    exclude_zeros=False, null=False, mixture_coefs=None,
-                   verbose=True, save_freq=None, restart_struct=None,
-                   restart_iter=None):
+                   verbose=True, restart_struct=None, restart_iter=None):
     """Infer 3D structures with PASTIS via Poisson model.
 
     Infer 3D structure from Hi-C contact counts data for haploid or diploid

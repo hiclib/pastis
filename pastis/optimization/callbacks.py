@@ -174,7 +174,8 @@ class Callback(object):
         self.alpha_loop = None
         self.epoch = -1
         if restart_iter is not None:
-            self.epoch = restart_iter
+            self.restart_iter = restart_iter
+            self.epoch = restart_iter - 1
         self.time = '0:00:00.0'
         self.structures = None
         self.alpha = None
@@ -199,7 +200,6 @@ class Callback(object):
 
     def _print(self, last_epoch=False):
         """Prints loss every given number of epochs."""
-
         if self._check_frequency(self.frequency['print'], last_epoch):
             info_dict = {'At iterate': ' ' * (6 - len(str(self.epoch))) + str(
                 self.epoch), 'f= ': '%.6g' % self.obj['obj'],
@@ -276,7 +276,8 @@ class Callback(object):
         else:
             self.opt_type = opt_type
         self.alpha_loop = alpha_loop
-        self.epoch = -1
+        if self.restart_iter is None:
+            self.epoch = -1
         self.seconds = 0
         self.time = '0:00:00.0'
         self.structures = None
