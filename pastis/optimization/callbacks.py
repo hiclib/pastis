@@ -127,6 +127,7 @@ class Callback(object):
                  on_training_begin=None, on_training_end=None,
                  on_epoch_end=None, directory=None, struct_true=None,
                  alpha_true=None, verbose=False, restart_iter=None):
+        self.restart_iter = restart_iter
         self.ploidy = ploidy
         self.multiscale_factor = multiscale_factor
         self.lengths = decrease_lengths_res(lengths, multiscale_factor)
@@ -173,9 +174,8 @@ class Callback(object):
         self.opt_type = None
         self.alpha_loop = None
         self.epoch = -1
-        if restart_iter is not None:
-            self.restart_iter = restart_iter
-            self.epoch = restart_iter - 1
+        if self.restart_iter is not None:
+            self.epoch = self.restart_iter - 1
         self.time = '0:00:00.0'
         self.structures = None
         self.alpha = None
