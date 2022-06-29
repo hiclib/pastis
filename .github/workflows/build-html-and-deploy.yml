@@ -1,0 +1,46 @@
+name: Build HTML and deploy to gh-page
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  push:
+    branches:
+      - master  # To change to latest release.
+
+jobs:
+  build-html-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          auto-activate-base: false
+          miniconda-version: 'latest'
+          python-version: 3.8
+          environment-file: environment.yml
+          activate-environment: pastis
+
+      - name: Install the latest version of PASTIS
+        shell: bash -l {0}
+        run: |
+            make install
+
+      - name: Build the documentation
+        shell: bash -l {0}
+        run: |
+            pushd doc
+            make html
+            touch _build/html/.nojekyll
+
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: doc/_build/html
+          CLEAN: true
+

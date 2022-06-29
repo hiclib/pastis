@@ -1,0 +1,22 @@
+name: pastis
+channels:
+    - default
+dependencies:
+    - python
+    - pip
+    - pip:
+        - sphinx
+        - numpy
+        - scipy
+        - sklearn
+        - matplotlib
+        - iced
+        - pastis
+        - joblib
+        - cython
+        - pandas
+        - sphinx-gallery
+        - numpydoc
+        - pytest
+        - nose
+        - autograd
