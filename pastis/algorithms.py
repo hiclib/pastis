@@ -48,6 +48,11 @@ def run_mds(directory):
                          options["counts"]),
             lengths=lengths)
 
+    if sparse.issparse(counts):
+        counts = sparse.triu(counts, 1)
+    else:
+        counts = np.triu(counts, 1)
+
     if options["normalize"]:
         counts = iced.filter.filter_low_counts(counts, sparsity=False,
                                                percentage=0.04)
@@ -114,6 +119,11 @@ def run_nmds(directory):
             os.path.join(directory,
                          options["counts"]),
             lengths=lengths)
+
+    if sparse.issparse(counts):
+        counts = sparse.triu(counts, 1)
+    else:
+        counts = np.triu(counts, 1)
 
     if options["normalize"]:
         counts = iced.filter.filter_low_counts(counts, sparsity=False,
@@ -184,6 +194,11 @@ def run_pm1(directory):
             os.path.join(directory,
                          options["counts"]),
             lengths=lengths)
+
+    if sparse.issparse(counts):
+        counts = sparse.triu(counts, 1)
+    else:
+        counts = np.triu(counts, 1)
 
     if options["normalize"]:
         counts = iced.filter.filter_low_counts(counts, sparsity=False,
@@ -260,6 +275,11 @@ def run_pm2(directory):
         counts = load_counts(
             os.path.join(directory, options["counts"]),
             lengths=lengths)
+
+    if sparse.issparse(counts):
+        counts = sparse.triu(counts, 1)
+    else:
+        counts = np.triu(counts, 1)
 
     if options["normalize"]:
         counts = iced.filter.filter_low_counts(counts, sparsity=False,
