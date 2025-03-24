@@ -4,10 +4,10 @@ channels:
 dependencies:
     - python
     - setuptools>=50.0, <60.0
+    - numpy
     - pip
     - pip:
         - sphinx
-        - numpy
         - scipy
         - scikit-learn
         - matplotlib
