@@ -66,7 +66,7 @@ def _negative_binomial_gradient_dense(X, counts, alpha=-3, beta=1,
     if not use_zero_counts:
         mask = np.triu(counts != 0, k=1)
     else:
-        mask = (np.triu(np.ones(counts.shape, dtype=np.bool), k=1) &
+        mask = (np.triu(np.ones(counts.shape, dtype=np.bool_), k=1) &
                 np.invert(np.isnan(counts)))
 
     if bias is None:
@@ -105,7 +105,7 @@ def _negative_binomial_gradient_alpha_dense(X, counts, alpha=-3, beta=1,
     if not use_zero_counts:
         mask = np.triu(counts != 0, k=1)
     else:
-        mask = (np.triu(np.ones(counts.shape, dtype=np.bool), k=1) &
+        mask = (np.triu(np.ones(counts.shape, dtype=np.bool_), k=1) &
                 np.invert(np.isnan(counts)))
 
     if bias is not None:

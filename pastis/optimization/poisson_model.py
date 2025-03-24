@@ -57,9 +57,9 @@ def _poisson_exp_dense(X, counts, alpha, bias,
     m, n = X.shape
     d = euclidean_distances(X)
     if use_empty_entries:
-        mask = (np.invert(np.tri(m, dtype=np.bool)))
+        mask = (np.invert(np.tri(m, dtype=np.bool_)))
     else:
-        mask = np.invert(np.tri(m, dtype=np.bool)) & (counts != 0) & (d != 0)
+        mask = np.invert(np.tri(m, dtype=np.bool_)) & (counts != 0) & (d != 0)
 
     bias = bias.reshape(-1, 1)
     if beta is None:
@@ -159,9 +159,9 @@ def _gradient_poisson_exp_dense(X, counts, alpha, bias, beta,
     bias = bias.reshape(-1, 1)
 
     if use_empty_entries:
-        mask = np.invert(np.tri(m, dtype=np.bool))
+        mask = np.invert(np.tri(m, dtype=np.bool_))
     else:
-        mask = np.invert(np.tri(m, dtype=np.bool)) & (counts != 0)
+        mask = np.invert(np.tri(m, dtype=np.bool_)) & (counts != 0)
 
     beta = counts[mask].sum() / (
         (d[mask] ** alpha) * (bias * bias.T)[mask]).sum()
@@ -325,7 +325,7 @@ def _estimate_beta(counts, X, alpha=-3, bias=None):
 
     else:
         dis = euclidean_distances(X)
-        mask = np.invert(np.tri(m, dtype=np.bool)) & (counts != 0) & (dis != 0)
+        mask = np.invert(np.tri(m, dtype=np.bool_)) & (counts != 0) & (dis != 0)
         beta = counts[mask].sum() / (
             (dis[mask] ** alpha) * (bias * bias.T)[mask]).sum()
 

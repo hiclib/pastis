@@ -147,7 +147,7 @@ def _quat_to_rotation_matrix(q):
     if n == 0.0:
         raise ZeroDivisionError(
             "Input to `_quat_to_rotation_matrix({0})` has zero norm".format(q))
-    elif abs(n - 1.0) < np.finfo(np.float).eps:
+    elif abs(n - 1.0) < np.finfo(float).eps:
         # Input q is basically normalized
         return ag_np.array([
             [1 - 2 * (y ** 2 + z ** 2),   2 * (x * y - z * w),         2 * (x * z + y * w)],

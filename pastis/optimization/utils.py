@@ -52,7 +52,7 @@ def eval_g(x, user_data=None):
     x = x.reshape((m, n))
     dis = euclidean_distances(x)
     dis = dis ** 2
-    mask = np.invert(np.tri(m, dtype=np.bool))
+    mask = np.invert(np.tri(m, dtype=np.bool_))
     g = np.concatenate([dis[mask].flatten(), ((x - d) ** 2).sum(axis=1)])
     return g
 
@@ -92,7 +92,7 @@ def eval_jac_g(x, flag, user_data=None):
         x = x.reshape((m, n))
         tmp = x.repeat(m, axis=0).reshape((m, m, n))
         dif = tmp - tmp.transpose(1, 0, 2)
-        mask = np.invert(np.tri(m, dtype=np.bool))
+        mask = np.invert(np.tri(m, dtype=np.bool_))
         dif = dif[mask]
         jac = 2 * np.concatenate((dif, - dif), axis=1).flatten()
 
