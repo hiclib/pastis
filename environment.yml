@@ -8,7 +8,7 @@ dependencies:
         - sphinx
         - numpy
         - scipy
-        - sklearn
+        - scikit-learn
         - matplotlib
         - iced
         - pastis
