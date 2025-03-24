@@ -2,7 +2,7 @@ name: pastis
 channels:
     - default
 dependencies:
-    - python<=3.11
+    - python
     - setuptools>=50.0, <60.0
     - pip
     - pip:
