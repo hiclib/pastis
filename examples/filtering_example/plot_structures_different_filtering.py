@@ -176,7 +176,7 @@ def plot_structure(struct_file_name, contact_counts, title=None):
     z = coord_arr[:, 2][start:end]
 
     # Interpolate the coordinates of the structure
-    chrom = np.array(interpolate_chromosomes(coord_arr, struct_length)[0])
+    chrom = interpolate_chromosomes(coord_arr, struct_length)[0]
 
     # Get the plot ready
     fig = plt.figure(figsize=(15, 15))
@@ -187,7 +187,7 @@ def plot_structure(struct_file_name, contact_counts, title=None):
     color_indices = np.linspace(0, 1, len(x))
 
     # We will use a spectral color cmap.
-    the_cmap = cmap_map(lambda x: x*0.85, matplotlib.cm.get_cmap('Spectral'))
+    the_cmap = cmap_map(lambda x: x * 0.85, matplotlib.colormaps['Spectral'])
 
     # Scatter the beads for the chromosome.
     scatter_beads(x, y, z, 50, the_cmap, color_indices, ax)
