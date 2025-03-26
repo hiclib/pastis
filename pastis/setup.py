@@ -11,7 +11,6 @@ def configuration(parent_package='', top_path=None):
     config = Configuration('pastis', parent_package, top_path)
     config.add_subpackage('utils')
     config.add_subpackage("optimization")
-    config.add_subpackage("externals")
     config.add_subpackage("datasets")
     config.add_subpackage("io")
     config.add_subpackage("dispersion")
