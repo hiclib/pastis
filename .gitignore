@@ -19,3 +19,4 @@ src/PM/PM_all
 .idea
 doc/auto_examples/
 doc/_build
+*.egg-info
