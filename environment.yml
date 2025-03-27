@@ -13,7 +13,6 @@ dependencies:
         - iced
         - pastis
         - joblib
-        - cython
         - pandas
         - sphinx-gallery
         - numpydoc
