@@ -6,7 +6,7 @@ CTAGS ?= ctags
 all:
 
 install:
-	$(PYTHON) setup.py install
+	$(PYTHON) -m pip install .
 
 trailing-spaces:
 	find pastit -name "*.py" | xargs perl -pi -e 's/[ \t]*$$//'
