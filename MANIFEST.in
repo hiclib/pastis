@@ -1,3 +1,2 @@
 recursive-include pastis *.py
-recursive-include *.matrix *.bed
 recursive-include pastis *.ini
