@@ -1,12 +1,16 @@
 #! /usr/bin/env python
 
-from pastis.algorithms import run_pm1
+from pastis.algorithms import run_pm2
 
 
-if __name__ == "__main__":
+def main():
     import argparse
-    parser = argparse.ArgumentParser(description='Run PM1.')
+    parser = argparse.ArgumentParser(description='Run PM2.')
     parser.add_argument('directory', metavar='N', type=str,
                         help='directory')
     args = parser.parse_args()
-    run_pm1(args.directory)
+    run_pm2(args.directory)
+
+
+if __name__ == "__main__":
+    main()
