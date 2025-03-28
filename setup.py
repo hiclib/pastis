@@ -7,7 +7,7 @@ MAINTAINER = 'Nelle Varoquaux'
 MAINTAINER_EMAIL = 'nelle.varoquaux@ensmp.fr'
 VERSION = '0.5.0'
 LICENSE = "New BSD"
-URL = 'http://cbio.ensmp.fr/pastis'
+URL = 'https://hiclib.github.io/pastis/'
 DOWNLOAD_URL = 'https://github.com/hiclib/pastis/releases'
 
 SCIPY_MIN_VERSION = '0.19.0'
