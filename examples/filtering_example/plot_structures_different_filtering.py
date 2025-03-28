@@ -7,8 +7,8 @@ levels of filtering to showcase how increasing filtering when running PASTIS
 can result in a better-looking inferred structure.
 """
 
+import os
 import numpy as np
-from mpl_toolkits.mplot3d import axes3d  # noqa: F401 unused import
 import matplotlib
 import matplotlib.pyplot as plt
 from scipy import interpolate
@@ -17,13 +17,13 @@ from scipy import interpolate
 ##############################################################################
 # Define the interpolation function.
 # ----------------------------------
-def interpolate_chromosomes(X, lengths, eps=1e-1, smooth=0):
+def interpolate_chromosomes(struct, lengths, eps=1e-1, smooth=0):
 
     """ Returns a smoothed interpolation of the chromosomes.
 
         Parameters
         ----------
-        X : ndarray (n, 3)
+        struct : ndarray (n, 3)
         The 3D structure
 
         lengths : ndarray (L, )
@@ -32,30 +32,28 @@ def interpolate_chromosomes(X, lengths, eps=1e-1, smooth=0):
 
         Returns
         -------
-        smoothed_X : the smoothed 3D structure, with a set of coordinates for
-        each chromosome (ie, the first chromosome's points will be
-        smoothed_X[0]). smoothed_X[0][i] will be a list with an x, y, and
-        z coordinate.
+        struct_smoothed : the smoothed 3D structure, with a set of coordinates
+        for each chromosome (ie, the first chromosome's points will be
+        struct_smoothed[0]). struct_smoothed[0][i] will be a list with an x, y,
+        and z coordinate.
     """
 
-    smoothed_X = [[], []]
-
-    mask = np.invert(np.isnan(X[:, 0]))
-
-    begin, end = 0, 0
+    lengths = np.array(lengths, copy=False, ndmin=1, dtype=int).ravel()
+    mask = np.invert(np.isnan(struct[:, 0]))
 
     # Loops over each chromosome
-    enumerated_lengths = enumerate(lengths)
-    for i, length in enumerated_lengths:
+    struct_smoothed = [[], []]
+    begin, end = 0, 0
+    for i, length in enumerate(lengths):
         end += length
 
         # Get the current chromosome's coordinates
-        x = X[begin:end, 0]
-        y = X[begin:end, 1]
-        z = X[begin:end, 2]
+        x = struct[begin:end, 0]
+        y = struct[begin:end, 1]
+        z = struct[begin:end, 2]
         indx = mask[begin:end]
 
-        if not len(x):
+        if not x.shape[0]:
             break
 
         # Encode missing values with nan
@@ -79,7 +77,7 @@ def interpolate_chromosomes(X, lengths, eps=1e-1, smooth=0):
 
         indx = np.invert(np.isnan(x))
 
-        m = np.arange(len(x))[indx]
+        m = np.arange(x.shape[0])[indx]
 
         # Get interpolation functions for the x, y, and z coordinates
         f_x = interpolate.Rbf(m, x[indx], smooth=smooth)
@@ -87,27 +85,28 @@ def interpolate_chromosomes(X, lengths, eps=1e-1, smooth=0):
         f_z = interpolate.Rbf(m, z[indx], smooth=smooth)
 
         # Use interpolation functions to create curve segments between
-        # adjacent (adjacent in the parameter X, for the current chromosome)
+        # adjacent (adjacent in the parameter 'struct', for the current chrom)
         # coordinate beads
         for j in range(length - 1):
             if (j < length - 2):
                 m = np.arange(j, j + 1 + 0.1, 0.1)
             else:
                 m = np.arange(j, j + 1, 0.1)
-            smoothed_X[i].append([f_x(np.arange(m.min(), m.max(), 0.1)),
-                                  f_y(np.arange(m.min(), m.max(), 0.1)),
-                                  f_z(np.arange(m.min(), m.max(), 0.1))])
+            struct_smoothed[i].append([
+                f_x(np.arange(m.min(), m.max(), 0.1)),
+                f_y(np.arange(m.min(), m.max(), 0.1)),
+                f_z(np.arange(m.min(), m.max(), 0.1))])
 
         begin = end
 
-    return smoothed_X
+    return struct_smoothed
 
 
 ##############################################################################
 # Define the function to scatter the beads.
 # -----------------------------------------
 def scatter_beads(x, y, z, bead_size, curr_cmap, indices, ax):
-    last_idx = len(x) - 1
+    last_idx = x.shape[0] - 1
     ax.scatter(x[0], y[0], z[0], s=bead_size, color=curr_cmap(indices[0]),
                label='start')
     ax.scatter(x[1:last_idx], y[1:last_idx], z[1:last_idx], s=bead_size,
@@ -162,68 +161,89 @@ def cmap_map(function, cmap):
 ##############################################################################
 # Define the function to plot the coordinates
 # -------------------------------------------
-def plot_structure(struct_file_name, contact_counts, title=None):
+def plot_structure(struct_file, lengths=None, title=None, output_dir=None):
+    # Setup output files
+    output_file = os.path.basename(struct_file).replace(".txt", "").replace(
+        ".coords", "")
+    if output_dir is not None:
+        os.makedirs(output_dir, exist_ok=True)
+        output_file = os.path.join(output_dir, output_file)
+
     # Load in the structure from its file
-    coord_arr = np.loadtxt(struct_file_name, delimiter=" ")
+    struct = np.loadtxt(struct_file, delimiter=" ")
 
-    # Get the length of the structure
-    struct_length = np.array([len(coord_arr)])
+    # Get the number of beads in each molecule of the structure
+    if lengths is None:  # Assume structure contains 1 haploid chromosome
+        lengths = np.array([struct.shape[0]])
+    else:
+        lengths = np.array(lengths, copy=False, ndmin=1, dtype=int).ravel()
 
-    # Get the structures coordinates
-    start, end = 0, struct_length[0]
-    x = coord_arr[:, 0][start:end]
-    y = coord_arr[:, 1][start:end]
-    z = coord_arr[:, 2][start:end]
+    # Using a spectral color cmap.
+    the_cmap = cmap_map(
+        lambda c: c * 0.85, cmap=matplotlib.colormaps['Spectral'])
 
     # Interpolate the coordinates of the structure
-    chrom = interpolate_chromosomes(coord_arr, struct_length)[0]
+    struct_smoothed = interpolate_chromosomes(struct, lengths=lengths)
 
-    # Get the plot ready
-    fig = plt.figure(figsize=(15, 15))
-    ax = fig.add_subplot(111, projection='3d')
+    begin, end = 0, 0
+    for i, length in enumerate(lengths):
+        end += length
 
-    # Get our colors set up. color_beads determines which color in our color
-    # map each bead will have.
-    color_indices = np.linspace(0, 1, len(x))
+        # Get the current chromosome's coordinates
+        x = struct[begin:end, 0]
+        y = struct[begin:end, 1]
+        z = struct[begin:end, 2]
 
-    # We will use a spectral color cmap.
-    the_cmap = cmap_map(lambda x: x * 0.85, matplotlib.colormaps['Spectral'])
+        # Get the plot ready
+        fig = plt.figure(figsize=(15, 15))
+        ax = fig.add_subplot(111, projection='3d')
 
-    # Scatter the beads for the chromosome.
-    scatter_beads(x, y, z, 50, the_cmap, color_indices, ax)
+        # Get our colors set up. color_beads determines which color in our color
+        # map each bead will have.
+        color_indices = np.linspace(0, 1, x.shape[0])
 
-    # Plot the points we interpolated that go in between the beads of the
-    # chromosome.
-    for i in range(struct_length[0] - 1):
-        ax.plot(chrom[i][0], chrom[i][1], chrom[i][2],
-                color=the_cmap(color_indices[i]))
+        # Scatter the beads for the chromosome.
+        scatter_beads(
+            x=x, y=y, z=z, bead_size=50, curr_cmap=the_cmap,
+            indices=color_indices, ax=ax)
 
-    # Set the labels, title, legend, and view angle and position. Show the
-    # plot.
-    ax.set_xlabel('x', fontsize=20)
-    ax.set_ylabel('y', fontsize=20)
-    ax.set_zlabel('z', fontsize=20)
-    plt.legend(loc='best')
-    plt.title(title, fontsize=25)
-    ax.view_init(15, 300)
+        # Plot the points we interpolated that go in between the beads of the
+        # chromosome.
+        chrom_smoothed = struct_smoothed[i]
+        for j in range(length - 1):
+            ax.plot(
+                chrom_smoothed[j][0], chrom_smoothed[j][1],
+                chrom_smoothed[j][2], color=the_cmap(color_indices[j]))
 
+        # Set the labels, title, legend, and view angle and position.
+        ax.set_xlabel('x', fontsize=20)
+        ax.set_ylabel('y', fontsize=20)
+        ax.set_zlabel('z', fontsize=20)
+        plt.legend(loc='best')
+        plt.title(title, fontsize=25)
+        ax.view_init(15, 300)
 
-##############################################################################
-# Load the contact counts
-contact_counts = np.load('data/contact_counts.npy')
+        # Save figure
+        fig.savefig(
+            f"{output_file}.molecule{i:03d}.png", bbox_inches='tight', dpi=500)
+        plt.close()
+
+        begin = end
 
 
 ##############################################################################
 # Plot the structure with less filtering. As we can see, this structure looks
-# quite odd, with spikes shooting out to single beads that are far away from
-# the rest of the structure.
-plot_structure('data/struct_inferred_less.000.coords', contact_counts,
-               'Inferred 3-d structure (Less Filtering)')
+# quite odd, with large loops extending out to single beads that are far away
+# from the rest of the structure.
+plot_structure(
+    'data/struct_inferred_less.000.coords',
+    title='Inferred 3-d structure (Less Filtering)')
 
 
 ##############################################################################
 # Plot the structure with more filtering. As we can see, this structure looks
 # significantly better, as bins with low coverage in the contact counts matrix
 # were filtered more heavily before PASTIS inferred the structure.
-plot_structure('data/struct_inferred_more.000.coords', contact_counts,
-               'Inferred 3-d structure (More Filtering)')
+plot_structure(
+    'data/struct_inferred_more.000.coords',
+    title='Inferred 3-d structure (More Filtering)')

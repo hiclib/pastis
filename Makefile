@@ -18,6 +18,7 @@ clean:
 	rm -rf dist
 	rm -rf example/*PM*
 	rm -rf example/*MDS*
+	rm -rf examples/filtering_example/*.png
 
 in: inplace # just a shortcut
 inplace: cython
