@@ -73,8 +73,11 @@ def run_mds(directory):
               max_iter=options["max_iter"],
               verbose=options["verbose"])
     X = mds.fit(counts)
+    
     torm = np.array((counts.sum(axis=0) == 0)).flatten()
     X[torm] = np.nan
+    X -= np.nanmean(X, axis=0)
+    
     np.savetxt(
         os.path.join(
             directory,
@@ -148,6 +151,8 @@ def run_nmds(directory):
     X = nmds.fit(counts)
 
     X[torm] = np.nan
+    X -= np.nanmean(X, axis=0)
+    
     np.savetxt(
         os.path.join(
             directory,
@@ -226,10 +231,11 @@ def run_pm1(directory):
               bias=bias,
               verbose=options["verbose"])
     X = pm1.fit(counts)
+    
     torm = np.array((counts.sum(axis=0) == 0)).flatten()
-
     X[torm] = np.nan
-
+    X -= np.nanmean(X, axis=0)
+    
     np.savetxt(
         os.path.join(
             directory,
@@ -309,9 +315,9 @@ def run_pm2(directory):
     X = pm2.fit(counts)
 
     torm = np.array(((counts + counts.transpose()).sum(axis=0) == 0)).flatten()
-
     X[torm] = np.nan
-
+    X -= np.nanmean(X, axis=0)
+    
     np.savetxt(
         os.path.join(
             directory,
