@@ -291,7 +291,7 @@ def estimate_X(counts, init_X, alpha, lengths, bias=None, constraints=None,
     if verbose:
         print('=' * 30, flush=True)
         print("\nRUNNING THE L-BFGS-B CODE\n\n           * * *\n\nMachine"
-              " precision = %.4g\n" % np.finfo(np.float).eps, flush=True)
+              " precision = %.4g\n" % np.finfo(float).eps, flush=True)
 
     if callback is not None:
         if reorienter is not None and reorienter.reorient:

@@ -3,15 +3,15 @@ channels:
     - default
 dependencies:
     - python
+    - setuptools>=50.0, <60.0
+    - numpy
     - pip
     - pip:
         - sphinx
-        - numpy
         - scipy
-        - sklearn
+        - scikit-learn
         - matplotlib
         - iced
-        - pastis
         - joblib
         - cython
         - pandas

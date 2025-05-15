@@ -310,7 +310,7 @@ def estimate_alpha(counts, X, alpha_init, lengths, bias=None,
     if verbose:
         print('=' * 30, flush=True)
         print('\nRUNNING THE L-BFGS-B CODE\n\n           * * *\n\n Machine'
-              ' precision = %.4g\n' % np.finfo(np.float).eps, flush=True)
+              ' precision = %.4g\n' % np.finfo(float).eps, flush=True)
 
     if callback is not None:
         if reorienter is not None and reorienter.reorient:

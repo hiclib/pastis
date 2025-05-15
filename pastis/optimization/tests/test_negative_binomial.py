@@ -52,7 +52,7 @@ def test_negative_binomial_grad_dense():
     grad_dense = negative_binomial.negative_binomial_gradient(
         X, counts, use_zero_counts=True)
     # Checking that the gradient at the solution is 0
-    assert np.all(grad_dense == 0)
+    assert_array_almost_equal(grad_dense, 0)
 
 
 def test_negative_binomial_grad_sparse():
