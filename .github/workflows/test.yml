@@ -15,7 +15,7 @@ jobs:
           auto-update-conda: true
           auto-activate-base: false
           miniconda-version: 'latest'
-          python-version: 3.8
+          python-version: ["3.9", "3.10", "3.11", "3.12"]
           environment-file: environment.yml
           activate-environment: pastis
 

@@ -13,7 +13,6 @@ dependencies:
         - matplotlib
         - iced
         - joblib
-        - cython
         - pandas
         - sphinx-gallery
         - numpydoc

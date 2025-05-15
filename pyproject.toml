@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools >= 77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pastis"
+requires-python = ">= 3.8"
+version = "0.5.0"
+dependencies = [
+  "numpy>=1.16.0",
+  "scipy>=0.19.0",
+  "pandas",
+  "scikit-learn",
+  "iced",
+  "autograd"
+]
+readme = "README.rst"
+description = "A set of algorithms for the 3D inference of the genome"
+license = "BSD-3-Clause"
+license-files = ["COPYING"]
+keywords = ["pastis", "hi-c", "chromatin"]
+authors = [
+  {name = "Nelle Varoquaux", email = "nelle.varoquaux@ensmp.fr"},
+  {name = "Gesine Cauer"},
+]
+maintainers = [
+  {name = "Nelle Varoquaux", email = "nelle.varoquaux@ensmp.fr"},
+  {name = "Gesine Cauer"},
+]
+classifiers=[
+  'Intended Audience :: Science/Research',
+  'Intended Audience :: Developers',
+  'Programming Language :: Python',
+  'Topic :: Software Development',
+  'Topic :: Scientific/Engineering',
+  'Operating System :: Microsoft :: Windows',
+  'Operating System :: POSIX',
+  'Operating System :: Unix',
+  'Operating System :: MacOS']
+
+[project.scripts]
+pastis-mds = "pastis.script.mds:main"
+pastis-nmds = "pastis.script.nmds:main"
+pastis-pm1 = "pastis.script.pm1:main"
+pastis-pm2 = "pastis.script.pm2:main"
+pastis-poisson = "pastis.script.pastis_poisson:main"
+
+[project.urls]
+Homepage = "https://hiclib.github.io/pastis/"
+Documentation = "https://hiclib.github.io/pastis/documentation.html"
+Repository = "https://github.com/hiclib/pastis.git"
+Issues = "https://github.com/hiclib/pastis/issues"
+Download = "https://github.com/hiclib/pastis/releases"
