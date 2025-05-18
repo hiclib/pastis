@@ -3,7 +3,7 @@ channels:
     - default
 dependencies:
     - python
-    - setuptools>=50.0, <60.0
+    - setuptools>=77
     - numpy
     - pip
     - pip:
@@ -11,7 +11,7 @@ dependencies:
         - scipy
         - scikit-learn
         - matplotlib
-        - iced
+        - git+https://github.com/gesinecauer/iced.git@fix_install_from_repo
         - joblib
         - pandas
         - sphinx-gallery
