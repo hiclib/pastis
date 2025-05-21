@@ -1,8 +1,7 @@
 import numpy as np
 from scipy import sparse
 from sklearn.metrics import euclidean_distances
-from numpy.testing import assert_array_almost_equal
-from nose.tools import assert_almost_equal
+from numpy.testing import assert_array_almost_equal, assert_almost_equal
 from scipy.optimize import check_grad
 
 from pastis import dispersion
@@ -29,7 +28,7 @@ def test_negative_binomial_obj_dense():
     obj_ = negative_binomial_structure.negative_binomial_obj(
         random_state.rand(*X.shape),
         counts, alpha=alpha, beta=beta)
-    assert(obj < obj_)
+    assert obj < obj_
 
     obj = negative_binomial_structure.negative_binomial_obj(
         X, counts, alpha=alpha, beta=beta, use_zero_counts=True)
@@ -37,7 +36,7 @@ def test_negative_binomial_obj_dense():
     obj_ = negative_binomial_structure.negative_binomial_obj(
         random_state.rand(*X.shape),
         counts, alpha=alpha, beta=beta, use_zero_counts=True)
-    assert(obj < obj_)
+    assert obj < obj_
 
 
 def test_negative_binomial_obj_sparse():
@@ -67,7 +66,7 @@ def test_negative_binomial_obj_sparse():
         counts.toarray(), alpha=alpha, beta=beta)
 
     # The objective for a random point should be larger than for the solution
-    assert(obj < obj_sparse)
+    assert obj < obj_sparse
     # The objective in sparse and dense should be equal
     assert_almost_equal(obj_sparse, obj_dense)
 
@@ -100,7 +99,7 @@ def test_negative_binomial_obj_sparse_dispersion_biased():
     obj_ = negative_binomial_structure.negative_binomial_obj(
         random_state.rand(*X.shape),
         counts, dispersion=d, alpha=alpha, beta=beta)
-    assert(obj_sparse < obj_)
+    assert obj_sparse < obj_
     assert_almost_equal(obj_sparse, obj_dense, 6)
 
 
@@ -178,7 +177,7 @@ def test_negative_binomial_gradient_sparse_dispersed():
 
     assert_array_almost_equal(gradient_dense, gradient_sparse)
     assert_array_almost_equal(
-       np.zeros(gradient_sparse.shape), gradient_sparse, -5)
+        np.zeros(gradient_sparse.shape), gradient_sparse, -5)
 
 
 def test_estimate_X():

@@ -96,7 +96,7 @@ def parse(filename=None):
         raise IOError("File %s doesn't existe" % filename)
 
     config = ConfigParser.ConfigParser()
-    config.readfp(open(filename))
+    config.read_file(open(filename))
     for key in options.keys():
         try:
             if type(options[key]) == bool:

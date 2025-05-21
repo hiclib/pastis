@@ -1,7 +1,6 @@
 import numpy as np
 from scipy import sparse
-from nose.tools import assert_almost_equal
-from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal, assert_almost_equal
 from sklearn.metrics import euclidean_distances
 from pastis.optimization import negative_binomial
 from scipy.optimize import check_grad

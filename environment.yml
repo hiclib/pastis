@@ -3,7 +3,7 @@ channels:
     - default
 dependencies:
     - python
-    - setuptools>=50.0, <60.0
+    - setuptools>=77
     - numpy
     - pip
     - pip:

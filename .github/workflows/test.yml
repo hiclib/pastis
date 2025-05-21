@@ -3,19 +3,28 @@ on: [push, pull_request]
 
 jobs:
   tests:
+    name: linux-cp${{ matrix.python-version }}-${{ matrix.OPTIONS_NAME }}
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+
     steps:
       - name: Checkout 🛎️
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
+
       - name: Setup Miniconda
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           auto-activate-base: false
           miniconda-version: 'latest'
-          python-version: ["3.9", "3.10", "3.11", "3.12"]
+          python-version: ${{ matrix.python-version }}
+          channels: defaults
           environment-file: environment.yml
           activate-environment: pastis
 
