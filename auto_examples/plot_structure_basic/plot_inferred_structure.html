@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en" data-content_root="../../">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
   
     <title>PASTIS: Poisson-based algorithm for stable inference of DNA Structure &#8212; Pastis 0.5.0-git documentation</title>
   <!-- htmltitle is before nature.css - we use this hack to load bootstrap first -->
@@ -17,16 +18,15 @@
           type="text/javascript"></script>
 
 
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/gallery-binder.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/gallery-dataframe.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/gallery-rendered-html.css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=fb9458d3" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <script src="../../_static/documentation_options.js?v=7614f3fd"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
 <meta charset='utf-8'>
@@ -74,144 +74,45 @@
   
   <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
-<p>Click <a class="reference internal" href="#sphx-glr-download-auto-examples-plot-structure-basic-plot-inferred-structure-py"><span class="std std-ref">here</span></a>
-to download the full example code or to run this example in your browser via Binder</p>
+<p><a class="reference internal" href="#sphx-glr-download-auto-examples-plot-structure-basic-plot-inferred-structure-py"><span class="std std-ref">Go to the end</span></a>
+to download the full example code. or to run this example in your browser via Binder</p>
 </div>
-<div class="sphx-glr-example-title section" id="plot-an-inferred-3-d-structure-with-matplotlib">
-<span id="sphx-glr-auto-examples-plot-structure-basic-plot-inferred-structure-py"></span><h1>Plot an inferred 3-d structure with matplotlib<a class="headerlink" href="#plot-an-inferred-3-d-structure-with-matplotlib" title="Permalink to this headline">¶</a></h1>
-<p>This example showcases how to plot an inferred 3-d structure output by
+<section class="sphx-glr-example-title" id="plot-an-inferred-3d-structure-with-matplotlib">
+<span id="sphx-glr-auto-examples-plot-structure-basic-plot-inferred-structure-py"></span><h1>Plot an inferred 3D structure with matplotlib<a class="headerlink" href="#plot-an-inferred-3d-structure-with-matplotlib" title="Link to this heading">¶</a></h1>
+<p>This example showcases how to plot an inferred 3D structure output by
 PASTIS using matplotlib.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="kn">import</span> <span class="n">axes3d</span>  <span class="c1"># noqa: F401 unused import</span>
-<span class="kn">import</span> <span class="nn">matplotlib</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">interpolate</span>
-</pre></div>
-</div>
-<div class="section" id="define-the-interpolation-function">
-<h2>Define the interpolation function.<a class="headerlink" href="#define-the-interpolation-function" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">interpolate_chromosomes</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">lengths</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-1</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpl_toolkits.mplot3d.art3d</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line3DCollection</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">interpolate</span>
 
-    <span class="sd">&quot;&quot;&quot; Returns a smoothed interpolation of the chromosomes.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        X : ndarray (n, 3)</span>
-<span class="sd">        The 3D structure</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">modify_cmap</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">cmap</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Lighten or darken a given colormap.</span>
 
-<span class="sd">        lengths : ndarray (L, )</span>
-<span class="sd">        The lengths of the chromosomes. Note that the sum of the lengths</span>
-<span class="sd">        should correspond to the length of the ndarray of the 3D structure.</span>
+<span class="sd">    Applies function (which should operate on vectors of shape 3:</span>
+<span class="sd">    [r, g, b]), on colormap cmap. This routine will break any discontinuous</span>
+<span class="sd">    points in a colormap.</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        smoothed_X : the smoothed 3D structure, with a set of coordinates for</span>
-<span class="sd">        each chromosome (ie, the first chromosome&#39;s points will be</span>
-<span class="sd">        smoothed_X[0]). smoothed_X[0][i] will be a list with an x, y, and</span>
-<span class="sd">        z coordinate.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">smoothed_X</span> <span class="o">=</span> <span class="p">[[],</span> <span class="p">[]]</span>
-
-    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]))</span>
-
-    <span class="n">begin</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
-
-    <span class="c1"># Loops over each chromosome</span>
-    <span class="n">enumerated_lengths</span> <span class="o">=</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">length</span> <span class="ow">in</span> <span class="n">enumerated_lengths</span><span class="p">:</span>
-        <span class="n">end</span> <span class="o">+=</span> <span class="n">length</span>
-
-        <span class="c1"># Get the current chromosome&#39;s coordinates</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">begin</span><span class="p">:</span><span class="n">end</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">begin</span><span class="p">:</span><span class="n">end</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
-        <span class="n">z</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">begin</span><span class="p">:</span><span class="n">end</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
-        <span class="n">indx</span> <span class="o">=</span> <span class="n">mask</span><span class="p">[</span><span class="n">begin</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-            <span class="k">break</span>
-
-        <span class="c1"># Encode missing values with nan</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">indx</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-            <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">x</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-            <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">y</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-
-            <span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">z</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-
-        <span class="c1"># Encode missing values with nan</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">indx</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">x</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-            <span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">z</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-            <span class="n">z</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">z</span><span class="p">[</span><span class="n">indx</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-
-        <span class="n">indx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
-
-        <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))[</span><span class="n">indx</span><span class="p">]</span>
-
-        <span class="c1"># Get interpolation functions for the x, y, and z coordinates</span>
-        <span class="n">f_x</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">Rbf</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="n">indx</span><span class="p">],</span> <span class="n">smooth</span><span class="o">=</span><span class="n">smooth</span><span class="p">)</span>
-        <span class="n">f_y</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">Rbf</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">y</span><span class="p">[</span><span class="n">indx</span><span class="p">],</span> <span class="n">smooth</span><span class="o">=</span><span class="n">smooth</span><span class="p">)</span>
-        <span class="n">f_z</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">Rbf</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">z</span><span class="p">[</span><span class="n">indx</span><span class="p">],</span> <span class="n">smooth</span><span class="o">=</span><span class="n">smooth</span><span class="p">)</span>
-
-        <span class="c1"># Use interpolation functions to create curve segments between</span>
-        <span class="c1"># adjacent (adjacent in the parameter X, for the current chromosome)</span>
-        <span class="c1"># coordinate beads</span>
-        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">j</span> <span class="o">&lt;</span> <span class="n">length</span> <span class="o">-</span> <span class="mi">2</span><span class="p">):</span>
-                <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
-            <span class="n">smoothed_X</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">f_x</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">m</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="mf">0.1</span><span class="p">)),</span>
-                                  <span class="n">f_y</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">m</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="mf">0.1</span><span class="p">)),</span>
-                                  <span class="n">f_z</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">m</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="mf">0.1</span><span class="p">))])</span>
-
-        <span class="n">begin</span> <span class="o">=</span> <span class="n">end</span>
-
-    <span class="k">return</span> <span class="n">smoothed_X</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="define-the-function-to-scatter-the-beads">
-<h2>Define the function to scatter the beads.<a class="headerlink" href="#define-the-function-to-scatter-the-beads" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">scatter_beads</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">bead_size</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">curr_cmap</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">ax</span><span class="p">):</span>
-    <span class="n">last_idx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="n">bead_size</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">curr_cmap</span><span class="p">(</span><span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
-               <span class="n">label</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39; start&#39;</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">last_idx</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">last_idx</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">last_idx</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="n">bead_size</span><span class="p">,</span>
-               <span class="n">cmap</span><span class="o">=</span><span class="n">curr_cmap</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">last_idx</span><span class="p">])</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">last_idx</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">last_idx</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="n">last_idx</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="n">bead_size</span><span class="p">,</span>
-               <span class="n">color</span><span class="o">=</span><span class="n">curr_cmap</span><span class="p">(</span><span class="n">indices</span><span class="p">[</span><span class="n">last_idx</span><span class="p">]),</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39; end&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="define-the-function-to-lighten-or-darken-our-color-map">
-<h2>Define the function to lighten or darken our color map.<a class="headerlink" href="#define-the-function-to-lighten-or-darken-our-color-map" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">cmap_map</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">cmap</span><span class="p">):</span>
-    <span class="c1"># Function taken from:</span>
-    <span class="c1"># https://scipy-cookbook.readthedocs.io/items/Matplotlib_ColormapTransformations.html</span>
-
-    <span class="sd">&quot;&quot;&quot; Applies function (which should operate on vectors of shape 3:</span>
-<span class="sd">        [r, g, b]), on colormap cmap. This routine will break any discontinuous</span>
-<span class="sd">        points in a colormap.</span>
+<span class="sd">    Adapted from:</span>
+<span class="sd">    https://scipy-cookbook.readthedocs.io/items/Matplotlib_ColormapTransformations.html</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cdict</span> <span class="o">=</span> <span class="n">cmap</span><span class="o">.</span><span class="n">_segmentdata</span>
     <span class="n">step_dict</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="c1"># First get the list of points where the segments start or end</span>
+    <span class="c1"># Get the list of points where the segments start or end</span>
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="s1">&#39;blue&#39;</span><span class="p">):</span>
         <span class="n">step_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cdict</span><span class="p">[</span><span class="n">key</span><span class="p">]))</span>
     <span class="n">step_list</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">step_dict</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="p">[])</span>
     <span class="n">step_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">step_list</span><span class="p">)))</span>
-    <span class="c1"># Then compute the LUT, and apply the function to the LUT</span>
-    <span class="n">reduced_cmap</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">step</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cmap</span><span class="p">(</span><span class="n">step</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span> <span class="mi">3</span><span class="p">])</span>
-    <span class="n">old_LUT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">reduced_cmap</span><span class="p">,</span> <span class="n">step_list</span><span class="p">)))</span>
-    <span class="n">new_LUT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">old_LUT</span><span class="p">)))</span>
-    <span class="c1"># Now try to make a minimal segment definition of the new LUT</span>
+
+    <span class="c1"># Compute the LUT, and apply the function to the LUT</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reduce_cmap</span><span class="p">(</span><span class="n">step</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cmap</span><span class="p">(</span><span class="n">step</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span>
+    <span class="n">old_LUT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">reduce_cmap</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">step_list</span><span class="p">])</span>
+    <span class="n">new_LUT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">old_LUT</span><span class="p">])</span>
+
+    <span class="c1"># Try to make a minimal segment definition of the new LUT</span>
     <span class="n">cdict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="s1">&#39;blue&#39;</span><span class="p">]):</span>
         <span class="n">this_cdict</span> <span class="o">=</span> <span class="p">{}</span>
@@ -225,89 +126,191 @@ PASTIS using matplotlib.</p>
         <span class="n">cdict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">colorvector</span>
 
     <span class="k">return</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="p">(</span><span class="s1">&#39;colormap&#39;</span><span class="p">,</span> <span class="n">cdict</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="load-the-coordinates-for-the-two-chromosomes">
-<h2>Load the coordinates for the two chromosomes.<a class="headerlink" href="#load-the-coordinates-for-the-two-chromosomes" title="Permalink to this headline">¶</a></h2>
-<p>Note: both of the chromosomes have length 60 (the array is length 120).</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coordinates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s1">&#39;data/struct_inferred.000.coords&#39;</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
-<span class="n">theLengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">60</span><span class="p">,</span> <span class="mi">60</span><span class="p">])</span>
 
-<span class="c1"># Get the first chromosome&#39;s coordinates</span>
-<span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">theLengths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">x1</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">][</span><span class="n">start</span><span class="p">:</span> <span class="n">end</span><span class="p">]</span>
-<span class="n">y1</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">][</span><span class="n">start</span><span class="p">:</span> <span class="n">end</span><span class="p">]</span>
-<span class="n">z1</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">][</span><span class="n">start</span><span class="p">:</span> <span class="n">end</span><span class="p">]</span>
 
-<span class="c1"># Get the second chromosome&#39;s coordinates</span>
-<span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">end</span><span class="p">,</span> <span class="n">end</span> <span class="o">+</span> <span class="n">theLengths</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-<span class="n">x2</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">][</span><span class="n">start</span><span class="p">:</span> <span class="n">end</span><span class="p">]</span>
-<span class="n">y2</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">][</span><span class="n">start</span><span class="p">:</span> <span class="n">end</span><span class="p">]</span>
-<span class="n">z2</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">][</span><span class="n">start</span><span class="p">:</span> <span class="n">end</span><span class="p">]</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">interpolate_chromosome</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interpolate a smooth line between the beads of a given chromosome.</span>
+
+<span class="sd">    Should only be run on a single chromosome molecule.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    chrom : array of float</span>
+<span class="sd">    The 3D structure of a given chromosome (nbeads, 3).</span>
+
+<span class="sd">    eps : float, optional</span>
+<span class="sd">    Frequency of points to be interpolated. A value of &#39;1&#39; simply replaces any</span>
+<span class="sd">    NaN beads with interpolated values, but does not form a line connecting</span>
+<span class="sd">    between adjacent beads.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    chrom_interp : array of float</span>
+<span class="sd">    The smoothed 3D structure for the given chromosome.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Select non-NaN beads</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">chrom</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]))</span>
+    <span class="k">if</span> <span class="n">mask</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># Skip chromosomes with &lt; 2 non-NaN beads</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">chrom</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">chrom</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">chrom</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+
+    <span class="c1"># Get interpolation functions for the x, y, and z coordinates</span>
+    <span class="n">bead_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">chrom</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="n">mask</span><span class="p">]</span>
+    <span class="n">f_x</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">Rbf</span><span class="p">(</span><span class="n">bead_idx</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">f_y</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">Rbf</span><span class="p">(</span><span class="n">bead_idx</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">f_z</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">Rbf</span><span class="p">(</span><span class="n">bead_idx</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># Use interpolation functions to create line segments between adjacent</span>
+    <span class="c1"># coordinate beads</span>
+    <span class="n">line_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">bead_idx</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">bead_idx</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="n">eps</span><span class="p">,</span> <span class="n">eps</span><span class="p">)</span>
+    <span class="n">chrom_interp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">f_x</span><span class="p">(</span><span class="n">line_idx</span><span class="p">),</span> <span class="n">f_y</span><span class="p">(</span><span class="n">line_idx</span><span class="p">),</span> <span class="n">f_z</span><span class="p">(</span><span class="n">line_idx</span><span class="p">)])</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="k">return</span> <span class="n">chrom_interp</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_chromosome</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bead_size</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot a single chromosome molecule on the supplied axis.</span>
+
+<span class="sd">    Beads are represented as translucent circles, and a line is interpolated</span>
+<span class="sd">    between adjacent beads. Should only be run on a single chromosome molecule.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    chrom : array of float</span>
+<span class="sd">    The coordinates of the 3D structure of a given chromosome,</span>
+<span class="sd">    shape=(nbeads_chrom, 3).</span>
+
+<span class="sd">    ax : matplotlib.axes.Axes object, optional</span>
+<span class="sd">    The matplotlib axis on which to plot the chromosome. If absent, a new</span>
+<span class="sd">    figure will be created.</span>
+
+<span class="sd">    cmap : matplotlib.colors.Colormap object, optional</span>
+<span class="sd">    The matplotlib colormap with which to color the beads and lines.</span>
+
+<span class="sd">    name : str, optional</span>
+<span class="sd">    The name for the given chromosome, to be displayed in the plot legend.</span>
+
+<span class="sd">    bead_size : int, optional</span>
+<span class="sd">    Size for each bead in the plotted 3D structure.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ax : matplotlib.axes.Axes object</span>
+<span class="sd">    The matplotlib axis on which the chromosome has been plotted.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">cmap</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cmap</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colormaps</span><span class="p">[</span><span class="s1">&#39;Spectral&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_zlabel</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">view_init</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">300</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">elif</span> <span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> &quot;</span>
+
+    <span class="c1"># Select non-NaN beads</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">chrom</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]))</span>
+    <span class="k">if</span> <span class="n">mask</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ax</span>  <span class="c1"># Chromosome beads are all NaN, nothing to plot</span>
+
+    <span class="c1"># Determine which color in our colormap each bead will have</span>
+    <span class="n">bead_color_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">chrom</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="n">mask</span><span class="p">]</span>
+
+    <span class="c1"># Plot the beads for the current chromosome</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">chrom</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">chrom</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">chrom</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="n">bead_size</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">cmap</span><span class="p">(</span><span class="n">bead_color_idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+               <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">start&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="n">bead_size</span><span class="p">,</span>
+                   <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">bead_color_idx</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="n">bead_size</span><span class="p">,</span>
+               <span class="n">color</span><span class="o">=</span><span class="n">cmap</span><span class="p">(</span><span class="n">bead_color_idx</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">end&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Interpolate the structure&#39;s beads to form a continuous line between beads</span>
+    <span class="n">chrom_interp</span> <span class="o">=</span> <span class="n">interpolate_chromosome</span><span class="p">(</span><span class="n">chrom</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">chrom_interp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Determine which color in our colormap each line segment will have</span>
+        <span class="n">line_color_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span>
+            <span class="n">bead_color_idx</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">bead_color_idx</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">chrom_interp</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># Plot this chromosome&#39;s interpolated coordinates as a continuous line</span>
+        <span class="c1"># that connects between adjacent beads</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">chrom_interp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">segments</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">points</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">points</span><span class="p">[</span><span class="mi">1</span><span class="p">:]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">lc</span> <span class="o">=</span> <span class="n">Line3DCollection</span><span class="p">(</span><span class="n">segments</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
+        <span class="n">lc</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="n">line_color_idx</span><span class="p">)</span>  <span class="c1"># Set the values used for colormapping</span>
+        <span class="n">lc</span><span class="o">.</span><span class="n">set_linewidth</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">add_collection</span><span class="p">(</span><span class="n">lc</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ax</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="interpolate-the-coordinates-of-the-chromosomes">
-<h2>Interpolate the coordinates of the chromosomes.<a class="headerlink" href="#interpolate-the-coordinates-of-the-chromosomes" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">chrom1</span><span class="p">,</span> <span class="n">chrom2</span> <span class="o">=</span> <span class="n">interpolate_chromosomes</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">theLengths</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="plot-the-chromosomes">
-<h2>Plot the chromosomes.<a class="headerlink" href="#plot-the-chromosomes" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
+<section id="load-the-struct-for-the-two-chromosomes">
+<h2>Load the struct for the two chromosomes.<a class="headerlink" href="#load-the-struct-for-the-two-chromosomes" title="Link to this heading">¶</a></h2>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">struct</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s1">&#39;data/struct_inferred.000.coords&#39;</span><span class="p">)</span>
+<span class="n">lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">60</span><span class="p">,</span> <span class="mi">60</span><span class="p">])</span>  <span class="c1"># Two chromosomes, each of which has 60 beads</span>
+
+<span class="c1"># Setup figure: labels, title, and view angle/position</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
-
-<span class="c1"># Get our colors set up. color_beads determines which color in our color map</span>
-<span class="c1"># each bead will have.</span>
-<span class="n">color_beads</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">x1</span><span class="p">))</span>
-
-<span class="c1"># We will use a spectral color cmap. Since we are plotting two chromosomes,</span>
-<span class="c1"># let&#39;s make chromosome one a bit darker (hence x * 0.85) and chromosome two</span>
-<span class="c1"># a bit lighter (hence x * 1.5). Feel free to twiddle with these configruations</span>
-<span class="c1"># or change color maps entirely.</span>
-<span class="n">cmap1</span> <span class="o">=</span> <span class="n">cmap_map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">*</span><span class="mf">0.85</span><span class="p">,</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;Spectral&#39;</span><span class="p">))</span>
-<span class="n">cmap2</span> <span class="o">=</span> <span class="n">cmap_map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">*</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;Spectral&#39;</span><span class="p">))</span>
-
-<span class="c1"># Scatter the beads for each chromosome.</span>
-<span class="n">scatter_beads</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">z1</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="s1">&#39;chromosome 1&#39;</span><span class="p">,</span> <span class="n">cmap1</span><span class="p">,</span> <span class="n">color_beads</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span>
-<span class="n">scatter_beads</span><span class="p">(</span><span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">,</span> <span class="n">z2</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="s1">&#39;chromosome 2&#39;</span><span class="p">,</span> <span class="n">cmap2</span><span class="p">,</span> <span class="n">color_beads</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span>
-
-<span class="c1"># Plot the points we interpolated that go in between each chromosome as</span>
-<span class="c1"># a curve.</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">59</span><span class="p">):</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">chrom1</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">chrom1</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">chrom1</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span>
-            <span class="n">color</span><span class="o">=</span><span class="n">cmap1</span><span class="p">(</span><span class="n">color_beads</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">chrom2</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">chrom2</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">chrom2</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span>
-            <span class="n">color</span><span class="o">=</span><span class="n">cmap2</span><span class="p">(</span><span class="n">color_beads</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
-
-<span class="c1"># Set the labels, title, legend, and view angle and position. Show the plot.</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_zlabel</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Inferred 3D structure&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">view_init</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">300</span><span class="p">)</span>  <span class="c1"># Set initial view angle &amp; position</span>
+
+<span class="c1"># We will use a spectral color cmap. Since we are plotting two chromosomes,</span>
+<span class="c1"># let&#39;s make &#39;chromosome 1&#39; a bit darker (hence x * 0.85) and &#39;chromosome 2&#39;</span>
+<span class="c1"># a bit lighter (hence x * 1.5). Feel free to twiddle with these configruations</span>
+<span class="c1"># or change color maps entirely.</span>
+<span class="n">cmap1</span> <span class="o">=</span> <span class="n">modify_cmap</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="mf">0.85</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">colormaps</span><span class="p">[</span><span class="s1">&#39;Spectral&#39;</span><span class="p">])</span>
+<span class="n">cmap2</span> <span class="o">=</span> <span class="n">modify_cmap</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="mf">1.5</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">colormaps</span><span class="p">[</span><span class="s1">&#39;Spectral&#39;</span><span class="p">])</span>
+<span class="n">cmaps</span> <span class="o">=</span> <span class="p">[</span><span class="n">cmap1</span><span class="p">,</span> <span class="n">cmap2</span><span class="p">]</span>
+
+<span class="c1"># Plot each chromosome with its own colormap (to distinguish between chroms)</span>
+<span class="n">begin</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">length</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lengths</span><span class="p">):</span>
+    <span class="n">end</span> <span class="o">+=</span> <span class="n">length</span>
+    <span class="n">plot_chromosome</span><span class="p">(</span>
+        <span class="n">struct</span><span class="p">[</span><span class="n">begin</span><span class="p">:</span><span class="n">end</span><span class="p">],</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmaps</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;chromosome </span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">begin</span> <span class="o">=</span> <span class="n">end</span>
+
+<span class="c1"># Update and show figure</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Inferred 3d Structures&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">view_init</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">300</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="Inferred 3d Structures" class="sphx-glr-single-img" src="../../_images/sphx_glr_plot_inferred_structure_001.png" />
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.566 seconds)</p>
-<div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-structure-basic-plot-inferred-structure-py">
+<img src="../../_images/sphx_glr_plot_inferred_structure_001.png" srcset="../../_images/sphx_glr_plot_inferred_structure_001.png" alt="Inferred 3D structure" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.242 seconds)</p>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-structure-basic-plot-inferred-structure-py">
 <div class="binder-badge docutils container">
-<a class="reference external image-reference" href="https://mybinder.org/v2/gh/hiclib/pastis/gh-pages?urlpath=lab/tree/notebooks/auto_examples/plot_structure_basic/plot_inferred_structure.ipynb"><img alt="Launch binder" src="../../_images/binder_badge_logo3.svg" width="150px" /></a>
-</div>
-<div class="sphx-glr-download sphx-glr-download-python docutils container">
-<p><a class="reference download internal" download="" href="../../_downloads/07f7a136b867c7cc498e463dd680d615/plot_inferred_structure.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_inferred_structure.py</span></code></a></p>
+<a class="reference external image-reference" href="https://mybinder.org/v2/gh/hiclib/pastis/gh-pages?urlpath=lab/tree/notebooks/auto_examples/plot_structure_basic/plot_inferred_structure.ipynb"><img alt="Launch binder" src="../../_images/binder_badge_logo3.svg" style="width: 150px;" />
+</a>
 </div>
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../_downloads/53291e92dbe8aa3af5330ea405d908a3/plot_inferred_structure.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_inferred_structure.ipynb</span></code></a></p>
 </div>
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/07f7a136b867c7cc498e463dd680d615/plot_inferred_structure.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_inferred_structure.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-zip docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/12caa5a42e4d3773c13563a194907b5b/plot_inferred_structure.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">zipped:</span> <span class="pre">plot_inferred_structure.zip</span></code></a></p>
+</div>
 </div>
 <p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
-</div>
-</div>
+</section>
+</section>
 
 
     </div>
@@ -318,7 +321,7 @@ PASTIS using matplotlib.</p>
     </p>
     <p>
         &copy; Copyright 2014, Nelle Varoquaux.<br/>
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 3.5.3.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 7.4.7.<br/>
     </p>
 </footer>
   </body>

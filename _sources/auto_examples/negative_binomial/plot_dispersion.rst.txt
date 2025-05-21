@@ -10,8 +10,8 @@
     .. note::
         :class: sphx-glr-download-link-note
 
-        Click :ref:`here <sphx_glr_download_auto_examples_negative_binomial_plot_dispersion.py>`
-        to download the full example code or to run this example in your browser via Binder
+        :ref:`Go to the end <sphx_glr_download_auto_examples_negative_binomial_plot_dispersion.py>`
+        to download the full example code. or to run this example in your browser via Binder
 
 .. rst-class:: sphx-glr-example-title
 
@@ -26,7 +26,7 @@ Are Hi-C contact count data overdispersed?
 
 .. GENERATED FROM PYTHON SOURCE LINES 8-16
 
-.. code-block:: default
+.. code-block:: Python
 
 
     import matplotlib.pyplot as plt
@@ -49,7 +49,7 @@ Load a Yeast dataset, and a human dataset
 
 .. GENERATED FROM PYTHON SOURCE LINES 18-21
 
-.. code-block:: default
+.. code-block:: Python
 
 
     counts, lengths = datasets.load_sample_yeast()
@@ -60,11 +60,9 @@ Load a Yeast dataset, and a human dataset
 
 .. rst-class:: sphx-glr-script-out
 
- Out:
-
  .. code-block:: none
 
-    /usr/share/miniconda3/envs/pastis/lib/python3.9/site-packages/iced/io/_io_pandas.py:56: UserWarning: Attempting to guess whether counts are 0 or 1 based
+    /home/runner/miniconda3/envs/pastis/lib/python3.9/site-packages/iced/io/_io_pandas.py:56: UserWarning: Attempting to guess whether counts are 0 or 1 based
       warnings.warn(
 
 
@@ -77,7 +75,7 @@ dispersion
 
 .. GENERATED FROM PYTHON SOURCE LINES 24-30
 
-.. code-block:: default
+.. code-block:: Python
 
 
     counts = iced.filter.filter_low_counts(counts, percentage=0.06)
@@ -101,7 +99,7 @@ to provide the bias vector.
 
 .. GENERATED FROM PYTHON SOURCE LINES 35-39
 
-.. code-block:: default
+.. code-block:: Python
 
 
     _, mean, variance, _ = dispersion.compute_mean_variance(
@@ -120,7 +118,7 @@ And now plot the resulting mean versus variance
 
 .. GENERATED FROM PYTHON SOURCE LINES 41-66
 
-.. code-block:: default
+.. code-block:: Python
 
     fig, ax = plt.subplots()
     s = ax.scatter(mean, variance, linewidth=0, marker="o",
@@ -150,9 +148,10 @@ And now plot the resulting mean versus variance
 
 
 
-.. image:: /auto_examples/negative_binomial/images/sphx_glr_plot_dispersion_001.png
-    :alt: Are contat counts overdispersed?
-    :class: sphx-glr-single-img
+.. image-sg:: /auto_examples/negative_binomial/images/sphx_glr_plot_dispersion_001.png
+   :alt: Are contat counts overdispersed?
+   :srcset: /auto_examples/negative_binomial/images/sphx_glr_plot_dispersion_001.png
+   :class: sphx-glr-single-img
 
 
 
@@ -161,35 +160,33 @@ And now plot the resulting mean versus variance
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.569 seconds)
+   **Total running time of the script:** (0 minutes 0.296 seconds)
 
 
 .. _sphx_glr_download_auto_examples_negative_binomial_plot_dispersion.py:
 
+.. only:: html
 
-.. only :: html
+  .. container:: sphx-glr-footer sphx-glr-footer-example
 
- .. container:: sphx-glr-footer
-    :class: sphx-glr-footer-example
+    .. container:: binder-badge
 
+      .. image:: images/binder_badge_logo.svg
+        :target: https://mybinder.org/v2/gh/hiclib/pastis/gh-pages?urlpath=lab/tree/notebooks/auto_examples/negative_binomial/plot_dispersion.ipynb
+        :alt: Launch binder
+        :width: 150 px
 
-  .. container:: binder-badge
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-    .. image:: images/binder_badge_logo.svg
-      :target: https://mybinder.org/v2/gh/hiclib/pastis/gh-pages?urlpath=lab/tree/notebooks/auto_examples/negative_binomial/plot_dispersion.ipynb
-      :alt: Launch binder
-      :width: 150 px
+      :download:`Download Jupyter notebook: plot_dispersion.ipynb <plot_dispersion.ipynb>`
 
+    .. container:: sphx-glr-download sphx-glr-download-python
 
-  .. container:: sphx-glr-download sphx-glr-download-python
+      :download:`Download Python source code: plot_dispersion.py <plot_dispersion.py>`
 
-     :download:`Download Python source code: plot_dispersion.py <plot_dispersion.py>`
+    .. container:: sphx-glr-download sphx-glr-download-zip
 
-
-
-  .. container:: sphx-glr-download sphx-glr-download-jupyter
-
-     :download:`Download Jupyter notebook: plot_dispersion.ipynb <plot_dispersion.ipynb>`
+      :download:`Download zipped: plot_dispersion.zip <plot_dispersion.zip>`
 
 
 .. only:: html

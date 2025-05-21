@@ -1,19 +1,20 @@
 :orphan:
 
-
-
-.. _sphx_glr_auto_examples:
-
 General examples
+
 
 
 .. raw:: html
 
-    <div class="sphx-glr-clear"></div>
+    <div class="sphx-glr-thumbnails">
 
+.. thumbnail-parent-div-open
 
+.. thumbnail-parent-div-close
 
-.. _sphx_glr_auto_examples_datasets:
+.. raw:: html
+
+    </div>
 
 Datasets
 ========
@@ -22,31 +23,32 @@ Datasets
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example showcases how to generated a random dataset from a distance matrix using different...">
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example showcases how to generated a random dataset from a distance matrix using different probability distribution.">
 
 .. only:: html
 
- .. figure:: /auto_examples/datasets/images/thumb/sphx_glr_plot_generate_dataset_from_distances_thumb.png
-     :alt: Generate a random dataset from a distance matrix
+  .. image:: /auto_examples/datasets/images/thumb/sphx_glr_plot_generate_dataset_from_distances_thumb.png
+    :alt:
 
-     :ref:`sphx_glr_auto_examples_datasets_plot_generate_dataset_from_distances.py`
+  :ref:`sphx_glr_auto_examples_datasets_plot_generate_dataset_from_distances.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Generate a random dataset from a distance matrix</div>
+    </div>
+
+
+.. thumbnail-parent-div-close
 
 .. raw:: html
 
     </div>
-
-
-.. toctree::
-   :hidden:
-
-   /auto_examples/datasets/plot_generate_dataset_from_distances
-.. raw:: html
-
-    <div class="sphx-glr-clear"></div>
-
-
-
-.. _sphx_glr_auto_examples_filtering_example:
 
 Plotting Two Structures Inferred with Different Amounts of Filtering
 ====================================================================
@@ -55,31 +57,32 @@ Plotting Two Structures Inferred with Different Amounts of Filtering
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example plots two 3-d structures (with matplotlib) inferred with different levels of filte...">
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example plots two 3D structures (with matplotlib) inferred with different levels of filtering to showcase how increasing filtering when running PASTIS can result in a better-looking inferred structure.">
 
 .. only:: html
 
- .. figure:: /auto_examples/filtering_example/images/thumb/sphx_glr_plot_structures_different_filtering_thumb.png
-     :alt: Plot 3-d structures inferred with different levels of filtering with matplotlib
+  .. image:: /auto_examples/filtering_example/images/thumb/sphx_glr_plot_structures_different_filtering_thumb.png
+    :alt:
 
-     :ref:`sphx_glr_auto_examples_filtering_example_plot_structures_different_filtering.py`
+  :ref:`sphx_glr_auto_examples_filtering_example_plot_structures_different_filtering.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Plot 3D structures inferred with different levels of filtering with matplotlib</div>
+    </div>
+
+
+.. thumbnail-parent-div-close
 
 .. raw:: html
 
     </div>
-
-
-.. toctree::
-   :hidden:
-
-   /auto_examples/filtering_example/plot_structures_different_filtering
-.. raw:: html
-
-    <div class="sphx-glr-clear"></div>
-
-
-
-.. _sphx_glr_auto_examples_negative_binomial:
 
 Negative Binomial modeling of contact counts
 ============================================
@@ -88,24 +91,26 @@ Negative Binomial modeling of contact counts
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="Are Hi-C contact count data overdispersed?">
 
 .. only:: html
 
- .. figure:: /auto_examples/negative_binomial/images/thumb/sphx_glr_plot_dispersion_thumb.png
-     :alt: Estimating the dispersion
+  .. image:: /auto_examples/negative_binomial/images/thumb/sphx_glr_plot_dispersion_thumb.png
+    :alt:
 
-     :ref:`sphx_glr_auto_examples_negative_binomial_plot_dispersion.py`
+  :ref:`sphx_glr_auto_examples_negative_binomial_plot_dispersion.py`
 
 .. raw:: html
 
+      <div class="sphx-glr-thumbnail-title">Estimating the dispersion</div>
     </div>
 
-
-.. toctree::
-   :hidden:
-
-   /auto_examples/negative_binomial/plot_dispersion
 
 .. raw:: html
 
@@ -113,27 +118,22 @@ Negative Binomial modeling of contact counts
 
 .. only:: html
 
- .. figure:: /auto_examples/negative_binomial/images/thumb/sphx_glr_plot_estimating_dispersion_thumb.png
-     :alt: Estimating the dispersion parameter
+  .. image:: /auto_examples/negative_binomial/images/thumb/sphx_glr_plot_estimating_dispersion_thumb.png
+    :alt:
 
-     :ref:`sphx_glr_auto_examples_negative_binomial_plot_estimating_dispersion.py`
+  :ref:`sphx_glr_auto_examples_negative_binomial_plot_estimating_dispersion.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Estimating the dispersion parameter</div>
+    </div>
+
+
+.. thumbnail-parent-div-close
 
 .. raw:: html
 
     </div>
-
-
-.. toctree::
-   :hidden:
-
-   /auto_examples/negative_binomial/plot_estimating_dispersion
-.. raw:: html
-
-    <div class="sphx-glr-clear"></div>
-
-
-
-.. _sphx_glr_auto_examples_plot_structure_basic:
 
 Plotting a Structure
 ====================
@@ -142,14 +142,28 @@ Plotting a Structure
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example showcases how to plot an inferred 3-d structure output by PASTIS using matplotlib.">
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example showcases how to plot an inferred 3D structure output by PASTIS using matplotlib.">
 
 .. only:: html
 
- .. figure:: /auto_examples/plot_structure_basic/images/thumb/sphx_glr_plot_inferred_structure_thumb.png
-     :alt: Plot an inferred 3-d structure with matplotlib
+  .. image:: /auto_examples/plot_structure_basic/images/thumb/sphx_glr_plot_inferred_structure_thumb.png
+    :alt:
 
-     :ref:`sphx_glr_auto_examples_plot_structure_basic_plot_inferred_structure.py`
+  :ref:`sphx_glr_auto_examples_plot_structure_basic_plot_inferred_structure.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Plot an inferred 3D structure with matplotlib</div>
+    </div>
+
+
+.. thumbnail-parent-div-close
 
 .. raw:: html
 
@@ -158,29 +172,26 @@ Plotting a Structure
 
 .. toctree::
    :hidden:
-
-   /auto_examples/plot_structure_basic/plot_inferred_structure
-.. raw:: html
-
-    <div class="sphx-glr-clear"></div>
+   :includehidden:
 
 
-
-.. only :: html
-
- .. container:: sphx-glr-footer
-    :class: sphx-glr-footer-gallery
-
-
-  .. container:: sphx-glr-download sphx-glr-download-python
-
-    :download:`Download all examples in Python source code: auto_examples_python.zip </auto_examples/auto_examples_python.zip>`
+   /auto_examples/datasets/index.rst
+   /auto_examples/filtering_example/index.rst
+   /auto_examples/negative_binomial/index.rst
+   /auto_examples/plot_structure_basic/index.rst
 
 
+.. only:: html
 
-  .. container:: sphx-glr-download sphx-glr-download-jupyter
+  .. container:: sphx-glr-footer sphx-glr-footer-gallery
 
-    :download:`Download all examples in Jupyter notebooks: auto_examples_jupyter.zip </auto_examples/auto_examples_jupyter.zip>`
+    .. container:: sphx-glr-download sphx-glr-download-python
+
+      :download:`Download all examples in Python source code: auto_examples_python.zip </auto_examples/auto_examples_python.zip>`
+
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
+
+      :download:`Download all examples in Jupyter notebooks: auto_examples_jupyter.zip </auto_examples/auto_examples_jupyter.zip>`
 
 
 .. only:: html

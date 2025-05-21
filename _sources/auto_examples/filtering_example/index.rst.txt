@@ -1,0 +1,44 @@
+
+
+.. _sphx_glr_auto_examples_filtering_example:
+
+Plotting Two Structures Inferred with Different Amounts of Filtering
+====================================================================
+
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example plots two 3D structures (with matplotlib) inferred with different levels of filtering to showcase how increasing filtering when running PASTIS can result in a better-looking inferred structure.">
+
+.. only:: html
+
+  .. image:: /auto_examples/filtering_example/images/thumb/sphx_glr_plot_structures_different_filtering_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_filtering_example_plot_structures_different_filtering.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Plot 3D structures inferred with different levels of filtering with matplotlib</div>
+    </div>
+
+
+.. thumbnail-parent-div-close
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/filtering_example/plot_structures_different_filtering
+

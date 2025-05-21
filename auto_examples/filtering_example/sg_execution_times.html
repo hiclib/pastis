@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en" data-content_root="../../">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
   
     <title>PASTIS: Poisson-based algorithm for stable inference of DNA Structure &#8212; Pastis 0.5.0-git documentation</title>
   <!-- htmltitle is before nature.css - we use this hack to load bootstrap first -->
@@ -17,16 +18,15 @@
           type="text/javascript"></script>
 
 
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/gallery-binder.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/gallery-dataframe.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/gallery-rendered-html.css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=fb9458d3" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <script src="../../_static/documentation_options.js?v=7614f3fd"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
 <meta charset='utf-8'>
@@ -72,23 +72,37 @@
   </div>
     <div class="container">
   
-  <div class="section" id="computation-times">
-<span id="sphx-glr-auto-examples-filtering-example-sg-execution-times"></span><h1>Computation times<a class="headerlink" href="#computation-times" title="Permalink to this headline">¶</a></h1>
-<p><strong>00:01.783</strong> total execution time for <strong>auto_examples_filtering_example</strong> files:</p>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 88%" />
-<col style="width: 7%" />
-<col style="width: 5%" />
-</colgroup>
+  <section id="computation-times">
+<span id="sphx-glr-auto-examples-filtering-example-sg-execution-times"></span><h1>Computation times<a class="headerlink" href="#computation-times" title="Link to this heading">¶</a></h1>
+<p><strong>00:03.894</strong> total execution time for 1 file <strong>from auto_examples/filtering_example</strong>:</p>
+<div class="docutils container">
+<style scoped>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet" />
+<link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+</style>
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script type="text/javascript" class="init">
+$(document).ready( function () {
+    $('table.sg-datatable').DataTable({order: [[1, 'desc']]});
+} );
+</script><table class="table table-striped sg-datatable docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Example</p></th>
+<th class="head"><p>Time</p></th>
+<th class="head"><p>Mem (MB)</p></th>
+</tr>
+</thead>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="plot_structures_different_filtering.html#sphx-glr-auto-examples-filtering-example-plot-structures-different-filtering-py"><span class="std std-ref">Plot 3-d structures inferred with different levels of filtering with matplotlib</span></a> (<code class="docutils literal notranslate"><span class="pre">plot_structures_different_filtering.py</span></code>)</p></td>
-<td><p>00:01.783</p></td>
-<td><p>0.0 MB</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="plot_structures_different_filtering.html#sphx-glr-auto-examples-filtering-example-plot-structures-different-filtering-py"><span class="std std-ref">Plot 3D structures inferred with different levels of filtering with matplotlib</span></a> (<code class="docutils literal notranslate"><span class="pre">plot_structures_different_filtering.py</span></code>)</p></td>
+<td><p>00:03.894</p></td>
+<td><p>0.0</p></td>
 </tr>
 </tbody>
 </table>
 </div>
+</section>
 
 
     </div>
@@ -99,7 +113,7 @@
     </p>
     <p>
         &copy; Copyright 2014, Nelle Varoquaux.<br/>
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 3.5.3.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 7.4.7.<br/>
     </p>
 </footer>
   </body>

@@ -1,149 +1,46 @@
 """
-Plot 3-d structures inferred with different levels of filtering with matplotlib
+Plot 3D structures inferred with different levels of filtering with matplotlib
 ===============================================================================
 
-This example plots two 3-d structures (with matplotlib) inferred with different
+This example plots two 3D structures (with matplotlib) inferred with different
 levels of filtering to showcase how increasing filtering when running PASTIS
 can result in a better-looking inferred structure.
 """
 
+import os
 import numpy as np
-from mpl_toolkits.mplot3d import axes3d  # noqa: F401 unused import
 import matplotlib
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d.art3d import Line3DCollection
 from scipy import interpolate
+from iced.io import load_lengths
 
 
-##############################################################################
-# Define the interpolation function.
-# ----------------------------------
-def interpolate_chromosomes(X, lengths, eps=1e-1, smooth=0):
+def modify_cmap(function, cmap):
+    """Lighten or darken a given colormap.
 
-    """ Returns a smoothed interpolation of the chromosomes.
+    Applies function (which should operate on vectors of shape 3:
+    [r, g, b]), on colormap cmap. This routine will break any discontinuous
+    points in a colormap.
 
-        Parameters
-        ----------
-        X : ndarray (n, 3)
-        The 3D structure
-
-        lengths : ndarray (L, )
-        The lengths of the chromosomes. Note that the sum of the lengths
-        should correspond to the length of the ndarray of the 3D structure.
-
-        Returns
-        -------
-        smoothed_X : the smoothed 3D structure, with a set of coordinates for
-        each chromosome (ie, the first chromosome's points will be
-        smoothed_X[0]). smoothed_X[0][i] will be a list with an x, y, and
-        z coordinate.
-    """
-
-    smoothed_X = [[], []]
-
-    mask = np.invert(np.isnan(X[:, 0]))
-
-    begin, end = 0, 0
-
-    # Loops over each chromosome
-    enumerated_lengths = enumerate(lengths)
-    for i, length in enumerated_lengths:
-        end += length
-
-        # Get the current chromosome's coordinates
-        x = X[begin:end, 0]
-        y = X[begin:end, 1]
-        z = X[begin:end, 2]
-        indx = mask[begin:end]
-
-        if not len(x):
-            break
-
-        # Encode missing values with nan
-        if not indx[0]:
-            x[0] = x[indx][0]
-            x[indx][0] = np.nan
-            y[0] = y[indx][0]
-            y[indx][0] = np.nan
-
-            z[0] = z[indx][0]
-            z[indx][0] = np.nan
-
-        # Encode missing values with nan
-        if not indx[-1]:
-            x[-1] = x[indx][-1]
-            x[indx][-1] = np.nan
-            y[-1] = y[indx][-1]
-            z[indx][-1] = np.nan
-            z[-1] = z[indx][-1]
-            z[indx][-1] = np.nan
-
-        indx = np.invert(np.isnan(x))
-
-        m = np.arange(len(x))[indx]
-
-        # Get interpolation functions for the x, y, and z coordinates
-        f_x = interpolate.Rbf(m, x[indx], smooth=smooth)
-        f_y = interpolate.Rbf(m, y[indx], smooth=smooth)
-        f_z = interpolate.Rbf(m, z[indx], smooth=smooth)
-
-        # Use interpolation functions to create curve segments between
-        # adjacent (adjacent in the parameter X, for the current chromosome)
-        # coordinate beads
-        for j in range(length - 1):
-            if (j < length - 2):
-                m = np.arange(j, j + 1 + 0.1, 0.1)
-            else:
-                m = np.arange(j, j + 1, 0.1)
-            smoothed_X[i].append([f_x(np.arange(m.min(), m.max(), 0.1)),
-                                  f_y(np.arange(m.min(), m.max(), 0.1)),
-                                  f_z(np.arange(m.min(), m.max(), 0.1))])
-
-        begin = end
-
-    return smoothed_X
-
-
-##############################################################################
-# Define the function to scatter the beads.
-# -----------------------------------------
-def scatter_beads(x, y, z, bead_size, curr_cmap, indices, ax):
-    last_idx = len(x) - 1
-    ax.scatter(x[0], y[0], z[0], s=bead_size, color=curr_cmap(indices[0]),
-               label='start')
-    ax.scatter(x[1:last_idx], y[1:last_idx], z[1:last_idx], s=bead_size,
-               cmap=curr_cmap, c=indices[1:last_idx])
-    ax.scatter(x[last_idx], y[last_idx], z[last_idx], s=bead_size,
-               color=curr_cmap(indices[last_idx]), label='end')
-
-
-##############################################################################
-# Define the function to lighten or darken our color map.
-# -------------------------------------------------------
-def cmap_map(function, cmap):
-    # Function taken from:
-    # https://scipy-cookbook.readthedocs.io/items/Matplotlib_ColormapTransformations.html
-
-    """ Applies function (which should operate on vectors of shape 3:
-        [r, g, b]), on colormap cmap. This routine will break any discontinuous
-        points in a colormap.
+    Adapted from:
+    https://scipy-cookbook.readthedocs.io/items/Matplotlib_ColormapTransformations.html
     """
     cdict = cmap._segmentdata
     step_dict = {}
-    # First get the list of points where the segments start or end
+    # Get the list of points where the segments start or end
     for key in ('red', 'green', 'blue'):
         step_dict[key] = list(map(lambda x: x[0], cdict[key]))
     step_list = sum(step_dict.values(), [])
     step_list = np.array(list(set(step_list)))
 
-    # Then compute the LUT, and apply the function to the LUT
-    def reduced_cmap(step):
+    # Compute the LUT, and apply the function to the LUT
+    def reduce_cmap(step):
         return np.array(cmap(step)[0:3])
-    cmap_stepped = []
-    for curr_step in step_list:
-        cmap_stepped.append(reduced_cmap(curr_step))
-    old_LUT = np.array(cmap_stepped)
-    new_LUT = np.array(list(map(function, old_LUT)))
-    # Now try to make a minimal segment definition of the new LUT
+    old_LUT = np.array([reduce_cmap(x) for x in step_list])
+    new_LUT = np.array([function(x) for x in old_LUT])
+
+    # Try to make a minimal segment definition of the new LUT
     cdict = {}
     for i, key in enumerate(['red', 'green', 'blue']):
         this_cdict = {}
@@ -159,71 +56,240 @@ def cmap_map(function, cmap):
     return matplotlib.colors.LinearSegmentedColormap('colormap', cdict, 1024)
 
 
-##############################################################################
-# Define the function to plot the coordinates
-# -------------------------------------------
-def plot_structure(struct_file_name, contact_counts, title=None):
+def interpolate_chromosome(chrom, eps=0.1):
+    """Interpolate a smooth line between the beads of a given chromosome.
+
+    Should only be run on a single chromosome molecule.
+
+    Parameters
+    ----------
+    chrom : array of float
+    The 3D structure of a given chromosome (nbeads, 3).
+
+    eps : float, optional
+    Frequency of points to be interpolated. A value of '1' simply replaces any
+    NaN beads with interpolated values, but does not form a line connecting
+    between adjacent beads.
+
+    Returns
+    -------
+    chrom_interp : array of float
+    The smoothed 3D structure for the given chromosome.
+    """
+
+    # Select non-NaN beads
+    mask = np.invert(np.isnan(chrom[:, 0]))
+    if mask.sum() < 2:
+        return None  # Skip chromosomes with < 2 non-NaN beads
+
+    x = chrom[mask, 0]
+    y = chrom[mask, 1]
+    z = chrom[mask, 2]
+
+    # Get interpolation functions for the x, y, and z coordinates
+    bead_idx = np.arange(chrom.shape[0])[mask]
+    f_x = interpolate.Rbf(bead_idx, x, smooth=0)
+    f_y = interpolate.Rbf(bead_idx, y, smooth=0)
+    f_z = interpolate.Rbf(bead_idx, z, smooth=0)
+
+    # Use interpolation functions to create line segments between adjacent
+    # coordinate beads
+    line_idx = np.arange(bead_idx.min(), bead_idx.max() + eps, eps)
+    chrom_interp = np.array([f_x(line_idx), f_y(line_idx), f_z(line_idx)]).T
+
+    return chrom_interp
+
+
+def plot_chromosome(chrom, ax=None, cmap=None, name=None, bead_size=50):
+    """Plot a single chromosome molecule on the supplied axis.
+
+    Beads are represented as translucent circles, and a line is interpolated
+    between adjacent beads. Should only be run on a single chromosome molecule.
+
+    Parameters
+    ----------
+    chrom : array of float
+    The coordinates of the 3D structure of a given chromosome,
+    shape=(nbeads_chrom, 3).
+
+    ax : matplotlib.axes.Axes object, optional
+    The matplotlib axis on which to plot the chromosome. If absent, a new
+    figure will be created.
+
+    cmap : matplotlib.colors.Colormap object, optional
+    The matplotlib colormap with which to color the beads and lines.
+
+    name : str, optional
+    The name for the given chromosome, to be displayed in the plot legend.
+
+    bead_size : int, optional
+    Size for each bead in the plotted 3D structure.
+
+    Returns
+    -------
+    ax : matplotlib.axes.Axes object
+    The matplotlib axis on which the chromosome has been plotted.
+    """
+
+    if cmap is None:
+        cmap = matplotlib.colormaps['Spectral']
+    if ax is None:
+        fig = plt.figure(figsize=(15, 15))
+        ax = fig.add_subplot(111, projection='3d')
+        ax.set_xlabel('x', fontsize=20)
+        ax.set_ylabel('y', fontsize=20)
+        ax.set_zlabel('z', fontsize=20)
+        ax.view_init(15, 300)
+    if name is None:
+        name = ""
+    elif name != "":
+        name = f"{name} "
+
+    # Select non-NaN beads
+    mask = np.invert(np.isnan(chrom[:, 0]))
+    if mask.sum() == 0:
+        return ax  # Chromosome beads are all NaN, nothing to plot
+
+    # Determine which color in our colormap each bead will have
+    bead_color_idx = np.linspace(0, 1, chrom.shape[0])[mask]
+
+    # Plot the beads for the current chromosome
+    x = chrom[mask, 0]
+    y = chrom[mask, 1]
+    z = chrom[mask, 2]
+    ax.scatter(x[0], y[0], z[0], s=bead_size, color=cmap(bead_color_idx[0]),
+               label=f"{name}start")
+    if x.shape[0] > 2:
+        ax.scatter(x[1:-1], y[1:-1], z[1:-1], s=bead_size,
+                   cmap=cmap, c=bead_color_idx[1:-1])
+    ax.scatter(x[-1], y[-1], z[-1], s=bead_size,
+               color=cmap(bead_color_idx[-1]), label=f"{name}end")
+
+    # Interpolate the structure's beads to form a continuous line between beads
+    chrom_interp = interpolate_chromosome(chrom)
+
+    if chrom_interp is not None:
+        # Determine which color in our colormap each line segment will have
+        line_color_idx = np.linspace(
+            bead_color_idx.min(), bead_color_idx.max(), chrom_interp.shape[0])
+
+        # Plot this chromosome's interpolated coordinates as a continuous line
+        # that connects between adjacent beads
+        points = chrom_interp.reshape(-1, 1, 3)
+        segments = np.concatenate([points[:-1], points[1:]], axis=1)
+        lc = Line3DCollection(segments, cmap=cmap)
+        lc.set_array(line_color_idx)  # Set the values used for colormapping
+        lc.set_linewidth(2)
+        ax.add_collection(lc)
+
+    return ax
+
+
+def plot_structure(struct_file, lengths=None, ploidy=1, title=None,
+                   output_dir=None):
+    """Plot each chromosome molecule of structure individually in 3D.
+
+    Plot every chromosome molecule of the 3D genome structure, each on a
+    separate plot. Beads are represented as translucent circles, and a line is
+    interpolated between adjacent beads on each chromosome.
+
+    Parameters
+    ----------
+    struct_file : str
+    File containing whitespace-delimited coordinates of the 3D structure,
+    shape=(nbeads, 3).
+
+    lengths : str or array_like of int, optional
+    Number of beads in each chromosome of the structure. For haploid organisms,
+    the sum of the lengths should equal the total number of beads in the 3D
+    structure. For diploid organisms, the sum of the lengths is half of the
+    total number of beads in the 3D structure. If inputted as string, is assumed
+    to be the path to a bed file containing chromosome lengths.
+
+    ploidy : int, optional
+    Ploidy of the organism: 1 indicates haploid, 2 indicates diploid.
+
+    title : str, optional
+    The matplotlib axis on which to plot the chromosome. If absent, a new
+    figure will be created.
+
+    output_dir : str, optional
+    Directory in which to save the figures. If absent, figures will be saved
+    in current working directory.
+    """
+
+    # Setup output files
+    output_prefix = os.path.basename(struct_file).replace(".txt", "").replace(
+        ".coords", "")
+    if output_dir is not None:
+        os.makedirs(output_dir, exist_ok=True)
+        output_prefix = os.path.join(output_dir, output_prefix)
+
     # Load in the structure from its file
-    coord_arr = np.loadtxt(struct_file_name, delimiter=" ")
+    struct = np.loadtxt(struct_file)
 
-    # Get the length of the structure
-    struct_length = np.array([len(coord_arr)])
+    # Get the number of beads in each chromosome of the structure
+    # The sum of the lengths should equal the total number of beads in the 3D
+    # structure.
+    if lengths is None:  # Assume structure contains 1 haploid chromosome
+        lengths = np.array([struct.shape[0]])
+    elif isinstance(str, lengths) and os.path.isfile(lengths):
+        lengths = load_lengths(lengths)
+    else:
+        lengths = np.array(lengths, copy=False, ndmin=1, dtype=int).ravel()
+    lengths = np.tile(lengths, ploidy)  # In case data is diploid
 
-    # Get the structures coordinates
-    start, end = 0, struct_length[0]
-    x = coord_arr[:, 0][start:end]
-    y = coord_arr[:, 1][start:end]
-    z = coord_arr[:, 2][start:end]
+    # Using a modified spectral colormap
+    cmap = modify_cmap(
+        lambda x: x * 0.85, cmap=matplotlib.colormaps['Spectral'])
 
-    # Interpolate the coordinates of the structure
-    chrom = np.array(interpolate_chromosomes(coord_arr, struct_length)[0])
+    begin, end = 0, 0
+    for i, length in enumerate(lengths):
+        end += length
 
-    # Get the plot ready
-    fig = plt.figure(figsize=(15, 15))
-    ax = fig.add_subplot(111, projection='3d')
+        if np.isnan(struct[begin:end, 0].sum()) == length:
+            continue  # Chromosome beads are all NaN, skipping
 
-    # Get our colors set up. color_beads determines which color in our color
-    # map each bead will have.
-    color_indices = np.linspace(0, 1, len(x))
+        # Get the plot ready for this chromosome
+        fig = plt.figure(figsize=(15, 15))
+        ax = fig.add_subplot(111, projection='3d')
 
-    # We will use a spectral color cmap.
-    the_cmap = cmap_map(lambda x: x*0.85, matplotlib.cm.get_cmap('Spectral'))
+        # Plot current chromosome
+        ax = plot_chromosome(struct[begin:end], ax=ax, cmap=cmap)
 
-    # Scatter the beads for the chromosome.
-    scatter_beads(x, y, z, 50, the_cmap, color_indices, ax)
+        # Set the labels, title, legend, and view angle and position.
+        ax.set_xlabel('x', fontsize=20)
+        ax.set_ylabel('y', fontsize=20)
+        ax.set_zlabel('z', fontsize=20)
+        plt.legend(loc='best')
+        plt.title(title, fontsize=25)
+        ax.view_init(15, 300)
 
-    # Plot the points we interpolated that go in between the beads of the
-    # chromosome.
-    for i in range(struct_length[0] - 1):
-        ax.plot(chrom[i][0], chrom[i][1], chrom[i][2],
-                color=the_cmap(color_indices[i]))
+        # Save figure for this chromosome
+        if lengths.size == 1:
+            output_file = f"{output_prefix}.png"
+        else:
+            output_file = f"{output_prefix}.molecule{i + 1}of{lengths.size}.png"
+        fig.savefig(output_file, bbox_inches='tight', dpi=500)
+        plt.close()
 
-    # Set the labels, title, legend, and view angle and position. Show the
-    # plot.
-    ax.set_xlabel('x', fontsize=20)
-    ax.set_ylabel('y', fontsize=20)
-    ax.set_zlabel('z', fontsize=20)
-    plt.legend(loc='best')
-    plt.title(title, fontsize=25)
-    ax.view_init(15, 300)
-
-
-##############################################################################
-# Load the contact counts
-contact_counts = np.load('data/contact_counts.npy')
-
-
-##############################################################################
-# Plot the structure with less filtering. As we can see, this structure looks
-# quite odd, with spikes shooting out to single beads that are far away from
-# the rest of the structure.
-plot_structure('data/struct_inferred_less.000.coords', contact_counts,
-               'Inferred 3-d structure (Less Filtering)')
+        begin = end
 
 
 ##############################################################################
-# Plot the structure with more filtering. As we can see, this structure looks
-# significantly better, as bins with low coverage in the contact counts matrix
-# were filtered more heavily before PASTIS inferred the structure.
-plot_structure('data/struct_inferred_more.000.coords', contact_counts,
-               'Inferred 3-d structure (More Filtering)')
+
+# PASTIS can optionally filter the inputted counts matrix prior to inference.
+# This filtering removes loci with inadequate coverage (eg unmappable regions).
+
+# This first inferred structure was generated with FEWER loci filtered out.
+# Observe that this structure looks quite odd, with large loops extending out
+# to single beads that are far away from the rest of the structure.
+plot_structure(
+    'data/struct_inferred_less.000.coords',
+    title='Inferred 3D structure (Less filtering)')
+
+# This second inferred structure was generated with MORE loci filtered out.
+# Observe that this structure look significantly better than the first.
+plot_structure(
+    'data/struct_inferred_more.000.coords',
+    title='Inferred 3D structure (More filtering)')

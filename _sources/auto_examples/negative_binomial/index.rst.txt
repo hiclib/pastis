@@ -1,0 +1,62 @@
+
+
+.. _sphx_glr_auto_examples_negative_binomial:
+
+Negative Binomial modeling of contact counts
+============================================
+
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Are Hi-C contact count data overdispersed?">
+
+.. only:: html
+
+  .. image:: /auto_examples/negative_binomial/images/thumb/sphx_glr_plot_dispersion_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_negative_binomial_plot_dispersion.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Estimating the dispersion</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Here, we show how to estimate the dispersion parameter with Pastis.">
+
+.. only:: html
+
+  .. image:: /auto_examples/negative_binomial/images/thumb/sphx_glr_plot_estimating_dispersion_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_negative_binomial_plot_estimating_dispersion.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Estimating the dispersion parameter</div>
+    </div>
+
+
+.. thumbnail-parent-div-close
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/negative_binomial/plot_dispersion
+   /auto_examples/negative_binomial/plot_estimating_dispersion
+

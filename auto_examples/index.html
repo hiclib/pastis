@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en" data-content_root="../">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
   
     <title>PASTIS: Poisson-based algorithm for stable inference of DNA Structure &#8212; Pastis 0.5.0-git documentation</title>
   <!-- htmltitle is before nature.css - we use this hack to load bootstrap first -->
@@ -17,16 +18,15 @@
           type="text/javascript"></script>
 
 
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/doctools.js"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=fb9458d3" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <script src="../_static/documentation_options.js?v=7614f3fd"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
 <meta charset='utf-8'>
@@ -72,49 +72,36 @@
   </div>
     <div class="container">
   
-  <p id="sphx-glr-auto-examples">General examples</p>
-<div class="sphx-glr-clear"></div><div class="section" id="datasets">
-<span id="sphx-glr-auto-examples-datasets"></span><h1>Datasets<a class="headerlink" href="#datasets" title="Permalink to this headline">¶</a></h1>
-<div class="sphx-glr-thumbcontainer" tooltip="This example showcases how to generated a random dataset from a distance matrix using different..."><div class="figure align-default" id="id1">
-<img alt="Generate a random dataset from a distance matrix" src="../_images/sphx_glr_plot_generate_dataset_from_distances_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="datasets/plot_generate_dataset_from_distances.html#sphx-glr-auto-examples-datasets-plot-generate-dataset-from-distances-py"><span class="std std-ref">Generate a random dataset from a distance matrix</span></a></span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+  <p>General examples</p>
+<div class="sphx-glr-thumbnails"></div><section id="datasets">
+<h1>Datasets<a class="headerlink" href="#datasets" title="Link to this heading">¶</a></h1>
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="This example showcases how to generated a random dataset from a distance matrix using different probability distribution."><img alt="" src="../_images/sphx_glr_plot_generate_dataset_from_distances_thumb.png" />
+<p><a class="reference internal" href="datasets/plot_generate_dataset_from_distances.html#sphx-glr-auto-examples-datasets-plot-generate-dataset-from-distances-py"><span class="std std-ref">Generate a random dataset from a distance matrix</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Generate a random dataset from a distance matrix</div>
+</div></div></section>
+<section id="plotting-two-structures-inferred-with-different-amounts-of-filtering">
+<h1>Plotting Two Structures Inferred with Different Amounts of Filtering<a class="headerlink" href="#plotting-two-structures-inferred-with-different-amounts-of-filtering" title="Link to this heading">¶</a></h1>
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="This example plots two 3D structures (with matplotlib) inferred with different levels of filtering to showcase how increasing filtering when running PASTIS can result in a better-looking inferred structure."><img alt="" src="../_images/sphx_glr_plot_structures_different_filtering_thumb.png" />
+<p><a class="reference internal" href="filtering_example/plot_structures_different_filtering.html#sphx-glr-auto-examples-filtering-example-plot-structures-different-filtering-py"><span class="std std-ref">Plot 3D structures inferred with different levels of filtering with matplotlib</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Plot 3D structures inferred with different levels of filtering with matplotlib</div>
+</div></div></section>
+<section id="negative-binomial-modeling-of-contact-counts">
+<h1>Negative Binomial modeling of contact counts<a class="headerlink" href="#negative-binomial-modeling-of-contact-counts" title="Link to this heading">¶</a></h1>
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="Are Hi-C contact count data overdispersed?"><img alt="" src="../_images/sphx_glr_plot_dispersion_thumb.png" />
+<p><a class="reference internal" href="negative_binomial/plot_dispersion.html#sphx-glr-auto-examples-negative-binomial-plot-dispersion-py"><span class="std std-ref">Estimating the dispersion</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Estimating the dispersion</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="Here, we show how to estimate the dispersion parameter with Pastis."><img alt="" src="../_images/sphx_glr_plot_estimating_dispersion_thumb.png" />
+<p><a class="reference internal" href="negative_binomial/plot_estimating_dispersion.html#sphx-glr-auto-examples-negative-binomial-plot-estimating-dispersion-py"><span class="std std-ref">Estimating the dispersion parameter</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Estimating the dispersion parameter</div>
+</div></div></section>
+<section id="plotting-a-structure">
+<h1>Plotting a Structure<a class="headerlink" href="#plotting-a-structure" title="Link to this heading">¶</a></h1>
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="This example showcases how to plot an inferred 3D structure output by PASTIS using matplotlib."><img alt="" src="../_images/sphx_glr_plot_inferred_structure_thumb.png" />
+<p><a class="reference internal" href="plot_structure_basic/plot_inferred_structure.html#sphx-glr-auto-examples-plot-structure-basic-plot-inferred-structure-py"><span class="std std-ref">Plot an inferred 3D structure with matplotlib</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Plot an inferred 3D structure with matplotlib</div>
+</div></div><div class="toctree-wrapper compound">
 </div>
-</div><div class="toctree-wrapper compound">
-</div>
-<div class="sphx-glr-clear"></div></div>
-<div class="section" id="plotting-two-structures-inferred-with-different-amounts-of-filtering">
-<span id="sphx-glr-auto-examples-filtering-example"></span><h1>Plotting Two Structures Inferred with Different Amounts of Filtering<a class="headerlink" href="#plotting-two-structures-inferred-with-different-amounts-of-filtering" title="Permalink to this headline">¶</a></h1>
-<div class="sphx-glr-thumbcontainer" tooltip="This example plots two 3-d structures (with matplotlib) inferred with different levels of filte..."><div class="figure align-default" id="id2">
-<img alt="Plot 3-d structures inferred with different levels of filtering with matplotlib" src="../_images/sphx_glr_plot_structures_different_filtering_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="filtering_example/plot_structures_different_filtering.html#sphx-glr-auto-examples-filtering-example-plot-structures-different-filtering-py"><span class="std std-ref">Plot 3-d structures inferred with different levels of filtering with matplotlib</span></a></span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
-</div>
-</div><div class="toctree-wrapper compound">
-</div>
-<div class="sphx-glr-clear"></div></div>
-<div class="section" id="negative-binomial-modeling-of-contact-counts">
-<span id="sphx-glr-auto-examples-negative-binomial"></span><h1>Negative Binomial modeling of contact counts<a class="headerlink" href="#negative-binomial-modeling-of-contact-counts" title="Permalink to this headline">¶</a></h1>
-<div class="sphx-glr-thumbcontainer" tooltip="Are Hi-C contact count data overdispersed?"><div class="figure align-default" id="id3">
-<img alt="Estimating the dispersion" src="../_images/sphx_glr_plot_dispersion_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="negative_binomial/plot_dispersion.html#sphx-glr-auto-examples-negative-binomial-plot-dispersion-py"><span class="std std-ref">Estimating the dispersion</span></a></span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
-</div>
-</div><div class="toctree-wrapper compound">
-</div>
-<div class="sphx-glr-thumbcontainer" tooltip="Here, we show how to estimate the dispersion parameter with Pastis."><div class="figure align-default" id="id4">
-<img alt="Estimating the dispersion parameter" src="../_images/sphx_glr_plot_estimating_dispersion_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="negative_binomial/plot_estimating_dispersion.html#sphx-glr-auto-examples-negative-binomial-plot-estimating-dispersion-py"><span class="std std-ref">Estimating the dispersion parameter</span></a></span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
-</div>
-</div><div class="toctree-wrapper compound">
-</div>
-<div class="sphx-glr-clear"></div></div>
-<div class="section" id="plotting-a-structure">
-<span id="sphx-glr-auto-examples-plot-structure-basic"></span><h1>Plotting a Structure<a class="headerlink" href="#plotting-a-structure" title="Permalink to this headline">¶</a></h1>
-<div class="sphx-glr-thumbcontainer" tooltip="This example showcases how to plot an inferred 3-d structure output by PASTIS using matplotlib."><div class="figure align-default" id="id5">
-<img alt="Plot an inferred 3-d structure with matplotlib" src="../_images/sphx_glr_plot_inferred_structure_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="plot_structure_basic/plot_inferred_structure.html#sphx-glr-auto-examples-plot-structure-basic-plot-inferred-structure-py"><span class="std std-ref">Plot an inferred 3-d structure with matplotlib</span></a></span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
-</div>
-</div><div class="toctree-wrapper compound">
-</div>
-<div class="sphx-glr-clear"></div><div class="sphx-glr-footer class sphx-glr-footer-gallery docutils container">
+<div class="sphx-glr-footer sphx-glr-footer-gallery docutils container">
 <div class="sphx-glr-download sphx-glr-download-python docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/07fcc19ba03226cd3d83d4e40ec44385/auto_examples_python.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">all</span> <span class="pre">examples</span> <span class="pre">in</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">auto_examples_python.zip</span></code></a></p>
 </div>
@@ -123,7 +110,7 @@
 </div>
 </div>
 <p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
-</div>
+</section>
 
 
     </div>
@@ -134,7 +121,7 @@
     </p>
     <p>
         &copy; Copyright 2014, Nelle Varoquaux.<br/>
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 3.5.3.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 7.4.7.<br/>
     </p>
 </footer>
   </body>

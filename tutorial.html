@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
   
     <title>PASTIS: Poisson-based algorithm for stable inference of DNA Structure &#8212; Pastis 0.5.0-git documentation</title>
   <!-- htmltitle is before nature.css - we use this hack to load bootstrap first -->
@@ -17,16 +18,15 @@
           type="text/javascript"></script>
 
 
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="_static/gallery.css" />
-    <link rel="stylesheet" type="text/css" href="_static/gallery-binder.css" />
-    <link rel="stylesheet" type="text/css" href="_static/gallery-dataframe.css" />
-    <link rel="stylesheet" type="text/css" href="_static/gallery-rendered-html.css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/doctools.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=fb9458d3" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <script src="_static/documentation_options.js?v=7614f3fd"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
 <meta charset='utf-8'>
@@ -72,32 +72,32 @@
   </div>
     <div class="container">
   
-  <div class="section" id="tutorial">
-<h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="mds-nmds-pm1-pm2">
-<h2>MDS, NMDS, PM1, PM2<a class="headerlink" href="#mds-nmds-pm1-pm2" title="Permalink to this headline">¶</a></h2>
+  <section id="tutorial">
+<h1>Tutorial<a class="headerlink" href="#tutorial" title="Link to this heading">¶</a></h1>
+<section id="mds-nmds-pm1-pm2">
+<h2>MDS, NMDS, PM1, PM2<a class="headerlink" href="#mds-nmds-pm1-pm2" title="Link to this heading">¶</a></h2>
 <p>In this package, we provide four algorithms to infer the 3D structure of the
 genome: MDS, NMDS, PM1, PM2. For all methods, chromosomes are represented as
 beads on a string, at a given resolution.</p>
-</div>
-<div class="section" id="running-the-example">
-<h2>Running the example<a class="headerlink" href="#running-the-example" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="running-the-example">
+<h2>Running the example<a class="headerlink" href="#running-the-example" title="Link to this heading">¶</a></h2>
 <p>We provide a sample interaction count matrix of the first 5 chromosomes and
 configuration file <code class="docutils literal notranslate"><span class="pre">config.ini</span></code>. To run the example, edit the two options
 <code class="docutils literal notranslate"><span class="pre">binary_mds</span></code> (respectively <code class="docutils literal notranslate"><span class="pre">binary_pm</span></code>) to the path where you have
 installed <code class="docutils literal notranslate"><span class="pre">MDS_all</span></code> (respectively <code class="docutils literal notranslate"><span class="pre">PM_all</span></code>).</p>
 <div class="highlight-guess notranslate"><div class="highlight"><pre><span></span><span class="k">[all]</span>
-<span class="na">binary_mds: /bioinfo/users/nvaroqua/.local/bin/MDS_all</span>
-<span class="na">binary_pm: /bioinfo/users/nvaroqua/.local/bin/PM_all</span>
-<span class="na">resolution: 10000</span>
-<span class="na">output_name: structure.pdb</span>
-<span class="na">chromosomes: 1,2,3,4,5</span>
-<span class="na">organism_structure: files/budding_yeast_structure</span>
-<span class="na">counts: data/counts.npy</span>
+<span class="na">binary_mds</span><span class="o">:</span><span class="w"> </span><span class="s">/bioinfo/users/nvaroqua/.local/bin/MDS_all</span>
+<span class="na">binary_pm</span><span class="o">:</span><span class="w"> </span><span class="s">/bioinfo/users/nvaroqua/.local/bin/PM_all</span>
+<span class="na">resolution</span><span class="o">:</span><span class="w"> </span><span class="s">10000</span>
+<span class="na">output_name</span><span class="o">:</span><span class="w"> </span><span class="s">structure.pdb</span>
+<span class="na">chromosomes</span><span class="o">:</span><span class="w"> </span><span class="s">1,2,3,4,5</span>
+<span class="na">organism_structure</span><span class="o">:</span><span class="w"> </span><span class="s">files/budding_yeast_structure</span>
+<span class="na">counts</span><span class="o">:</span><span class="w"> </span><span class="s">data/counts.npy</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
     </div>
@@ -108,7 +108,7 @@ installed <code class="docutils literal notranslate"><span class="pre">MDS_all</
     </p>
     <p>
         &copy; Copyright 2014, Nelle Varoquaux.<br/>
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 3.5.3.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 7.4.7.<br/>
     </p>
 </footer>
   </body>
