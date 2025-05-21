@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:01.055** total execution time for 1 file **from auto_examples/datasets**:
+**00:01.231** total execution time for 1 file **from auto_examples/datasets**:
 
 .. container::
 
@@ -33,5 +33,5 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_auto_examples_datasets_plot_generate_dataset_from_distances.py` (``plot_generate_dataset_from_distances.py``)
-     - 00:01.055
+     - 00:01.231
      - 0.0
