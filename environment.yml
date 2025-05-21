@@ -11,7 +11,7 @@ dependencies:
         - scipy
         - scikit-learn
         - matplotlib
-        - git+https://github.com/gesinecauer/iced.git@fix_install_from_repo
+        - iced
         - joblib
         - pandas
         - sphinx-gallery
