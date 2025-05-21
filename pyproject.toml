@@ -20,11 +20,11 @@ license = "BSD-3-Clause"
 license-files = ["COPYING"]
 keywords = ["pastis", "hi-c", "chromatin"]
 authors = [
-  {name = "Nelle Varoquaux", email = "nelle.varoquaux@ensmp.fr"},
+  {name = "Nelle Varoquaux", email = "nelle.varoquaux@gmail.com"},
   {name = "Gesine Cauer"},
 ]
 maintainers = [
-  {name = "Nelle Varoquaux", email = "nelle.varoquaux@ensmp.fr"},
+  {name = "Nelle Varoquaux", email = "nelle.varoquaux@gmail.com"},
   {name = "Gesine Cauer"},
 ]
 classifiers=[
