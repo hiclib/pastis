@@ -1,8 +1,17 @@
 import numpy as np
 from scipy import sparse
 import pandas as pd
+from iced.utils import deprecated
+import warnings
+
+warnings.warn(
+    "The module pastis.fastio is deprecated. The packaged iced has identical "
+    "features and should be used instead. This module will be removed in "
+    "version 0.5")
 
 
+@deprecated("The function load_counts is deprecated. Please use the iced "
+            "package instead")
 def load_counts(filename, lengths=None):
     """
     Fast loading of a raw interaction counts file
@@ -42,6 +51,8 @@ def load_counts(filename, lengths=None):
     return counts
 
 
+@deprecated("The function load_lengths is deprecated. Please use the iced "
+            "package instead")
 def load_lengths(filename):
     """
     Fast loading of the bed files
@@ -62,6 +73,8 @@ def load_lengths(filename):
     return lengths[idx.argsort()]
 
 
+@deprecated("The function write_counts is deprecated. Please use the iced "
+            "package instead")
 def write_counts(filename, counts):
     """
     Write counts
@@ -85,6 +98,8 @@ def write_counts(filename, counts):
     np.savetxt(filename, data, fmt="%d\t%d\t%f")
 
 
+@deprecated("The function write_lengths is deprecated. Please use the iced "
+            "package instead")
 def write_lengths(filename, lengths, resolution=1):
     """
     Write lengths as bed file

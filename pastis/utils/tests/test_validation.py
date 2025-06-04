@@ -1,6 +1,5 @@
-from nose.tools import assert_raises
-
 import numpy as np
+from numpy.testing import assert_raises
 
 from pastis.utils import _check_squared_array
 

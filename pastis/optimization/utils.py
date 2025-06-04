@@ -1,6 +1,6 @@
 import numpy as np
-from sklearn.metrics import euclidean_distances
 from scipy import sparse
+from sklearn.metrics import euclidean_distances
 
 
 class ConstantDispersion(object):
@@ -10,49 +10,14 @@ class ConstantDispersion(object):
     def fit(self, X, y):
         return self
 
-    def predict(self, X):
-        return self.coef * np.ones(X.shape)
+    def predict(self, X, bias=None):
+        if bias is None:
+            return self.coef * np.ones(X.shape)
+        else:
+            return self.coef * np.ones(X.shape) * bias
 
-    def derivate(self, X):
+    def derivate(self, X, bias=None):
         return np.zeros(X.shape)
-
-
-def compute_wish_distances(counts, alpha=-3., beta=1., bias=None):
-    """
-    Computes wish distances from a counts matrix
-
-    Parameters
-    ----------
-    counts : ndarray
-        Interaction counts matrix
-
-    alpha : float, optional, default: -3
-        Coefficient of the power law
-
-    beta : float, optional, default: 1
-        Scaling factor
-
-    Returns
-    -------
-    wish_distances
-    """
-    if beta == 0:
-        raise ValueError("beta cannot be equal to 0.")
-    counts = counts.copy()
-    if sparse.issparse(counts):
-        if not sparse.isspmatrix_coo(counts):
-            counts = counts.tocoo()
-        if bias is not None:
-            bias = bias.flatten()
-            counts.data /= bias[counts.row] * bias[counts.col]
-        wish_distances = counts / beta
-        wish_distances.data[wish_distances.data != 0] **= 1. / alpha
-        return wish_distances
-    else:
-        wish_distances = counts.copy() / beta
-        wish_distances[wish_distances != 0] **= 1. / alpha
-
-        return wish_distances
 
 
 def eval_no_f(x, user_data=None):
@@ -87,7 +52,7 @@ def eval_g(x, user_data=None):
     x = x.reshape((m, n))
     dis = euclidean_distances(x)
     dis = dis ** 2
-    mask = np.invert(np.tri(m, dtype=np.bool))
+    mask = np.invert(np.tri(m, dtype=np.bool_))
     g = np.concatenate([dis[mask].flatten(), ((x - d) ** 2).sum(axis=1)])
     return g
 
@@ -127,7 +92,7 @@ def eval_jac_g(x, flag, user_data=None):
         x = x.reshape((m, n))
         tmp = x.repeat(m, axis=0).reshape((m, m, n))
         dif = tmp - tmp.transpose(1, 0, 2)
-        mask = np.invert(np.tri(m, dtype=np.bool))
+        mask = np.invert(np.tri(m, dtype=np.bool_))
         dif = dif[mask]
         jac = 2 * np.concatenate((dif, - dif), axis=1).flatten()
 
@@ -141,3 +106,69 @@ def eval_h(x, lagrange, obj_factor, flag, user_data=None):
     """
     """
     return False
+
+
+def compute_adjacent_distances(X, lengths):
+    """
+    Compute distances between adjacent beads
+
+    Parameters
+    ----------
+    X : ndarray (n, 3)
+
+    lengths : ndarray (L, )
+
+    Returns
+    -------
+    dis : ndarray (n)
+    """
+    # We want distances between adjacent beads, without computing the dense
+    # distance matrix.
+    nchrom = len(lengths)
+    lengths_cum = np.concatenate([[0], lengths.cumsum()])
+    i = np.concatenate(
+        [np.arange(lengths_cum[k], lengths_cum[k+1] - 1)
+         for k in range(nchrom)])
+    j = np.concatenate(
+        [np.arange(lengths_cum[k]+1, lengths_cum[k+1])
+         for k in range(nchrom)])
+    dis = ((X[i] - X[j])**2).sum(axis=1)
+    return np.sqrt(dis)
+
+
+def compute_wish_distances(counts, alpha=-3., beta=1., bias=None):
+    """
+    Computes wish distances from a counts matrix
+
+    Parameters
+    ----------
+    counts : ndarray
+        Interaction counts matrix
+
+    alpha : float, optional, default: -3
+        Coefficient of the power law
+
+    beta : float, optional, default: 1
+        Scaling factor
+
+    Returns
+    -------
+    wish_distances
+    """
+    if beta == 0:
+        raise ValueError("beta cannot be equal to 0.")
+    counts = counts.copy()
+    if sparse.issparse(counts):
+        if not sparse.isspmatrix_coo(counts):
+            counts = counts.tocoo()
+        if bias is not None:
+            bias = bias.flatten()
+            counts.data /= bias[counts.row] * bias[counts.col]
+        wish_distances = counts / beta
+        wish_distances.data[wish_distances.data != 0] **= 1. / alpha
+        return wish_distances
+    else:
+        wish_distances = counts.copy() / beta
+        wish_distances[wish_distances != 0] **= 1. / alpha
+
+        return wish_distances

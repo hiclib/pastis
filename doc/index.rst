@@ -3,9 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-================================================================================
+=====================================================================
 PASTIS: Poisson-based Algorithm for STable Inference of DNA Structure
-================================================================================
+=====================================================================
 
 .. figure:: images/yeast_chr2.png
    :scale: 50%
@@ -39,16 +39,24 @@ counts and the physical distances.
 Download
 ========
 
-Download Pastis 0.1 `here
-<https://github.com/hiclib/pastis/archive/v0.1.0.tar.gz>`_
+Download the latest version of pastis `here
+<https://github.com/hiclib/pastis/releases>`_
 or `fork the code on github <https://github.com/hiclib/pastis/>`_.
 
 References
 ==========
 
-`A statistical approach for inferring the 3D structure of the
-genome <http://bioinformatics.oxfordjournals.org/content/30/12/i26.short>`_ N. Varoquaux, F.
-Ay, W. S. Noble and J.-P. Vert, Bioinformatics 30 (12), i26-i33
+N. Varoquaux, F. Ay, W. S. Noble, and J.-P. Vert. `A statistical approach for
+inferring the 3D structure of the genome.
+<http://bioinformatics.oxfordjournals.org/content/30/12/i26.short>`
+Bioinformatics, 30(12):i26–i33, 2014.
+
+A. G. Cauer, G. Yardimci, J.-P. Vert, N. Varoquaux, and W. S. Noble. `Inferring
+diploid 3D chromatin structures from Hi-C data.
+<http://drops.dagstuhl.de/opus/volltexte/2019/11041/>` In 19th International
+Workshop on Algorithms in Bioinformatics (WABI 2019), volume 143 of Leibniz
+International Proceedings in Informatics (LIPIcs), pages 11:1–11:13, Dagstuhl,
+Germany, 2019. Schloss Dagstuhl–Leibniz-Zentrum fuer Informatik.
 
 Contacts
 ========

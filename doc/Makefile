@@ -50,6 +50,7 @@ help:
 
 clean:
 	rm -rf $(BUILDDIR)/*
+	rm -rf auto_examples
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
@@ -180,4 +181,4 @@ pseudoxml:
 
 
 deploy:
-	rsync -avz _build/html/ nvaroquaux@cbio.ensmp.fr:public_html/pastis/
+	rsync -avz _build/html/ nvaroquaux@ssh.cbio.ensmp.fr:public_html/pastis/

@@ -1,0 +1,6 @@
+numpy
+scipy
+matplotlib
+pandas
+iced
+git+https:://github.com/hiclib/pastis

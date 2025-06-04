@@ -8,11 +8,11 @@
 import os
 import numpy as np
 from scipy import sparse
+import iced
 
 from .config import parse
 from .optimization import MDS, PM1, PM2, NMDS
-from . import fastio
-from .externals import iced
+from iced.io import load_counts, load_lengths
 from .io import writePDB
 
 
@@ -34,7 +34,7 @@ def run_mds(directory):
 
     # First, compute MDS
     if options["lengths"].endswith(".bed"):
-        lengths = fastio.load_lengths(
+        lengths = load_lengths(
             os.path.join(directory,
                          options["lengths"]))
     else:
@@ -43,10 +43,15 @@ def run_mds(directory):
     if options["counts"].endswith("npy"):
         counts = np.load(os.path.join(directory, options["counts"]))
     elif options["counts"].endswith(".matrix"):
-        counts = fastio.load_counts(
+        counts = load_counts(
             os.path.join(directory,
                          options["counts"]),
             lengths=lengths)
+
+    if sparse.issparse(counts):
+        counts = sparse.triu(counts, 1)
+    else:
+        counts = np.triu(counts, 1)
 
     if options["normalize"]:
         counts = iced.filter.filter_low_counts(counts, sparsity=False,
@@ -68,11 +73,11 @@ def run_mds(directory):
               max_iter=options["max_iter"],
               verbose=options["verbose"])
     X = mds.fit(counts)
-    
-    torm = np.array((counts.sum(axis=0) == 0)).flatten()
+
+    torm = np.array((counts.sum(axis=0).ravel() + counts.sum(axis=1).ravel() == 0)).ravel()
     X[torm] = np.nan
     X -= np.nanmean(X, axis=0)
-    
+
     np.savetxt(
         os.path.join(
             directory,
@@ -104,7 +109,7 @@ def run_nmds(directory):
 
     # First, compute MDS
     if options["lengths"].endswith(".bed"):
-        lengths = fastio.load_lengths(
+        lengths = load_lengths(
             os.path.join(directory,
                          options["lengths"]))
     else:
@@ -113,10 +118,15 @@ def run_nmds(directory):
     if options["counts"].endswith("npy"):
         counts = np.load(os.path.join(directory, options["counts"]))
     elif options["counts"].endswith(".matrix"):
-        counts = fastio.load_counts(
+        counts = load_counts(
             os.path.join(directory,
                          options["counts"]),
             lengths=lengths)
+
+    if sparse.issparse(counts):
+        counts = sparse.triu(counts, 1)
+    else:
+        counts = np.triu(counts, 1)
 
     if options["normalize"]:
         counts = iced.filter.filter_low_counts(counts, sparsity=False,
@@ -132,7 +142,6 @@ def run_nmds(directory):
         counts.eliminate_zeros()
         counts = counts.tocoo()
 
-    torm = np.array((counts.sum(axis=0) == 0)).flatten()
     nmds = NMDS(alpha=options["alpha"],
                 beta=options["beta"],
                 random_state=random_state,
@@ -140,9 +149,10 @@ def run_nmds(directory):
                 verbose=options["verbose"])
     X = nmds.fit(counts)
 
+    torm = np.array((counts.sum(axis=0).ravel() + counts.sum(axis=1).ravel() == 0)).ravel()
     X[torm] = np.nan
     X -= np.nanmean(X, axis=0)
-    
+
     np.savetxt(
         os.path.join(
             directory,
@@ -175,7 +185,7 @@ def run_pm1(directory):
     options = parse(config_file)
 
     if options["lengths"].endswith(".bed"):
-        lengths = fastio.load_lengths(
+        lengths = load_lengths(
             os.path.join(directory,
                          options["lengths"]))
     else:
@@ -185,10 +195,15 @@ def run_pm1(directory):
         counts = np.load(os.path.join(directory, options["counts"]))
         counts[np.isnan(counts)] = 0
     elif options["counts"].endswith(".matrix"):
-        counts = fastio.load_counts(
+        counts = load_counts(
             os.path.join(directory,
                          options["counts"]),
             lengths=lengths)
+
+    if sparse.issparse(counts):
+        counts = sparse.triu(counts, 1)
+    else:
+        counts = np.triu(counts, 1)
 
     if options["normalize"]:
         counts = iced.filter.filter_low_counts(counts, sparsity=False,
@@ -216,11 +231,11 @@ def run_pm1(directory):
               bias=bias,
               verbose=options["verbose"])
     X = pm1.fit(counts)
-    
-    torm = np.array((counts.sum(axis=0) == 0)).flatten()
+
+    torm = np.array((counts.sum(axis=0).ravel() + counts.sum(axis=1).ravel() == 0)).ravel()
     X[torm] = np.nan
     X -= np.nanmean(X, axis=0)
-    
+
     np.savetxt(
         os.path.join(
             directory,
@@ -253,7 +268,7 @@ def run_pm2(directory):
     options = parse(config_file)
 
     if options["lengths"].endswith(".bed"):
-        lengths = fastio.load_lengths(
+        lengths = load_lengths(
             os.path.join(directory,
                          options["lengths"]))
     else:
@@ -263,9 +278,14 @@ def run_pm2(directory):
         counts = np.load(os.path.join(directory, options["counts"]))
         counts[np.arange(len(counts)), np.arange(len(counts))] = 0
     elif options["counts"].endswith(".matrix"):
-        counts = fastio.load_counts(
+        counts = load_counts(
             os.path.join(directory, options["counts"]),
             lengths=lengths)
+
+    if sparse.issparse(counts):
+        counts = sparse.triu(counts, 1)
+    else:
+        counts = np.triu(counts, 1)
 
     if options["normalize"]:
         counts = iced.filter.filter_low_counts(counts, sparsity=False,
@@ -294,10 +314,10 @@ def run_pm2(directory):
               verbose=options["verbose"])
     X = pm2.fit(counts)
 
-    torm = np.array(((counts + counts.transpose()).sum(axis=0) == 0)).flatten()
+    torm = np.array((counts.sum(axis=0).ravel() + counts.sum(axis=1).ravel() == 0)).ravel()
     X[torm] = np.nan
     X -= np.nanmean(X, axis=0)
-    
+
     np.savetxt(
         os.path.join(
             directory,

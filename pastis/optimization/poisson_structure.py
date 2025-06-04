@@ -252,12 +252,12 @@ class PM2(object):
                 verbose=self.verbose,
                 random_state=self.random_state)
             print(self.alpha_, self.beta_)
-            X_ = estimate_X(counts,
-                            alpha=self.alpha_,
-                            beta=self.beta_,
-                            ini=X,
-                            verbose=self.verbose,
-                            bias=self.bias,
-                            random_state=self.random_state,
-                            maxiter=self.max_iter)
-        return X_
+            X = estimate_X(counts,
+                           alpha=self.alpha_,
+                           beta=self.beta_,
+                           ini=X,
+                           verbose=self.verbose,
+                           bias=self.bias,
+                           random_state=self.random_state,
+                           maxiter=self.max_iter)
+        return X
