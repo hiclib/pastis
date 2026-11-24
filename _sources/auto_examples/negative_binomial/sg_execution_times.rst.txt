@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:00.301** total execution time for 2 files **from auto_examples/negative_binomial**:
+**00:00.300** total execution time for 2 files **from auto_examples/negative_binomial**:
 
 .. container::
 
